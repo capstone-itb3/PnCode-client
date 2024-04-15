@@ -1,0 +1,13 @@
+<html>
+  <body>
+    <input type='text'id='name' required>
+    <button onclick='display()'>Display</button>
+    <script>
+    	let i = document.getElementById('name');
+      	
+      	function display() {
+          console.log('Hello ' + i);
+        }
+    </script>
+  </body>
+</html>
