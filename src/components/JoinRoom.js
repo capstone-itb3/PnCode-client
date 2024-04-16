@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 function JoinRoom() {
-  let [room_id, setRoomId] = useState('');
+  const [room_id, setRoomId] = useState('');
   const [username, setUsername] = useState('');
   const navigate =  useNavigate();
 
@@ -19,14 +19,13 @@ function JoinRoom() {
   };
 
   const joinRoom = (id) => {
-    if (id !== undefined) {
-      room_id = id;
-    }
-    if (!room_id || !username) {
+    const joining_id = id || room_id;
+
+    if (!joining_id || !username) {
       toast.error('One of the textfields are empty.');
       return;
     } 
-    navigate( `/editor/${room_id}`, {
+    navigate( `/room/${joining_id}`, {
       state: { username }
     });
   };

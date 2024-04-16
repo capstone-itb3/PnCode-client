@@ -15,6 +15,7 @@ function Room() {
   const location = useLocation(); 
   const navigate = useNavigate();
   const { room_id } = useParams();
+  document.getElementsByTagName('title').innerHTML = room_id;
 
   useEffect (() =>  {
     const init = async () => {
@@ -25,7 +26,7 @@ function Room() {
       const handleError = (e) => {
         console.log('Error: ', e);
         toast.error('Error. Socket connection failed.');
-        navigate('/');
+        navigate('/join-room');
       }
 
       socketRef.current.emit(Do.JOIN, {
@@ -58,7 +59,7 @@ function Room() {
   }, []);
 
   if (!location.state) {
-    return <Navigate to='/' />
+    return <Navigate to='/join-room' />
   }
 
   const copyRoom = async () => {
@@ -72,7 +73,7 @@ function Room() {
   }
 
   const leaveRoom = async () => {
-    navigate('/')
+    navigate('/join-room')
   }
 
   return (
