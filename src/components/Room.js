@@ -78,7 +78,7 @@ function Room() {
   return (
     <main className='editor-main'>
       <div className='top'>
-        <h1>Room ID: {room_id}</h1>
+        <label><b>Room ID:</b> {room_id}</label>
         <button className='room-btn'  style={{ backgroundColor: '#00ff00' }} onClick={ copyRoom }>Copy 🔗</button>
       </div>
       <hr></hr>
