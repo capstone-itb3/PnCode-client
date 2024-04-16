@@ -14,12 +14,13 @@ function JoinRoom() {
     setRoomId(new_id);
     toast.success('Loading a new Room...');
 
-//  room_id = e => setRoomId(e.target.value);
+
+    joinRoom();
   };
 
   const joinRoom = () => {
     if (!room_id || !username) {
-      toast.error('Please input a Room Id in the textfield.');
+      toast.error('One of the textfields are empty.');
       return;
     } 
     navigate( `/editor/${room_id}`, {

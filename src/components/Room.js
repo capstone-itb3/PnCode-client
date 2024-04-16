@@ -61,14 +61,15 @@ function Room() {
     return <Navigate to='/' />
   }
 
-  // const copyRoomId = async () => {
-  //   try {
-  //     await navigator.clipboard.writeText(room_id);
-  //   }
-  //   catch(e) {
-  //     console.log();
-  //   }
-  // }
+  const copyRoom = async () => {
+    try {
+      await navigator.clipboard.writeText(room_id);
+      toast.success('Copied to clipboard.');
+    }
+    catch(e) {
+      console.log();
+    }
+  }
 
   const leaveRoom = async () => {
     navigate('/')
@@ -78,6 +79,7 @@ function Room() {
     <main className='editor-main'>
       <div className='top'>
         <h1>Room ID: {room_id}</h1>
+        <button className='room-btn'  style={{ backgroundColor: '#00ff00' }} onClick={ copyRoom }>Copy 🔗</button>
       </div>
       <hr></hr>
       <div className='bottom'>
@@ -90,7 +92,7 @@ function Room() {
             ))}
           </div>
           <div className='button-list'>
-            <button style={{ backgroundColor: '#ff0000' }} onClick={ leaveRoom }>Leave Room</button>
+            <button className='room-btn' style={{ backgroundColor: '#ff0000' }} onClick={ leaveRoom }>Leave Room</button>
           </div>
         </aside>
         <section>
