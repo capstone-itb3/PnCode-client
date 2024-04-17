@@ -25,7 +25,7 @@ function Login() {
         if (data.user) {
             alert ('Login successful');
             localStorage.setItem('token', data.user);
-            navigate('dashboard');
+            navigate('/dashboard');
         } else {
             alert('Incorrect username or password');
         } 
