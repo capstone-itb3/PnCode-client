@@ -45,7 +45,7 @@ function Room() {
 
       socketRef.current.on(Is.DISCONNECTED, ({ socketId, username }) => {
         setUser((prev) => {
-          return prev.filter((user) => user.socketId != socketId)
+          return prev.filter((user) => user.socketId !== socketId)
         })
       });
     };
@@ -58,7 +58,7 @@ function Room() {
     }
   }, []);
 
-  if (!location.state) {
+  if (!location.state?.username) {
     return <Navigate to='/join-room' />
   }
 

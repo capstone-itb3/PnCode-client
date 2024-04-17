@@ -4,26 +4,65 @@ function Login() {
     const [ username, setUsername ] = useState('');
     const [ password, setPassword ] = useState('');
 
+    async function loginAccount(event) {
+        event.preventDefault();
+
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'   
+            },
+            body: JSON.stringify({
+                username,
+                password,
+            })
+        })
+
+        const data = await response.json();
+        if (data.user) {
+            alert ('Login successful');
+            localStorage.setItem('token', data.user);
+            window.location.href = 'dashboard';
+        } else {
+            alert('Incorrect username or password');
+        } 
+    };
 
     return (
-        <div className='centering'>
-            <main className='account'>
+        <main className='centering' style={{ marginTop: '50px' }} onSubmit={ loginAccount }>
+            <form className='form-account'>
                 <section className='head'>
-                    <label>Log-in to <span style={{ color: '#0000ff' }} >Codlin</span></label>
+                    <label>Log-in to <span style={{ color: '#0000ff' }} >CodLin</span></label>
                 </section>
                 <section className='body'>
                     <div className='input-form'>
                         <label>Username</label>
-                        <input type='text' placeholder='Enter your username'></input> 
+                        <input 
+                            type='text'
+                            value={username} 
+                            placeholder='Enter your username'
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        /> 
                         <label>Password</label>
-                        <input type='password' placeholder='Enter your password'></input> 
+                        <input 
+                            type='password' 
+                            value={password} 
+                            placeholder='Enter your password'
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        /> 
                     </div>
                     <div className='input-btn'>
-                        <input type='button' value='Create Account'></input>
+                        <input 
+                            type='submit' 
+                            value='Login'
+                        />
+                        <a href='signup'>Create an account? </a>
                     </div>                
                 </section>
-            </main>
-        </div>
+            </form>
+        </main>
     )
 }
 
