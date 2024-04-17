@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'
 
 function Login() {
     const [ username, setUsername ] = useState('');
     const [ password, setPassword ] = useState('');
+
+    const navigate = useNavigate();
 
     async function loginAccount(event) {
         event.preventDefault();
@@ -22,7 +25,7 @@ function Login() {
         if (data.user) {
             alert ('Login successful');
             localStorage.setItem('token', data.user);
-            window.location.href = 'dashboard';
+            navigate('dashboard');
         } else {
             alert('Incorrect username or password');
         } 
@@ -58,7 +61,7 @@ function Login() {
                             type='submit' 
                             value='Login'
                         />
-                        <a href='signup'>Create an account? </a>
+                        <a href='/signup'>Create an account? </a>
                     </div>                
                 </section>
             </form>

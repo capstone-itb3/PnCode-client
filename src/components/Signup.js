@@ -32,7 +32,7 @@ function Signup() {
 
             if(data.status === 'ok') {
                 alert ('Sign up successful. now you can log in.');
-                window.location.href = '/login';
+                navigate('/login');
             }
         }
     };
@@ -83,7 +83,7 @@ function Signup() {
                             type='submit' 
                             value='Create Account' 
                         />
-                        <a href='login'>Log in? </a>
+                        <a href='/login'>Log in? </a>
                     </div>                
                 </section>
             </form>
