@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 function Login() {
     const [ username, setUsername ] = useState('');
@@ -21,11 +22,12 @@ function Login() {
             })
         })
 
-        const data = await response.json();
+        const data = await response.json(); 
         if (data.user) {
+            Cookies.set('token', data.user, { expires : 90 });
             alert ('Login successful');
-            localStorage.setItem('token', data.user);
             navigate('/dashboard');
+            
         } else {
             alert('Incorrect username or password');
         } 

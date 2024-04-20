@@ -1,7 +1,58 @@
 body {
   font-family: 'Calibri', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
+  min-width: 800px;
 }
+
+a {
+  text-decoration: none;
+}
+
+button, input[type='button'], a {
+  cursor: pointer;
+}
+
+header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: #777 0px 1px 4px;
+  height: 60px;
+}
+
+header .company-logo {
+  font-weight: bold;
+  font-size: 30px;
+  padding: 0px 50px 0px 40px;
+  font-family: 'Tahoma';
+  color: #0099ff;
+}
+
+.left-nav {
+  display: flex;
+  align-items: center;
+}
+
+.left-nav a:not(.company-logo) {
+  font-stretch: expanded;
+  font-size: 18px;
+  padding: 0px 20px;
+  color: #777;
+}
+
+.right-nav {
+  display: flex;
+  padding-right: 30px;
+  align-items: center;
+}
+
+.right-nav a {
+  padding: 0 10px;
+}
+
 
 .centering {
   width: 100vw;
@@ -53,7 +104,6 @@ body {
   color:#fff;
   background-color: #4f4aff;
   border: 0;
-  cursor: pointer;
 }
 
 .input-btn a {
@@ -61,11 +111,44 @@ body {
   text-decoration: none;
 }
 
-.dashboard-main {
+.sidebar-main {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  width: 200px;
+  box-shadow: #777 4px 0 3px -2px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-main label {
+  padding: 18px 0 18px 35px; 
+  font-size: 18px;
+  background-color: #777;
+  color: #fff;
+}
+
+.sidebar-main a {
+  padding: 22px 0 22px 50px; 
+  font-size: 16px;
+  color: #777;
+}
+
+
+#dashboard-main {
+  position: absolute;
+  display: flex;
+  top: 60px;
+  left: 250px;
+  right: 0;
+  bottom: 0;
+  justify-content: center;
   text-align: center;
 }
 
-.dashboard-main .start-options button {
+
+.start-options button {
   padding: 12px 24px;
   margin: 100px 10px;
   font-size: 20px;
@@ -74,7 +157,6 @@ body {
   border: 0;
   border-radius: 14px;
   box-shadow: #000 0px 0px 2px;
-  cursor: pointer;
 }
 
 
@@ -102,13 +184,11 @@ body {
   font-weight: bold;
   border: 0;
   border-radius: 5px;
-  cursor: pointer;
 }
 
 .generator-text {
   color: #4f4aff;
   padding-left: 5px;
-  cursor: pointer;
 }
 
 .editor-main .top {
@@ -152,7 +232,6 @@ body {
   margin: 10px;
   font-size: 17px;
   font-weight: bold;
-  cursor: pointer;
 }
 
 .editor-main .bottom section {

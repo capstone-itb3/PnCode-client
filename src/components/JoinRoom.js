@@ -3,11 +3,12 @@ import { v4 as uuid } from 'uuid';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import Cookies from 'js-cookie';
 
 function JoinRoom() {
   const [room_id, setRoomId] = useState();
   const [username, setUsername] = useState(() => {
-    const auth = localStorage.getItem('token');
+    const auth = Cookies.get('token');
     if(auth !== null) {
         const user = jwtDecode(auth);
         if(!user) {

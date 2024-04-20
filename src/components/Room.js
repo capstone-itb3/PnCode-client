@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import User from './sub-comps/User';
-import Editor from './sub-comps/Editor';
+import User from './structures/User';
+import Editor from './structures/Editor';
 import { initSocket } from '../socket';
-import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Do, Err, Is } from '../commands';
+import { FiLink } from 'react-icons/fi';
 
-function Room() {
+function Room() {   
   const [ users, setUser ] = useState ([]); 
 
   const codeRef = useRef(null);  
@@ -59,7 +60,7 @@ function Room() {
   }, []);
 
   if (!location.state?.username) {
-    return <Navigate to='/join-room' />
+    return navigate('/');
   }
 
   const copyRoom = async () => {
@@ -80,7 +81,12 @@ function Room() {
     <main className='editor-main'>
       <div className='top'>
         <label><b>Room ID:</b> {room_id}</label>
-        <button className='room-btn'  style={{ backgroundColor: '#00ff00' }} onClick={ copyRoom }>Copy 🔗</button>
+        <button 
+          className='room-btn' 
+          style={{ backgroundColor: '#00ff00' }} 
+          onClick={ copyRoom }>
+          Copy <b><FiLink size={16} color={ '#fff' } /></b>
+        </button>
       </div>
       <hr></hr>
       <div className='bottom'>
