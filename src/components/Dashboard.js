@@ -12,7 +12,6 @@ import DashboardClass from './dashboard/DashboardClass';
 
 function Dashboard () {
     const navigate = useNavigate();
-    const [username, setUsername] = useState();
     const { select } = useParams();
     const [auth, setAuth] = useState(() => {
         const token = Cookies.get('token');
@@ -22,7 +21,6 @@ function Dashboard () {
                 Cookies.remove('token');
                 navigate('/login');
             } else {
-                console.log(user);
                 return user;
             }
         } else {
@@ -46,10 +44,10 @@ function Dashboard () {
 
     return (
         <div>
-            <Header/>
+            <Header auth={ auth }/>
             <Sidebar/>
             <main id='dashboard-main'>
-                {main}
+                    {main}
             </main>
         </div>
     );

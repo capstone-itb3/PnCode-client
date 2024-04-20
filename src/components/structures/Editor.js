@@ -5,9 +5,7 @@ import 'codemirror/theme/seti.css';
 import 'codemirror/addon/edit/closetag';
 import 'codemirror/addon/edit/closebrackets';
 import 'codemirror/addon/edit/trailingspace';
-import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/htmlmixed/htmlmixed';
-import 'codemirror/mode/css/css';
 import { Do } from '../../commands';
 
 function Editor({ socketRef, room_id, onCodeChange }) {

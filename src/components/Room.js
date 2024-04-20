@@ -6,9 +6,27 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Do, Err, Is } from '../commands';
 import { FiLink } from 'react-icons/fi';
+import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 function Room() {   
-  const [ users, setUser ] = useState ([]); 
+  const [ users, setUser ] = useState ([]);
+
+  const [auth, setAuth] = useState(() => {
+    const token = Cookies.get('token');
+    if(token !== null) {
+        const user = jwtDecode(token);
+        if(!user) {
+            Cookies.remove('token');
+            navigate('/login');
+        } else {
+            console.log(user);
+            return user;
+        }
+    } else {
+        navigate('/login');
+    }
+  });
 
   const codeRef = useRef(null);  
   const socketRef = useRef(null);
@@ -16,9 +34,9 @@ function Room() {
   const location = useLocation(); 
   const navigate = useNavigate();
   const { room_id } = useParams();
-  document.getElementsByTagName('title').innerHTML = room_id;
 
-  useEffect (() =>  {
+
+  useEffect (() => {
     const init = async () => {
        socketRef.current = await initSocket();
        socketRef.current.on(Err.CONNECTERROR, (err) => handleError(err));
@@ -32,7 +50,7 @@ function Room() {
 
       socketRef.current.emit(Do.JOIN, {
         room_id,
-        username: location.state?.username, 
+        username: auth.username, 
       });
 
       socketRef.current.on(Is.JOINED, ({ users, username, socketId }) => {
@@ -59,10 +77,6 @@ function Room() {
     }
   }, []);
 
-  if (!location.state?.username) {
-    return navigate('/');
-  }
-
   const copyRoom = async () => {
     try {
       await navigator.clipboard.writeText(room_id);
@@ -74,7 +88,7 @@ function Room() {
   }
 
   const leaveRoom = async () => {
-    navigate('/join-room')
+    navigate('/dashboard')
   }
 
   return (
