@@ -33,6 +33,8 @@ function Signup() {
             if(data.status === 'ok') {
                 alert ('Sign up successful. now you can log in.');
                 navigate('/login');
+            } else if (data.status === 'invalid' || data.status === 'error') {
+                alert (data.error);
             }
         }
     };

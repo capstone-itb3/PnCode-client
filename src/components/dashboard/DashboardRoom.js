@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { v4 as uuid } from 'uuid';
+import Cookies from 'js-cookie';
 import RoomSelect from '../structures/RoomSelect';
 import { FiPlus } from 'react-icons/fi';
 
@@ -12,10 +12,27 @@ function DashboardRoom({auth}) {
     });
     const [room_id, setRoomId] = useState(); 
 
-    const createRoom = () => {
-        const new_id = uuid();
-        toast.success('Creating a new Room...');
-        navigate(`/room/${new_id}`);
+    async function createRoom () {
+        toast.success('Redirecting you to a new Room...');
+        const username = auth.username;
+
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/create-room', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: auth.username
+            })
+        });
+        const data = await response.json();
+
+        if (data.status === 'ok') {
+            Cookies.set('token', data.user);
+            navigate(`/room/${data.room_id}`);
+        } else {
+            console.log(data.status);
+        }
     };
 
     const joinRoom = (id) => {
