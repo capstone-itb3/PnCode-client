@@ -2,15 +2,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import User from './structures/User';
 import Editor from './structures/Editor';
 import { initSocket } from '../socket';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Do, Err, Is } from '../commands';
-import { FiLink } from 'react-icons/fi';
+import { FiArrowUpRight, FiEdit3, FiLink } from 'react-icons/fi';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
 function Room() {   
   const [ users, setUser ] = useState ([]);
+  const [ room_info, setRoomInfo] = useState();
 
   const [auth, setAuth] = useState(() => {
     const token = Cookies.get('token');
@@ -20,7 +21,6 @@ function Room() {
             Cookies.remove('token');
             navigate('/login');
         } else {
-            console.log(user);
             return user;
         }
     } else {
@@ -31,9 +31,32 @@ function Room() {
   const codeRef = useRef(null);  
   const socketRef = useRef(null);
   
-  const location = useLocation(); 
   const navigate = useNavigate();
   const { room_id } = useParams();
+
+  useEffect(() => {
+    async function fetchData() {
+      const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/get-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id: room_id
+        })
+      });
+      const data = await response.json();
+
+      if (data.room_id) {
+        setRoomInfo(data);
+//        document.getElementById('roomName').innerHTML = room_info.room_name;
+      } else {
+        console.log('No rooms found or Error');
+      }
+    }
+
+    fetchData();
+  }, [room_id]);
 
 
   useEffect (() => {
@@ -45,7 +68,7 @@ function Room() {
       const handleError = (e) => {
         console.log('Error: ', e);
         toast.error('Error. Socket connection failed.');
-        navigate('/join-room');
+        navigate('/dashboard');
       }
 
       socketRef.current.emit(Do.JOIN, {
@@ -94,15 +117,31 @@ function Room() {
   return (
     <main className='editor-main'>
       <div className='top'>
-        <label><b>Room ID:</b> {room_id}</label>
-        <button 
-          className='room-btn' 
-          style={{ backgroundColor: '#00ff00' }} 
-          onClick={ copyRoom }>
-          Copy <b><FiLink size={16} color={ '#fff' } /></b>
-        </button>
+        <div className='top-left'>
+          <a href='/' className='company-logo'>codlin</a>
+          <div className='info-display'>
+            <div>
+              <label><b>Room Name: </b><span id='roomName'>New-room</span></label>
+              <b><FiEdit3 size={16} color={ '#777' } style={{ cursor: 'pointer' }}/></b>
+            </div>
+            <div>
+              <label><b>Room ID: </b>{room_id}</label>
+              <button 
+                className='copy-btn' 
+                onClick={ copyRoom }>
+                Copy 
+                <b><FiLink size={15} color={ '#fff' } /></b>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className='top-right'>
+          <button className='run-btn'>
+            Run <b><FiArrowUpRight size={19} color={ '#fff' }/></b>
+
+          </button>
+        </div>
       </div>
-      <hr></hr>
       <div className='bottom'>
         <aside>
           <div className='member-list'>
@@ -113,11 +152,15 @@ function Room() {
             ))}
           </div>
           <div className='button-list'>
-            <button className='room-btn' style={{ backgroundColor: '#ff0000' }} onClick={ leaveRoom }>Leave Room</button>
+            <button className='leave-btn' onClick={ leaveRoom }>Leave Room</button>
           </div>
         </aside>
         <section>
-            <Editor socketRef={socketRef} room_id={room_id} onCodeChange={(code) => {codeRef.current = code;}} />
+            <Editor 
+              socketRef={socketRef} 
+              room_id={room_id} 
+              onCodeChange={(code) => {codeRef.current = code;}} 
+            />
         </section>
       </div>
     </main>

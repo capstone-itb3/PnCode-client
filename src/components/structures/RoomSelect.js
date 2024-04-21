@@ -11,6 +11,7 @@ function RoomSelect({ room }) {
     team: 'No Team'
   });
   const navigate = useNavigate();
+  
   useEffect(() => {
     async function fetchData() {
       const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/display-rooms', {
@@ -25,8 +26,6 @@ function RoomSelect({ room }) {
       const data = await response.json();
 
       if (data.room_id) {
-        console.log(data);
-        console.log(room);
         setDisplay(data);
       } else {
         console.log('No rooms found or Error');

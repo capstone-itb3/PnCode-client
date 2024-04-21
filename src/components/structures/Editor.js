@@ -10,7 +10,8 @@ import { Do } from '../../commands';
 
 function Editor({ socketRef, room_id, onCodeChange }) {
   const editorRef = useRef(null);
-  useEffect(() => {
+
+  useEffect(() => {    
     const init = async () => {
       const editor = CodeMirror.fromTextArea(document.getElementById('editor'),
           {
@@ -23,6 +24,23 @@ function Editor({ socketRef, room_id, onCodeChange }) {
           }
       );
       editorRef.current = editor;
+
+      async function fetchData() {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/get-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            room_id: room_id
+          })
+        });
+        const data = await response.json();
+  
+        editor.setValue(data.code); 
+      }
+      fetchData();
+  
 
       editor.setSize(null, '100%');
       editorRef.current.on(Do.CHANGE, (instance, changes) => {
