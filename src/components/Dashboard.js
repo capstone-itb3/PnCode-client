@@ -28,11 +28,6 @@ function Dashboard () {
         }
     });
 
-    useEffect(() => {
-        console.log(auth);
-        console.log(auth.username);
-    });
-
     let main;
     if(select === 'teams') {
         main = <DashboardTeam auth={ auth }/>;

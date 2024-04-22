@@ -38,16 +38,18 @@ function Editor({ socketRef, room_id, onCodeChange }) {
         const data = await response.json();
   
         editor.setValue(data.code); 
+        displayOutput(data.code);
       }
       fetchData();
   
 
       editor.setSize(null, '100%');
       editorRef.current.on(Do.CHANGE, (instance, changes) => {
-        console.log('changes', instance, changes);
         const { origin } = changes; 
         const code = instance.getValue();
+
         onCodeChange(code);
+        displayOutput(code);
 
         if (origin !== 'setValue') {
           socketRef.current.emit(Do.UPDATE, {
@@ -64,7 +66,7 @@ function Editor({ socketRef, room_id, onCodeChange }) {
     if(socketRef.current) {
       socketRef.current.on(Do.UPDATE, ({ code }) => {
         if(code !== null) {
-          editorRef.current.setValue(code);
+          editorRef.current.setValue(code);    
         };
       });
     }
@@ -73,6 +75,17 @@ function Editor({ socketRef, room_id, onCodeChange }) {
     }
   }, [socketRef.current]);
 
+  function displayOutput(code) {
+    let output = document.getElementById('output-div');           
+    output.contentDocument.body.innerHTML = code;
+    
+    try {
+      const scripts = output.contentDocument.getElementsByTagName('script');
+      for (let i = 0; i < scripts.length; i++) {
+        output.contentWindow.eval(scripts[i].innerText);
+      }
+    } catch(e) {}
+  }
   return (
     <div className='editor-div'>
         <textarea id='editor'></textarea>

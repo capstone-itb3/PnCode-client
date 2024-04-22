@@ -14,7 +14,6 @@ function DashboardRoom({auth}) {
 
     async function createRoom () {
         toast.success('Redirecting you to a new Room...');
-        const username = auth.username;
 
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/create-room', {
             method: 'POST',
@@ -31,7 +30,7 @@ function DashboardRoom({auth}) {
             Cookies.set('token', data.user);
             navigate(`/room/${data.room_id}`);
         } else {
-            console.log(data.status);
+            console.log(data.error);
         }
     };
 

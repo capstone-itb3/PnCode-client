@@ -5,7 +5,7 @@ import { initSocket } from '../socket';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Do, Err, Is } from '../commands';
-import { FiArrowUpRight, FiEdit3, FiLink } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit3, FiLink } from 'react-icons/fi';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
@@ -49,7 +49,7 @@ function Room() {
 
       if (data.room_id) {
         setRoomInfo(data);
-//        document.getElementById('roomName').innerHTML = room_info.room_name;
+        document.getElementById('roomName').innerHTML = data.room_name;
       } else {
         console.log('No rooms found or Error');
       }
@@ -121,8 +121,8 @@ function Room() {
           <a href='/' className='company-logo'>codlin</a>
           <div className='info-display'>
             <div>
-              <label><b>Room Name: </b><span id='roomName'>New-room</span></label>
-              <b><FiEdit3 size={16} color={ '#777' } style={{ cursor: 'pointer' }}/></b>
+              <label><b>Room Name: </b><span id='roomName'></span></label>
+              <b><FiEdit3 size={16} color={ '#555' } style={{ cursor: 'pointer' }}/></b>
             </div>
             <div>
               <label><b>Room ID: </b>{room_id}</label>
@@ -137,32 +137,31 @@ function Room() {
         </div>
         <div className='top-right'>
           <button className='run-btn'>
-            Run <b><FiArrowUpRight size={19} color={ '#fff' }/></b>
-
+            View in Full <b><FiArrowLeft size={19} color={ '#fff' }/></b>
           </button>
         </div>
       </div>
-      <div className='bottom'>
-        <aside>
-          <div className='member-list'>
-            <h2>Members</h2>
-            <hr></hr>
-            {users.map((user) => (
-              <User key={user.socketId} username={user.username}/>
-            ))}
-          </div>
-          <div className='button-list'>
-            <button className='leave-btn' onClick={ leaveRoom }>Leave Room</button>
-          </div>
-        </aside>
-        <section>
-            <Editor 
-              socketRef={socketRef} 
-              room_id={room_id} 
-              onCodeChange={(code) => {codeRef.current = code;}} 
-            />
-        </section>
-      </div>
+      <aside className='side-lists'>
+        <div className='member-list'>
+          <h2>Members</h2>
+          <hr></hr>
+          {users.map((user) => (
+            <User key={user.socketId} username={user.username}/>
+          ))}
+        </div>
+        <div className='button-list'>
+          <button className='leave-btn' onClick={ leaveRoom }>Leave Room</button>
+        </div>
+      </aside>
+      <section className='editor-section'>
+        <iframe title= 'Displays Output' id='output-div'>
+        </iframe>
+        <Editor 
+          socketRef={socketRef} 
+          room_id={room_id} 
+          onCodeChange={(code) => {codeRef.current = code;}} 
+        />
+      </section>
     </main>
   )
 }

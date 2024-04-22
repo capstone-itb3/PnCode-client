@@ -284,11 +284,17 @@ header {
   background-color: #d1d1d1;
 }
 
-
 /*? ROOM ?*/
+.editor-main {
+  min-width: 1000px;
+  min-height: 500px;
+}
+
 .editor-main .top {
+  position: absolute;
+  top: 0;
   left: 0;
-  right:0;
+  right: 0;
   height: 50px;
   display: flex;
   align-items: center;
@@ -313,9 +319,12 @@ header {
   display: flex;
 }
 
-.editor-main .bottom aside {
-  width: 15%;
-  height: 100%;
+.side-lists {
+  position: absolute;
+  width: 200px;
+  top: 60px;
+  left: 0;
+  bottom: 0;
   padding: 5px;
   border-right:1px solid #555;
 }
@@ -324,10 +333,6 @@ header {
   overflow: auto;
   font-size: 20px;
   height: 80%;
-}
-
-.button-list {
-  bottom: 0;
 }
 
 .leave-btn, .copy-btn, .run-btn {
@@ -357,12 +362,25 @@ header {
   background-color: #5e5
 }
 
-.editor-main .bottom section {
-  width: 85%;
+.editor-section {
+  display:flex;
+  flex-direction: row-reverse;
+  position: absolute;
+  top: 60px;
+  left: 210px;
+  right: 0;
+  bottom: 0;
   overflow: hidden;
 }
 
 .editor-div {
   height: 100%;
-  font-size: 20px;
+  width: 50%;
+  font-size: 16px;
+}
+
+#output-div {
+  height: 100%;
+  background-color: #fff;
+  width: 50%;
 }
