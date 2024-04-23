@@ -35,7 +35,6 @@ function Room() {
   const { room_id } = useParams();
 
   useEffect(() => {
-
     async function fetchData() {
       const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/verify-room', {
         method: 'POST',
@@ -90,8 +89,34 @@ function Room() {
         console.error(data.error);
       }
     }
+
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
   }, [room_id]);
 
+  useEffect(() => {
+    // Disable key down
+    document.onkeydown = disableSelectCopy;
+
+    // Disable mouse down
+    document.onmousedown = dMDown;
+
+    // Disable click
+    document.onclick = dOClick;
+    function dMDown(e) { return false; }
+
+    function dOClick() { return true; }
+
+    function disableSelectCopy(e) {
+        // current pressed key
+        var pressedKey = String.fromCharCode(e.keyCode).toLowerCase();
+        if ((e.ctrlKey && (pressedKey === "c" || pressedKey === "x" || pressedKey === "v" || pressedKey === "a" || pressedKey === "u")) ||  e.keyCode === 123) {
+            return false;
+        }
+    }
+
+    document.addEventListener('keyup', escapeFullView);
+  }, []);
 
   useEffect (() => {
     const init = async () => {
@@ -144,7 +169,7 @@ function Room() {
     }
   }
 
-  const leaveRoom = async () => {
+  const leaveRoom = () => {
     navigate('/dashboard');
   }
 
@@ -161,9 +186,44 @@ function Room() {
     });
   }
 
+  const fullView = () => {
+    toast.success('Press [Esc] to exit full view.');
+
+    let top = document.getElementById('top');
+    let side = document.getElementById('side-lists');
+    let main = document.getElementById('editor-section');
+    let editor = document.getElementById('editor-div');
+    let output = document.getElementById('output-div');
+
+    top.style.top = '-63px';
+    side.style.left = '-212px';
+    main.style.top = '0';
+    main.style.left = '0px';
+    editor.style.width = 0;
+    output.style.width = '100%';
+  }
+
+  const escapeFullView = (e) => {
+    if (e.code === 'Escape') {
+      e.preventDefault();
+      let top = document.getElementById('top');
+      let side = document.getElementById('side-lists');
+      let main = document.getElementById('editor-section');
+      let editor = document.getElementById('editor-div');
+      let output = document.getElementById('output-div');
+
+      top.style.top = 0;
+      side.style.left = 0;
+      main.style.top = '62px';
+      main.style.left = '212px';
+      editor.style.width = '50%';
+      output.style.width = '50%';
+    }
+  }
+
   return (
-    <main className='editor-main'>
-      <div className='top'>
+    <main className='editor-main' onKeyUp={ escapeFullView }>
+      <div id='top' onKeyUp={ escapeFullView }>
         <div className='top-left'>
           <a href='/' className='company-logo'>codlin</a>
           <div className='info-display'>
@@ -183,25 +243,24 @@ function Room() {
           </div>
         </div>
         <div className='top-right'>
-          <button className='run-btn'>
+          <button className='run-btn' onClick={ fullView }>
             View in Full <b><FiArrowLeft size={19} color={ '#fff' }/></b>
           </button>
         </div>
       </div>
-      <aside className='side-lists'>
+      <aside id='side-lists'>
         <div className='member-list'>
-          <h2>Members</h2>
-          <hr></hr>
+          <h4>Members</h4>
           {users.map((user) => (
             <User key={user.socketId} username={user.username}/>
           ))}
         </div>
         <div className='button-list'>
-          <button className='leave-btn' onClick={ leaveRoom }>Leave Room</button>
+          <button className='leave-btn' onClick={ leaveRoom } onKeyUp={ escapeFullView }>Leave Room</button>
         </div>
       </aside>
-      <section className='editor-section'>
-        <iframe title= 'Displays Output' id='output-div'>
+      <section id='editor-section'>
+        <iframe title= 'Displays Output' id='output-div' onKeyUp={ escapeFullView }>
         </iframe>
         <Editor 
           socketRef={socketRef} 

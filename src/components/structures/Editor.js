@@ -87,7 +87,7 @@ function Editor({ socketRef, room_id, onCodeChange }) {
     } catch(e) {}
   }
   return (
-    <div className='editor-div'>
+    <div id='editor-div'>
         <textarea id='editor'></textarea>
     </div>
   )

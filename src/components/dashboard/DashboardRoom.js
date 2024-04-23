@@ -7,9 +7,8 @@ import { FiPlus } from 'react-icons/fi';
 
 function DashboardRoom({auth}) {
     const navigate = useNavigate();
-    const [rooms, setRooms] = useState(() => {
-        return auth.rooms;
-    });
+    const [list, setList] = useState();
+    const [rooms, setRooms] = useState([]);
     const [room_id, setRoomId] = useState(); 
 
     async function createRoom () {
@@ -34,7 +33,7 @@ function DashboardRoom({auth}) {
         }
     };
 
-    const joinRoom = (id) => {
+    function joinRoom (id) {
         const joining_id = id || room_id;
     
         if (!joining_id) {
@@ -64,35 +63,59 @@ function DashboardRoom({auth}) {
 
       };
     
-    const quickEnter = (e) => {
+    function quickEnter (e) {
         if (e.code === 'Enter') {
-            joinRoom(); 
+            joinRoom(room_id); 
         }
     }
     
-    let list = '';
 
-    if (auth.rooms.length === 0) {
-        list =  <div className='no-results'>
-                    No rooms found. <span onClick={ createRoom }>Create one.</span>
-                </div>;
-    } else {
-        list =  <table>
-                    <thead><tr className='list-head'>
-                        <th id='th-1'>Members</th>
-                        <th id='th-2'>Room Name</th>
-                        <th id='th-3'>Owner</th>
-                        <th id='th-4'>Team</th>
-                        <th id='th-5'>Date Updated</th>
-                    </tr></thead>
-                    <tbody>
-                        {rooms.map((room) => (
-                            <RoomSelect key={room}  room={room} />
-                        ))}
-                    </tbody>
-                </table>
-    }
-
+    useEffect(() => {
+        if (auth.rooms.length === 0) {
+            setList(
+                <div className='no-results'>
+                    No rooms found. <span onClick={createRoom}>Create one.</span>
+                </div>
+            );
+        } else {
+            async function sortRooms() {
+                const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/sort-rooms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        rooms: auth.rooms,
+                        timezone_diff: new Date().getTimezoneOffset()
+                    })
+                });
+    
+                const data = await response.json();
+    
+                console.log(data.sorted_rooms);
+                setRooms(data.sorted_rooms);
+    
+                setList(
+                    <table>
+                        <tbody>
+                            <tr className='list-head'>
+                                <th id='th-1'>Members</th>
+                                <th id='th-2'>Room Name</th>
+                                <th id='th-3'>Owner</th>
+                                <th id='th-4'>Team</th>
+                                <th id='th-5'>Date Updated</th>
+                            </tr>
+                            {data.sorted_rooms.map((room) => (
+                                <RoomSelect key={room.room_id} room={room} />
+                            ))}
+                        </tbody>
+                    </table>
+                );
+            }
+    
+            sortRooms();
+        }
+    }, []);
     return (
         <section className='dashroom-section'>
             <label className='section-title'>

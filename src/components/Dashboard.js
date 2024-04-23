@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { v4 as uuid } from 'uuid';
-import { Route, Routes, useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import Header from './dashboard/Header';
+import { useNavigate, useParams } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import Header from './dashboard/Header';
 import Sidebar from './dashboard/Sidebar';
 import DashboardRoom from './dashboard/DashboardRoom';
 import DashboardTeam from './dashboard/DashboardTeam';

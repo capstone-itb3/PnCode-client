@@ -14,6 +14,28 @@ button, input[type='button'], a {
   cursor: pointer;
 }
 
+/* width */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 20px;
+  transition: .5s;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
 /*?  LOGIN/SIGNUP  ?*/
 
 .centering {
@@ -158,13 +180,14 @@ header {
 
 #dashboard-main {
   position: absolute;
-  top: 60px;
+  top: 63px;
   left: 200px;
   right: 0;
   bottom: 0;
   padding: 10px;
   color: #555;
   min-width: 800px;
+  overflow-y: scroll;
 }
 
 .dashroom-section {
@@ -297,7 +320,7 @@ header {
   min-height: 500px;
 }
 
-.editor-main .top {
+.editor-main #top {
   position: absolute;
   top: 0;
   left: 0;
@@ -309,13 +332,13 @@ header {
   padding: 5px 30px 5px 0; 
   border-bottom: #777 2px solid;
   box-shadow: #555 0 0 1px;
+  overflow:hidden;
+  transition: 0.5s;
 }
 
-.editor-main .top .top-left {
+.editor-main #top .top-left {
   display: flex;
 }
-
-
 
 .info-display, .info-display input[type='text'] {
   font-size: 18px;
@@ -325,13 +348,15 @@ header {
 .info-display input[type='text'] {
   background-color: unset;
   border: 0;
+  font-family: 'Calibri';
 }
 
 
 .info-display button {
   margin-left: 10px;
 }
-.side-lists {
+
+#side-lists {
   position: absolute;
   width: 200px;
   top: 62px;
@@ -339,6 +364,8 @@ header {
   bottom: 0;
   padding: 5px;
   border-right:2px solid #777;
+  overflow:hidden;
+  transition: 0.5s;
 }
 
 .member-list {
@@ -380,7 +407,7 @@ header {
   background-color: unset;
 }
 
-.editor-section {
+#editor-section {
   display:flex;
   flex-direction: row-reverse;
   position: absolute;
@@ -389,12 +416,17 @@ header {
   right: 0;
   bottom: 0;
   overflow: hidden;
+  transition: 0.5s;
 }
 
-.editor-div {
+#editor-div {
   height: 100%;
   width: 50%;
   font-size: 16px;
+  overflow:hidden;
+  transition: 0.5s;
+}
+#editor-div textarea {
   border-right: #ff9c3f 3px solid ;
 }
 
@@ -403,4 +435,5 @@ header {
   background-color: #fff;
   width: 50%;
   border: 0;
+  transition: 0.5s;
 }
