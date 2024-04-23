@@ -90,8 +90,6 @@ function Room() {
       }
     }
 
-    document.addEventListener('contextmenu', event => event.preventDefault());
-
   }, [room_id]);
 
   useEffect(() => {
@@ -99,13 +97,13 @@ function Room() {
     document.onkeydown = disableSelectCopy;
 
     // Disable mouse down
-    document.onmousedown = dMDown;
+//    document.onmousedown = dMDown;
 
-    // Disable click
-    document.onclick = dOClick;
-    function dMDown(e) { return false; }
+//    function dMDown(e) { return false; }
 
-    function dOClick() { return true; }
+//    function dOClick() { return true; }
+
+    document.addEventListener('contextmenu', event => event.preventDefault());
 
     function disableSelectCopy(e) {
         // current pressed key
@@ -170,7 +168,7 @@ function Room() {
   }
 
   const leaveRoom = () => {
-    navigate('/dashboard');
+    window.location.href = '/dashboard';
   }
 
   const editRoomName = async (value) => {
