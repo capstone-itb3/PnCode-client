@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import CodeMirror from 'codemirror';
 import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/seti.css';
+import 'codemirror/theme/ayu-mirage.css';
 import 'codemirror/addon/edit/closetag';
 import 'codemirror/addon/edit/closebrackets';
 import 'codemirror/addon/edit/trailingspace';
@@ -16,7 +16,7 @@ function Editor({ socketRef, room_id, onCodeChange }) {
       const editor = CodeMirror.fromTextArea(document.getElementById('editor'),
           {
               mode: {name: 'htmlmixed', json: true},
-              theme: 'seti',
+              theme: 'ayu-mirage',
               autoCloseTags: true,
               autoCloseBrackets: true,
               showTrailingSpace: true,
@@ -26,7 +26,7 @@ function Editor({ socketRef, room_id, onCodeChange }) {
       editorRef.current = editor;
 
       async function fetchData() {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/get-code', {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/verify-room', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

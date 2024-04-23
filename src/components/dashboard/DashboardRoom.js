@@ -38,10 +38,30 @@ function DashboardRoom({auth}) {
         const joining_id = id || room_id;
     
         if (!joining_id) {
-            toast.error('One of the textfields are empty.');
-            return;
-        } 
-        navigate(`/room/${joining_id}`);    
+            toast.error('Please fill out the textfield.');
+        } else {
+            async function fetchData() {
+                const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/verify-room', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        room_id: joining_id
+                    })
+                });
+                const data = await response.json();
+          
+                if (data.room_id) {
+                    toast.success(`Joining Room: ${data.room_id}`);
+                    navigate(`/room/${joining_id}`);                    
+                } else {
+                    toast.error('This Room ID does not exist.');
+                }
+            }
+            fetchData(); 
+        }
+
       };
     
     const quickEnter = (e) => {
@@ -58,16 +78,18 @@ function DashboardRoom({auth}) {
                 </div>;
     } else {
         list =  <table>
-                    <tr className='list-head'>
+                    <thead><tr className='list-head'>
                         <th id='th-1'>Members</th>
-                        <th id='th-2'>Name</th>
+                        <th id='th-2'>Room Name</th>
                         <th id='th-3'>Owner</th>
                         <th id='th-4'>Team</th>
                         <th id='th-5'>Date Updated</th>
-                    </tr>
-                    {rooms.map((room) => (
-                        <RoomSelect key={room}  room={room} />
-                    ))}
+                    </tr></thead>
+                    <tbody>
+                        {rooms.map((room) => (
+                            <RoomSelect key={room}  room={room} />
+                        ))}
+                    </tbody>
                 </table>
     }
 

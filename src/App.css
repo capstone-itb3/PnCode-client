@@ -130,22 +130,28 @@ header {
   flex-direction: column;
 }
 
+.list-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30px
+}
+
 .sidebar-main label {
   font-weight: bold;
-  padding: 18px 0 18px 35px; 
+  padding: 17px 0 17px 35px; 
   font-size: 18px;
   background-color: #ffbb00;
   color: #555;
 }
 
 .sidebar-main a {
-  padding: 22px 0 22px 50px; 
+  padding: 12px 0 12px 50px; 
   font-size: 16px;
   color: #777;
 }
 
 .sb-selected {
-  background-image: linear-gradient(to right, #fff7e0, #ffda6c);
+  background-image: linear-gradient(to right, #fff7e0, #aaa);
 }
 
 /*?  DASHBOARD CONTENT  ?*/
@@ -285,6 +291,7 @@ header {
 }
 
 /*? ROOM ?*/
+
 .editor-main {
   min-width: 1000px;
   min-height: 500px;
@@ -300,33 +307,38 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 5px 30px 5px 0; 
-  border-bottom: #555 2px solid; 
+  border-bottom: #777 2px solid;
+  box-shadow: #555 0 0 1px;
 }
 
 .editor-main .top .top-left {
   display: flex;
 }
 
-.editor-main .top .info-display label {
+
+
+.info-display, .info-display input[type='text'] {
   font-size: 18px;
   color: #333;
-  margin-right: 10px;
 }
 
-.editor-main .bottom {
-  width: 100%;
-  height:90vh;
-  display: flex;
+.info-display input[type='text'] {
+  background-color: unset;
+  border: 0;
 }
 
+
+.info-display button {
+  margin-left: 10px;
+}
 .side-lists {
   position: absolute;
   width: 200px;
-  top: 60px;
+  top: 62px;
   left: 0;
   bottom: 0;
   padding: 5px;
-  border-right:1px solid #555;
+  border-right:2px solid #777;
 }
 
 .member-list {
@@ -362,12 +374,18 @@ header {
   background-color: #5e5
 }
 
+.edit-btn {
+  cursor: pointer;
+  border: 0;
+  background-color: unset;
+}
+
 .editor-section {
   display:flex;
   flex-direction: row-reverse;
   position: absolute;
-  top: 60px;
-  left: 210px;
+  top: 62px;
+  left: 212px;
   right: 0;
   bottom: 0;
   overflow: hidden;
@@ -377,10 +395,12 @@ header {
   height: 100%;
   width: 50%;
   font-size: 16px;
+  border-right: #ff9c3f 3px solid ;
 }
 
 #output-div {
   height: 100%;
   background-color: #fff;
   width: 50%;
+  border: 0;
 }

@@ -35,8 +35,9 @@ function Room() {
   const { room_id } = useParams();
 
   useEffect(() => {
+
     async function fetchData() {
-      const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/get-code', {
+      const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/verify-room', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -47,15 +48,48 @@ function Room() {
       });
       const data = await response.json();
 
-      if (data.room_id) {
+      if (data.room_id) {        
         setRoomInfo(data);
-        document.getElementById('roomName').innerHTML = data.room_name;
+        addToJoined(room_id, auth.username);
+
+        let roomName = document.getElementById('roomName');
+        roomName.value = data.room_name
+        
+        if(data.owner !== auth.username) {
+          roomName.setAttribute('readonly', 'readonly');
+          roomName.onfocus = roomName.blur();
+
+          document.getElementById('editIcon').style.display = 'none';
+        }
+
+
+
       } else {
-        console.log('No rooms found or Error');
+        alert('This Room ID does not exist.');
+        navigate('/dashboard');
       }
     }
-
     fetchData();
+
+    async function addToJoined(room_id, username) {
+      const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/add-joined', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id,
+          username
+        })
+      })
+      const data = await response.json();
+
+      if (data.status) {
+        Cookies.set('token', data.user);
+      } else {
+        console.error(data.error);
+      }
+    }
   }, [room_id]);
 
 
@@ -111,7 +145,20 @@ function Room() {
   }
 
   const leaveRoom = async () => {
-    navigate('/dashboard')
+    navigate('/dashboard');
+  }
+
+  const editRoomName = async (value) => {
+    const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/rename-room', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        room_id: room_id,
+        room_name: value
+      })
+    });
   }
 
   return (
@@ -120,12 +167,12 @@ function Room() {
         <div className='top-left'>
           <a href='/' className='company-logo'>codlin</a>
           <div className='info-display'>
-            <div>
-              <label><b>Room Name: </b><span id='roomName'></span></label>
-              <b><FiEdit3 size={16} color={ '#555' } style={{ cursor: 'pointer' }}/></b>
+            <div> 
+              <b>Room Name: </b><input type='text' id='roomName' onKeyUp={(e) => editRoomName(e.target.value) } />
+              <b id='editIcon'><FiEdit3 size={16} color={ '#555' } /></b>
             </div>
             <div>
-              <label><b>Room ID: </b>{room_id}</label>
+              <b>Room ID: </b>{room_id}
               <button 
                 className='copy-btn' 
                 onClick={ copyRoom }>
