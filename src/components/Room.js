@@ -199,6 +199,15 @@ function Room() {
     main.style.left = '0px';
     editor.style.width = 0;
     output.style.width = '100%';
+
+    let doc = document.getElementById("output-div").contentWindow.document;
+    doc.designMode = "on";
+
+    if(doc.addEventListener) {// if support addEventListener
+        doc.addEventListener("keyup", escapeFullView, true)
+    } else { //For IE
+      doc.attachEvent("onkeyup", escapeFullView);
+    }
   }
 
   const escapeFullView = (e) => {
