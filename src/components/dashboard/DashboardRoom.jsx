@@ -14,7 +14,7 @@ function DashboardRoom({auth}) {
     async function createRoom () {
         toast.success('Redirecting you to a new Room...');
 
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/create-room', {
+        const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/create-room', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -40,7 +40,7 @@ function DashboardRoom({auth}) {
             toast.error('Please fill out the textfield.');
         } else {
             async function fetchData() {
-                const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/verify-room', {
+                const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/verify-room', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -79,7 +79,7 @@ function DashboardRoom({auth}) {
             );
         } else {
             async function sortRooms() {
-                const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/sort-rooms', {
+                const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/sort-rooms', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -92,7 +92,6 @@ function DashboardRoom({auth}) {
     
                 const data = await response.json();
     
-                console.log(data.sorted_rooms);
                 setRooms(data.sorted_rooms);
     
                 setList(

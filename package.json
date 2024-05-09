@@ -3,10 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@codemirror/lang-css": "^6.2.1",
+    "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@codemirror/view": "^6.26.3",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "codemirror": "^5.65.15",
+    "@vitejs/plugin-react": "^4.2.1",
+    "codemirror": "^6.0.1",
     "html-react-parser": "^5.1.10",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
@@ -17,18 +24,22 @@
     "react-hot-toast": "^2.4.1",
     "react-icons": "^5.1.0",
     "react-router-dom": "^6.22.3",
-    "react-scripts": "5.0.1",
+    "redis": "^4.6.13",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "sortablejs": "^1.15.2",
     "uuid": "^9.0.1",
-    "web-vitals": "^2.1.4"
+    "vite": "^5.2.10",
+    "web-vitals": "^2.1.4",
+    "y-codemirror.next": "^0.3.3",
+    "y-webrtc": "^10.2.0",
+    "y-websocket": "^2.0.2",
+    "yjs": "^13.5.17"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
   },
   "eslintConfig": {
     "extends": [

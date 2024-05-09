@@ -20,7 +20,7 @@ function RoomSelect({ room }) {
   
 
   return (
-    <tr className='list-item' onClick={() => { navigate(`/room/${display.room_id}`) }}>
+    <tr className='list-item' onClick={() => { window.location.href = `/room/${display.room_id}` }}>
       <td className='item-1'><FiUsers size={22}/> {display.joined.length + 1}</td>
       <td>{display.room_name}</td>
       <td>{display.owner}</td>

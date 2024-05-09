@@ -10,8 +10,9 @@ import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
 function Room() {   
-  const [ users, setUser ] = useState ([]);
-  const [ room_info, setRoomInfo] = useState();
+  const [ userlist, setUserList ] = useState ([]);
+  const [ room_info, setRoomInfo ] = useState();
+  const [ socket_id, setSocketId ] = useState(null);
 
   const [auth, setAuth] = useState(() => {
     const token = Cookies.get('token');
@@ -36,7 +37,7 @@ function Room() {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/verify-room', {
+      const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/verify-room', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -52,7 +53,7 @@ function Room() {
         addToJoined(room_id, auth.username);
 
         let roomName = document.getElementById('roomName');
-        roomName.value = data.room_name
+        roomName.value = data.room_name;
         
         if(data.owner !== auth.username) {
           roomName.setAttribute('readonly', 'readonly');
@@ -60,8 +61,6 @@ function Room() {
 
           document.getElementById('editIcon').style.display = 'none';
         }
-
-
 
       } else {
         alert('This Room ID does not exist.');
@@ -71,7 +70,7 @@ function Room() {
     fetchData();
 
     async function addToJoined(room_id, username) {
-      const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/add-joined', {
+      const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/add-joined', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -92,29 +91,23 @@ function Room() {
 
   }, [room_id]);
 
-  useEffect(() => {
-    // Disable key down
-    document.onkeydown = disableSelectCopy;
+//   useEffect(() => {
+// //    document.onmousedown = dMDown;
+// //    function dMDown(e) { return false; }
+// //    function dOClick() { return true; }
+//     document.onkeydown = disableSelectCopy;
+//     document.addEventListener('contextmenu', event => event.preventDefault());
 
-    // Disable mouse down
-//    document.onmousedown = dMDown;
+//     function disableSelectCopy(e) {
+//         // current pressed key
+//         var pressedKey = String.fromCharCode(e.keyCode).toLowerCase();
+//         if ((e.ctrlKey && (pressedKey === "c" || pressedKey === "x" || pressedKey === "v" || pressedKey === "a" || pressedKey === "u")) ||  e.keyCode === 123) {
+//             return false;
+//         }
+//     }
 
-//    function dMDown(e) { return false; }
-
-//    function dOClick() { return true; }
-
-    document.addEventListener('contextmenu', event => event.preventDefault());
-
-    function disableSelectCopy(e) {
-        // current pressed key
-        var pressedKey = String.fromCharCode(e.keyCode).toLowerCase();
-        if ((e.ctrlKey && (pressedKey === "c" || pressedKey === "x" || pressedKey === "v" || pressedKey === "a" || pressedKey === "u")) ||  e.keyCode === 123) {
-            return false;
-        }
-    }
-
-    document.addEventListener('keyup', escapeFullView);
-  }, []);
+//     document.addEventListener('keyup', escapeFullView);
+//   }, []);
 
   useEffect (() => {
     const init = async () => {
@@ -134,16 +127,12 @@ function Room() {
       });
 
       socketRef.current.on(Is.JOINED, ({ users, username, socketId }) => {
-        setUser(users);
-
-        socketRef.current.emit(Do.SYNC, {
-          code: codeRef.current,
-          socketId          
-        });
+        setUserList(users);
+        setSocketId(socketId);
       });
 
       socketRef.current.on(Is.DISCONNECTED, ({ socketId, username }) => {
-        setUser((prev) => {
+        setUserList((prev) => {
           return prev.filter((user) => user.socketId !== socketId)
         })
       });
@@ -172,7 +161,7 @@ function Room() {
   }
 
   const editRoomName = async (value) => {
-    const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/rename-room', {
+    const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/rename-room', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -258,7 +247,7 @@ function Room() {
       <aside id='side-lists'>
         <div className='member-list'>
           <h4>Members</h4>
-          {users.map((user) => (
+          {userlist.map((user) => (
             <User key={user.socketId} username={user.username}/>
           ))}
         </div>
@@ -266,15 +255,13 @@ function Room() {
           <button className='leave-btn' onClick={ leaveRoom } onKeyUp={ escapeFullView }>Leave Room</button>
         </div>
       </aside>
-      <section id='editor-section'>
-        <iframe title= 'Displays Output' id='output-div' onKeyUp={ escapeFullView }>
-        </iframe>
         <Editor 
-          socketRef={socketRef} 
           room_id={room_id} 
-          onCodeChange={(code) => {codeRef.current = code;}} 
+          username={auth.username} 
+          code={room_info ? room_info.code : ''}
+          socketRef={socketRef}
+          socketId={socket_id}
         />
-      </section>
     </main>
   )
 }

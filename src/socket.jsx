@@ -7,5 +7,5 @@ export const initSocket = async () => {
         timeout: 1000,
         transports: ['websocket']
     };
-    return io.connect(process.env.REACT_APP_BACKEND_URL, option);
+    return io.connect(import.meta.env.VITE_APP_BACKEND_URL, option);
 };

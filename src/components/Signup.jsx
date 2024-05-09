@@ -17,7 +17,7 @@ function Signup() {
         } else if (password.length < 8) {
             alert('Password must have more than 8 characters');
         } else {
-            const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/register', {
+            const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'   

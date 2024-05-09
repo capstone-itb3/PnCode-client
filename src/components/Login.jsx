@@ -11,7 +11,7 @@ function Login() {
     async function loginAccount(event) {
         event.preventDefault();
 
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + '/api/login', {
+        const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'   

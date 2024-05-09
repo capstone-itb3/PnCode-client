@@ -14,10 +14,11 @@ button, input[type='button'], a {
   cursor: pointer;
 }
 
-/* width */
+/* // width */
 ::-webkit-scrollbar {
-  width: 8px;
-}
+  width: 4px;
+  height: 4px;
+} 
 
 /* Track */
 ::-webkit-scrollbar-track {
@@ -334,6 +335,7 @@ header {
   box-shadow: #555 0 0 1px;
   overflow:hidden;
   transition: 0.5s;
+  z-index: -1;
 }
 
 .editor-main #top .top-left {
@@ -408,7 +410,7 @@ header {
 }
 
 #editor-section {
-  display:flex;
+  display: flex;
   flex-direction: row-reverse;
   position: absolute;
   top: 62px;
@@ -423,11 +425,11 @@ header {
   height: 100%;
   width: 50%;
   font-size: 16px;
-  overflow:hidden;
   transition: 0.5s;
-}
-#editor-div textarea {
-  border-right: #ff9c3f 3px solid ;
+  background-color: #282c34;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  z-index: 100;
 }
 
 #output-div {
