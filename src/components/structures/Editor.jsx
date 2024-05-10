@@ -73,15 +73,17 @@ function Editor({ room_id, username, code, socketRef, socketId }) {
 
     try {
       const output = view.state.doc ? view.state.doc.toString() : 'Loading...';
-      const iframe = document.getElementById('output-div').contentWindow.document;
-  
-      iframe.open();
-      iframe.write(output);
-      iframe.close();
+
+      const iframe = document.getElementById('output-div');
+      iframe.contentDocument.body.innerHTML = output;
+      const scripts = iframe.contentDocument.getElementsByTagName('script');
+      for (let i = 0; i < scripts.length; i++) {
+        iframe.contentWindow.eval(scripts[i].innerText);
+      }
 
       console.log('Window render successful');
     } catch (e) {
-      console.error(`Window render error:`);
+      console.error(`Window render error: ${e}`);
     }
   }, [view.state]);
 
