@@ -181,6 +181,7 @@ function Room() {
     let main = document.getElementById('editor-section');
     let editor = document.getElementById('editor-div');
     let output = document.getElementById('output-div');
+    let hide = document.getElementById('hide-btn');
 
     top.style.top = '-63px';
     side.style.left = '-212px';
@@ -188,6 +189,7 @@ function Room() {
     main.style.left = '0px';
     editor.style.width = 0;
     output.style.width = '100%';
+    hide.style.opacity = 0;
 
     let doc = document.getElementById("output-div").contentWindow.document;
     doc.designMode = "on";
@@ -199,6 +201,21 @@ function Room() {
     }
   }
 
+  let showtrigger = 0;
+  const hideView = () => {
+    let editor = document.getElementById('editor-div');
+    let output = document.getElementById('output-div');
+
+    if(showtrigger % 2 === 0) {
+      editor.style.width = '100%';
+      output.style.width = 0;  
+    } else {
+      editor.style.width = '50%';
+      output.style.width = '50%';  
+    }
+    showtrigger++ ;
+  }
+
   const escapeFullView = (e) => {
     if (e.code === 'Escape') {
       e.preventDefault();
@@ -207,6 +224,7 @@ function Room() {
       let main = document.getElementById('editor-section');
       let editor = document.getElementById('editor-div');
       let output = document.getElementById('output-div');
+      let hide =  document.getElementById('hide-btn');
 
       top.style.top = 0;
       side.style.left = 0;
@@ -214,6 +232,8 @@ function Room() {
       main.style.left = '212px';
       editor.style.width = '50%';
       output.style.width = '50%';
+      hide.style.opacity = 1;
+
     }
   }
 
@@ -262,6 +282,9 @@ function Room() {
           socketRef={socketRef}
           socketId={socket_id}
         />
+        <button className='hide-btn' id='hide-btn' onClick={ hideView } >
+            _
+        </button>
     </main>
   )
 }

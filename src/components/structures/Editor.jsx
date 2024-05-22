@@ -114,7 +114,6 @@ function Editor({ room_id, username, code, socketRef, socketId }) {
 
   }, [updates])
 
-  
   return (
     <section id='editor-section'>
       <iframe title= 'Displays Output' id='output-div' /**onKeyUp={ escapeFullView }*/>

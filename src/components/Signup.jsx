@@ -17,6 +17,13 @@ function Signup() {
         } else if (password.length < 8) {
             alert('Password must have more than 8 characters');
         } else {
+            let position = '';
+            if (document.getElementById('student').checked) {
+                position = 'Student';
+            } else if (document.getElementById('professor').checked) {
+                position = 'Professor'; 
+            }
+
             const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/register', {
                 method: 'POST',
                 headers: {
@@ -25,6 +32,7 @@ function Signup() {
                 body: JSON.stringify({
                     username,
                     email,
+                    position,
                     password,
                 })
             });
@@ -63,6 +71,29 @@ function Signup() {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         /> 
+                        <label><b><i>Are you a...</i></b></label>
+                        <div className='radio-container'>
+                            <div className='radio-options'>
+                                <input 
+                                    type='radio'
+                                    value='Student'
+                                    id='student'
+                                    name='position'
+                                    required
+                                /> 
+                                <label>Student</label>
+                            </div>
+                            <div className='radio-options'>
+                                <input 
+                                    type='radio'
+                                    value='Professor'
+                                    id='professor'
+                                    name='position'
+                                    required
+                                /> 
+                                <label>Professor</label>
+                            </div>
+                        </div>
                         <label>Password</label>
                         <input 
                             type='password'

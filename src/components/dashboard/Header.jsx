@@ -14,7 +14,7 @@ function Header({auth}) {
       </nav>
       <nav className='right-nav'>
         <a href='/settings'><FiSettings size={24} color={'#777'}/></a>
-        <a href='/dashboard'><User username={auth.username}/></a>
+        <User username={auth.username} position={auth.position}/>
       </nav>
     </header>
   )

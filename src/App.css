@@ -70,11 +70,26 @@ button, input[type='button'], a {
   color: #444444;
 }
 
-.input-form input {
+.input-form input:not(input[type='radio']) {
   padding: 10px 20px;
   width: 250px;
   font-size: 16px;
   color: #444444;
+}
+
+.input-form .radio-container {
+  display: flex;
+  justify-content: space-around;
+  margin-left:10px;
+}
+
+.input-form .radio-container .radio-options {
+  width:50%;
+  text-align: left;
+}
+
+.input-form .radio-container label {
+  margin: 0px 0px;
 }
 
 .input-btn {
@@ -174,7 +189,7 @@ header {
 }
 
 .sb-selected {
-  background-image: linear-gradient(to right, #fff7e0, #aaa);
+  background-image: linear-gradient(to right, #fff7e0,#fff, #fff);
 }
 
 /*?  DASHBOARD CONTENT  ?*/
@@ -335,7 +350,6 @@ header {
   box-shadow: #555 0 0 1px;
   overflow:hidden;
   transition: 0.5s;
-  z-index: -1;
 }
 
 .editor-main #top .top-left {
@@ -403,6 +417,18 @@ header {
   background-color: #5e5
 }
 
+.hide-btn {
+  position: absolute;
+  top: 64px;
+  right: 2px;
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 10px;
+  background-color: gray;
+  transition: .5s;
+}
+
+
 .edit-btn {
   cursor: pointer;
   border: 0;
@@ -429,7 +455,6 @@ header {
   background-color: #282c34;
   overflow-y: scroll;
   overflow-x: hidden;
-  z-index: 100;
 }
 
 #output-div {
@@ -438,4 +463,4 @@ header {
   width: 50%;
   border: 0;
   transition: 0.5s;
-} 
+}

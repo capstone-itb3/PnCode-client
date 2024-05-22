@@ -6,7 +6,6 @@ import Header from './dashboard/Header';
 import Sidebar from './dashboard/Sidebar';
 import DashboardRoom from './dashboard/DashboardRoom';
 import DashboardTeam from './dashboard/DashboardTeam';
-import DashboardClass from './dashboard/DashboardClass';
 
 function Dashboard () {
     const navigate = useNavigate();
@@ -29,8 +28,6 @@ function Dashboard () {
     let main;
     if(select === 'teams') {
         main = <DashboardTeam auth={ auth }/>;
-    } else if (select === 'classes') {
-        main = <DashboardClass auth={ auth }/>
     } else {
         main = <DashboardRoom auth={ auth }/>
     }
