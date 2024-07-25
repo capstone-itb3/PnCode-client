@@ -1,20 +1,39 @@
 import React from 'react'
-import { FiCircle, FiSettings } from 'react-icons/fi';
-import User from '../structures/User';
+import { FiBell, FiList } from 'react-icons/fi';
 
 function Header({auth}) {
+  
+  let visible = 0;
+  function toggleSidebar() {
+      let sidebar = document.getElementById('sidebar-main');
+      let toggler = document.getElementById('sidebar-toggler');
+      let logo = document.getElementById('company-logo');
 
-    return (
+      if (visible % 2 === 0) {
+          sidebar.style.left = 0;
+          toggler.firstChild.style.color = '#808080';
+          logo.style.color = '#808080';
+
+      } else {
+          sidebar.style.left = '-224px';
+          toggler.firstChild.style.color = '#ffffff';
+          logo.style.color = '#ffffff';
+      }
+
+      visible++;
+  }
+
+  return (
     <header>
       <nav className='left-nav'>
-      <a href='/' className='company-logo'>codlin</a>
-        <a href='/dashboard'>DASHBOARD</a>
-        <a href='#'>CREATE</a>
-        <a href='#'>JOIN</a>
+        <button id='sidebar-toggler' onClick={ toggleSidebar }><FiList size={30} color={'white'}/></button>
+        <a href='/' id='company-logo'>PnCode</a>
+        <div className='top-profile'>
+            {auth.first_name} {auth.last_name} • {auth.position}
+        </div>
       </nav>
       <nav className='right-nav'>
-        <a href='/settings'><FiSettings size={24} color={'#777'}/></a>
-        <User username={auth.username} position={auth.position}/>
+        <button><FiBell size={24} /></button>
       </nav>
     </header>
   )

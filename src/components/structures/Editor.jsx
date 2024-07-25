@@ -14,7 +14,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import * as random from 'lib0/random'
 
 
-function Editor({ room_id, username, code, socketRef, socketId }) {
+function Editor({ room_id, auth, code, socketRef, socketId }) {
 
   const usercolors = [  
     { color: '#30bced', light: '#30bced33' },
@@ -36,7 +36,7 @@ function Editor({ room_id, username, code, socketRef, socketId }) {
       const ytext = ydoc.getText('codemirror')
   
       provider.awareness.setLocalStateField('user', {
-        name: username,
+        name: auth.last_name + ', ' + auth.first_name[0] + '.',
         color: userColor.color,
         colorLight: userColor.light
       })

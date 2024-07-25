@@ -2,121 +2,128 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Signup() {
-    const [ username, setUsername ] = useState('');
-    const [ email, setEmail ] = useState('');
+    const [ student_id, setStudentId ] = useState('');
+    const [ first_name, setFirstName ] = useState('');
+    const [ last_name, setLastName ] = useState('');
+    const [ current_year, setCurrentYear ] = useState('1');
+    const [ current_section, setCurrentSection ] = useState('IT-A');
     const [ password, setPassword ] = useState('');
     const [ conf_password, setConfPassword ] = useState('');
-
     const navigate = useNavigate();
 
     async function signupAccount(event) {
         event.preventDefault()
 
-        if (password !== conf_password) {
-            alert('Password and Re-typed Password doesn\'t match.');
-        } else if (password.length < 8) {
-            alert('Password must have more than 8 characters');
-        } else {
-            let position = '';
-            if (document.getElementById('student').checked) {
-                position = 'Student';
-            } else if (document.getElementById('professor').checked) {
-                position = 'Professor'; 
-            }
+        const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'   
+            },
+            body: JSON.stringify({
+                student_id,
+                first_name,
+                last_name,
+                section: [current_year + current_section],
+                password,
+                conf_password
+            })
+        });
+        const data = await response.json();
 
-            const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'   
-                },
-                body: JSON.stringify({
-                    username,
-                    email,
-                    position,
-                    password,
-                })
-            });
-            const data = await response.json();
-
-            if(data.status === 'ok') {
-                alert ('Sign up successful. now you can log in.');
-                navigate('/login');
-            } else if (data.status === 'invalid' || data.status === 'error') {
-                alert (data.error);
-            }
-        }
+        if(data.status === 'ok') {
+            alert ('Sign up successful. now you can log in.');
+            navigate('/login');
+        } else if (data.status === 'error') {
+            alert (data.message);
+        }    
     };
-
+    
     return (
         <main className='centering' style={{ marginTop: '25px' }}>
-            <form className='form-account' onSubmit={ signupAccount }>
+            <form className='form-account' style={{ padding: '30px'  }} onSubmit={ signupAccount }>
                 <section className='head'>
-                    <label>Sign-up to <span style={{ color: '#0000ff' }} >CodLin</span></label>
+                    <label>Sign-up to <span style={{ color: '#0000ff' }} >PnCode</span></label>
                 </section>
                 <section className='body'>
                     <div className='input-form'>
-                        <label>Username</label>
-                        <input 
-                            type='text'
-                            value={username}
-                            placeholder='Enter your username'
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        /> 
-                        <label>Email</label>
-                        <input 
-                            type='text'
-                            value={email}
-                            placeholder='Enter your email address'
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        /> 
-                        <label><b><i>Are you a...</i></b></label>
-                        <div className='radio-container'>
-                            <div className='radio-options'>
-                                <input 
-                                    type='radio'
-                                    value='Student'
-                                    id='student'
-                                    name='position'
-                                    required
-                                /> 
-                                <label>Student</label>
-                            </div>
-                            <div className='radio-options'>
-                                <input 
-                                    type='radio'
-                                    value='Professor'
-                                    id='professor'
-                                    name='position'
-                                    required
-                                /> 
-                                <label>Professor</label>
+                        <div className='input-data'>
+                            <label>Student ID</label>
+                            <input 
+                                type='text'
+                                value={student_id}
+                                placeholder='Enter your student ID'
+                                onChange={(e) => setStudentId(e.target.value)}
+                                required
+                            /> 
+                        </div>
+                        <div></div>
+                        <div className='input-data'>                        
+                            <label>First Name</label>
+                            <input 
+                                type='text'
+                                value={first_name}
+                                placeholder='Enter your first name'
+                                onChange={(e) => setFirstName(e.target.value)}
+                                required
+                            /> 
+                        </div>
+                        <div className='input-data'>                        
+                            <label>Last Name</label>
+                            <input 
+                                type='text'
+                                value={last_name}
+                                placeholder='Enter your last name'
+                                onChange={(e) => setLastName(e.target.value)}
+                                required
+                            />
+                        </div> 
+                        <div className='input-data'>
+                            <div className='option-select'>
+                                <label>Year</label>
+                                <select value={current_year} onChange={(e) => setCurrentYear(e.target.value)}>
+                                    <option value='1'>1</option>
+                                    <option value='2'>2</option>
+                                    <option value='3'>3</option>
+                                    <option value='4'>4</option>
+                                </select>
+                                <label>Section</label>
+                                <select value={current_section} onChange={(e) => setCurrentSection(e.target.value)}>
+                                    <option value='IT-A'>IT-A</option>
+                                    <option value='IT-B'>IT-B</option>
+                                    <option value='IT-C'>IT-C</option>
+                                    <option value='IT-D'>IT-D</option>
+                                    <option value='IT-E'>IT-E</option>
+                                    <option value='IT-F'>IT-F</option>
+                                </select>
                             </div>
                         </div>
-                        <label>Password</label>
-                        <input 
-                            type='password'
-                            value={password}
-                            placeholder='Enter your password'
-                            required
-                            onChange={(e) => setPassword(e.target.value)}
-                        /> 
-                        <label>Confirm Password</label>
-                        <input 
-                            type='password'
-                            value={conf_password}
-                            placeholder='Re-type your password'
-                            onChange={(e) => setConfPassword(e.target.value)}
-                            required
-                        /> 
+                        <div className='input-data' id='section-label'>
+                            <label>*If you're an irregular student, you can add another section later in the settings.</label>
+                        </div>
+                        <div className='input-data'>                        
+                            <label>Password</label>
+                            <input 
+                                type='password'
+                                value={password}
+                                placeholder='Enter your password'
+                                required
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                        <div className='input-data'>
+                            <label>Confirm Password</label>
+                            <input 
+                                type='password'
+                                value={conf_password}
+                                placeholder='Re-type your password'
+                                onChange={(e) => setConfPassword(e.target.value)}
+                                required
+                            /> 
+                        </div>
                     </div>
                     <div className='input-btn'>
-                        <input 
-                            type='submit' 
-                            value='Create Account' 
-                        />
-                        <a href='/login'>Log in? </a>
+                        <input style={{ padding : '8px 30px' }} type='submit' value='Create Account'/>
+                        <label>Already have an account? <a href='/login'>Log in</a></label>
                     </div>                
                 </section>
             </form>

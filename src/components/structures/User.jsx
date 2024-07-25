@@ -1,11 +1,11 @@
 import React from 'react';
 import Avatar from 'react-avatar';
 
-function User({ username, position }) {
+function User({ joiner }) {
   return (
     <section className='user-section'>
-      <Avatar name={ username } size='30' round='30px'/>
-      <span> { username }</span> {position ? <span> • { position }</span>  : '' }
+      <Avatar name={ joiner } size='30' round='30px'/>
+      <span> { joiner }</span>
     </section>
   )
 }

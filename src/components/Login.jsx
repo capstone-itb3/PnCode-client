@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
 function Login() {
-    const [ username, setUsername ] = useState('');
+    const [ student_id, setStudentId ] = useState('');
     const [ password, setPassword ] = useState('');
 
     const navigate = useNavigate();
@@ -17,7 +17,7 @@ function Login() {
                 'Content-Type': 'application/json'   
             },
             body: JSON.stringify({
-                username,
+                student_id,
                 password,
             })
         })
@@ -29,41 +29,44 @@ function Login() {
             navigate('/dashboard');
             
         } else {
-            alert('Incorrect username or password');
+            alert(data.message);
         } 
     };
 
     return (
-        <main className='centering' style={{ marginTop: '50px' }} onSubmit={ loginAccount }>
-            <form className='form-account'>
+        <main className='centering' style={{ marginTop: '50px' }} >
+            <form className='form-account' style={{ padding: '30px 50px'  }} onSubmit={ loginAccount }>
                 <section className='head'>
-                    <label>Log-in to <span style={{ color: '#0000ff' }} >CodLin</span></label>
+                    <label>Log-in to <span style={{ color: '#0000ff' }} >PnCode</span></label>
                 </section>
                 <section className='body'>
-                    <div className='input-form'>
-                        <label>Username</label>
-                        <input 
-                            type='text'
-                            value={username} 
-                            placeholder='Enter your username'
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        /> 
-                        <label>Password</label>
-                        <input 
-                            type='password' 
-                            value={password} 
-                            placeholder='Enter your password'
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        /> 
+                    <div className='input-form'   style={{ gridTemplateColumns: 'auto' }}>
+                        <div className='input-data'>
+                            <label>Student ID</label>
+                            <input 
+                                type='text'
+                                value={student_id} 
+                                placeholder='Enter your Student ID'
+                                onChange={(e) => setStudentId(e.target.value)}
+                                required
+                            /> 
+                        </div>
+                        <div className='input-data'>
+                            <label>Password</label>
+                            <input 
+                                type='password' 
+                                value={password} 
+                                placeholder='Enter your password'
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            /> 
+                        </div>
                     </div>
                     <div className='input-btn'>
-                        <input 
-                            type='submit' 
-                            value='Login'
-                        />
-                        <a href='/signup'>Create an account? </a>
+                        <input style={{ padding : '8px 60px' }} type='submit' value='Login'/>
+                        
+                        <br></br><br></br>
+                        <label>New to PnCode? <a href='/signup'>Sign up</a></label>
                     </div>                
                 </section>
             </form>

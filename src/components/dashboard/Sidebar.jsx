@@ -1,34 +1,26 @@
 import React, { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
 
-function Sidebar() {
-  const { select } = useParams();
+function Sidebar({checkParams}) {
 
-  useEffect(() => {
-    if (select === 'teams') {
-      document.getElementById('sb-2').classList.add('sb-selected')
-    } else {
-      document.getElementById('sb-1').classList.add('sb-selected');
-    }
-  })
-  
+  function showSelected( selected ) {
+    window.history.replaceState(null, null, `/dashboard/${selected}`);
+    checkParams(selected);
+  }
+
   return (
-    <aside className='sidebar-main'>
-      <div className='list-group'>
-        <label>DASHBOARD</label>
-        <a id='sb-1' href='/dashboard'>Rooms</a>
-        <a id='sb-2' href='/dashboard/teams'>Teams</a> 
-      </div>
-      <div className='list-group'>      
-        <label>USER</label>
-        <a id='sb-3' href='#'>Profile</a>
-        <a id='sb-4' href='#'>Settings</a> 
-      </div>
-      <div className='list-group'>      
-        <label>ABOUT</label>
-        <a id='sb-5' href='#'>About Us</a>
-        <a id='sb-6' href='#'>Feedback</a> 
-      </div>
+    <aside id='sidebar-main'>
+      <button className='sb-ops selected' id='sb-all' onClick={() => { showSelected('all') }}>
+        <label>All</label>
+      </button>
+      <button  className='sb-ops' id='sb-teams' onClick={() => { showSelected('teams') }}>
+        <label>Teams</label>
+      </button>
+      <button className='sb-ops' id='sb-assigned' onClick={() => { showSelected('assigned') }}>
+        <label>Assigned<span><br/></span>Rooms</label>
+      </button>
+      <button className='sb-ops' id='sb-solo' onClick={() => { showSelected('solo') }}>
+        <label>Solo<span><br/></span>Rooms</label>
+      </button>
     </aside>
   )
 }

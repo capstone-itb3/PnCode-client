@@ -6,7 +6,6 @@ import Room from './components/Room';
 import Signup from './components/Signup';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-// import Yjstest from './yjstest';
 
 function App() {
 
@@ -14,13 +13,13 @@ function App() {
     <>
     <Toaster position='top-center'></Toaster>
     <Routes>
-      {/* <Route path = '/test' element={ <Yjstest /> }/> */}
       <Route path = '/' element={ <Signup/> }/>
       <Route path = '/signup' element={ <Signup/> }/>
       <Route path = '/login' element={ <Login/> }/>
       <Route path = '/dashboard' element={ <Dashboard/> }/>
       <Route path = '/dashboard/:select' element={ <Dashboard/> }/>
-      <Route path = '/room/:room_id' element={ <Room/> }/>
+      <Route path = '/:room_type/:room_id' element={ <Room/> }/>
+      <Route path = '/:room_type/:room_id' element={ <Room/> }/>
     </Routes>
     </>
   )

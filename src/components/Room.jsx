@@ -10,84 +10,65 @@ import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
 function Room() {   
-  const [ userlist, setUserList ] = useState ([]);
-  const [ room_info, setRoomInfo ] = useState();
-  const [ socket_id, setSocketId ] = useState(null);
-
+  const [userlist, setUserList] = useState ([]);
+  const [room_info, setRoomInfo] = useState();
   const [auth, setAuth] = useState(() => {
     const token = Cookies.get('token');
-    if(token !== null) {
-        const user = jwtDecode(token);
-        if(!user) {
-            Cookies.remove('token');
-            navigate('/login');
-        } else {
-            return user;
-        }
-    } else {
+      if (!token) {
         navigate('/login');
+        return null;
+    }
+  
+    try {
+        const user = jwtDecode(token);
+        return user;
+    } catch (error) {
+        console.error('Invalid token: ', error);
+        Cookies.remove('token');
+        navigate('/login');
+        return null;
     }
   });
 
-  const codeRef = useRef(null);  
-  const socketRef = useRef(null);
-  
+  const { room_type, room_id } = useParams();
   const navigate = useNavigate();
-  const { room_id } = useParams();
+
+  const [socket_id, setSocketId] = useState(null);
+  const socketRef = useRef(null);
 
   useEffect(() => {
-    async function fetchData() {
-      const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/verify-room', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          room_id: room_id
-        })
-      });
-      const data = await response.json();
+    async function verifyRoom() {
+      try {
+        const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/verify-room', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                room_id,
+                student_id: auth.student_id,
+                room_type
+            })
+        });
+        const data = await response.json();
 
-      if (data.room_id) {        
-        setRoomInfo(data);
-        addToJoined(room_id, auth.username);
-
-        let roomName = document.getElementById('roomName');
-        roomName.value = data.room_name;
-        
-        if(data.owner !== auth.username) {
-          roomName.setAttribute('readonly', 'readonly');
-          roomName.onfocus = roomName.blur();
-
-          document.getElementById('editIcon').style.display = 'none';
+        if (data.status === 'ok') {   
+          setRoomInfo(data.room);
+          document.getElementById('roomName').value = data.room.room_name;
+          
+          // if(data.room.owner_id !== auth.student_id) {
+          //   // navigate('/dashboard');
+          // }
+        } else {
+            alert('This Room ID does not exist.');
+            window.location.href = '/dashboard';
         }
-
-      } else {
-        alert('This Room ID does not exist.');
-        navigate('/dashboard');
+      } catch (e) {
+        console.error(e);
+        alert('Internal Server Error. Please try again later.');
       }
     }
-    fetchData();
-
-    async function addToJoined(room_id, username) {
-      const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/add-joined', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          room_id,
-          username
-        })
-      })
-      const data = await response.json();
-
-      if (data.status) {
-        Cookies.set('token', data.user);
-      } else {
-        console.error(data.error);
-      }
-    }
+    verifyRoom();
 
   }, [room_id]);
 
@@ -110,6 +91,8 @@ function Room() {
 //   }, []);
 
   useEffect (() => {
+    const user_display = auth.last_name + ', ' + auth.first_name[0] + '.';
+
     const init = async () => {
        socketRef.current = await initSocket();
        socketRef.current.on(Err.CONNECTERROR, (err) => handleError(err));
@@ -123,7 +106,7 @@ function Room() {
 
       socketRef.current.emit(Do.JOIN, {
         room_id,
-        username: auth.username, 
+        username: user_display, 
       });
 
       socketRef.current.on(Is.JOINED, ({ users, username, socketId }) => {
@@ -268,7 +251,7 @@ function Room() {
         <div className='member-list'>
           <h4>Members</h4>
           {userlist.map((user) => (
-            <User key={user.socketId} username={user.username}/>
+            <User key={user.socketId} joiner={user.username}/>
           ))}
         </div>
         <div className='button-list'>
@@ -277,7 +260,7 @@ function Room() {
       </aside>
         <Editor 
           room_id={room_id} 
-          username={auth.username} 
+          auth={auth} 
           code={room_info ? room_info.code : ''}
           socketRef={socketRef}
           socketId={socket_id}
