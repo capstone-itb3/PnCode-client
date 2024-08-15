@@ -26,7 +26,7 @@ function Header({auth}) {
   return (
     <header>
       <nav className='left-nav'>
-        <button id='sidebar-toggler' onClick={ toggleSidebar }><FiList size={30} color={'white'}/></button>
+        {/* <button id='sidebar-toggler' onClick={ toggleSidebar }><FiList size={30} color={'white'}/></button> */}
         <a href='/' id='company-logo'>PnCode</a>
         <div className='top-profile'>
             {auth.first_name} {auth.last_name} • {auth.position}

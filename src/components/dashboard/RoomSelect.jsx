@@ -5,14 +5,13 @@ function RoomSelect({ room, index, type }) {
   const [display, setDisplay] = useState(() => {
     const date = new Date(room.updatedAt);
 
-    const day = date.getDate();
-    const month = date.toLocaleString('default', { month: 'long' });
+    const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+    const month = date.toLocaleString('default', { month: 'long' }).slice(0, 3);
     const year = date.getFullYear();
-    const hours = date.getHours() % 12 || 12;
-    const minutes = date.getMinutes();
-    const period = date.getHours() < 12 ? 'AM' : 'PM';
+    const hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
+    const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
 
-    room.updatedAt = `${day < 10 ? '0' + day : day}, ${month} ${year} ${hours}:${minutes < 10 ? '0' + minutes : minutes} ${period}`;
+    room.updatedAt = `${day} ${month} ${year} ${hours}:${minutes}`;
     return room;
   });
   

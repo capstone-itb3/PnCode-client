@@ -1,38 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import Cookies from 'js-cookie';
+import Sidebar from './Sidebar';
+import CoursesTab from './CoursesTab';
 import RoomSelect from './RoomSelect';
-import { FiPlus } from 'react-icons/fi';
+import CreateTeam from './CreateTeam';
 import { Student } from '../../classes/UserClass';
 
-
-function StudentBoard({auth}) {
-    const navigate = useNavigate();
-    const [solo_rooms, setSoloList] = useState(<div>Retrieving...</div>);
-    const [assigned_rooms, setAssignedList] = useState(<div>Retrieving...</div>);
+function StudentBoard({auth, checkParams}) {
+    const [solo_list, setSoloList] = useState(<div>Retrieving...</div>);
+    const [assigned_list, setAssignedList] = useState(<div>Retrieving...</div>);
     const [student, setStudent] = useState(() => {
-        const student_id = auth.student_id;
-        const first_name = auth.first_name;
-        const last_name = auth.last_name;
-        const year = auth.year;
-        const section = auth.section;
-        const position = auth.position;
-        const solo_rooms = auth.solo_rooms;
-        const assigned_rooms = auth.assigned_rooms;
-        const teams = auth.teams;
-
-        return new Student(student_id, first_name, last_name, year, section, position, solo_rooms, assigned_rooms, teams);
+        return new Student(
+            auth.uid, 
+            auth.email, 
+            auth.first_name, 
+            auth.last_name, 
+            auth.position, 
+            auth.preferences,
+            auth.section, 
+            auth.enrolled_courses, 
+        );
+        
     });
-    
+    const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         console.log(student);
         async function init() {
-            const rooms = await student.getAllRooms();
-            
-            displaySoloRooms(rooms.solo_rooms);
-            displayAssignedRooms(rooms.assigned_rooms);    
+            displaySoloRooms(await student.getSoloRooms());
+            displayAssignedRooms(await student.getAssignedRooms());    
         }
         init();
     }, []);
@@ -75,7 +72,7 @@ function StudentBoard({auth}) {
                                         <th className='col-2'>Room Name</th>
                                         <th className='col-3'>Members</th>
                                         <th className='col-4'>Assigned</th>
-                                        <th className='col-5'>Professor</th>
+                                        <th className='col-5'>Course</th>
                                         <th className='col-6'>Date Updated</th>
                                     </tr>
                                     {rooms.map((room, index) => (
@@ -87,72 +84,64 @@ function StudentBoard({auth}) {
             );
         }
     }
-
     function createSoloRoom() {
         student.createSoloRoom();
     }
-    function createTeam() {
-        student.createTeam();
-    }
+    
+    // function createSoloRoom() {
+    //     student.createSoloRoom();
+    // }
 
+    function openTeamPopup () {
+        setIsModalOpen(true);
+    }
     return (
-        <section className='dash-section'>
-            <div className='separator ' id='show-teams'>
-                <div className='section-title'>
-                    <label>Teams</label> <span>({student.teams.length})</span>
-                </div>
-                <div>
-                    <button className='create-btn' onClick={ createTeam }>Create Team</button>
-                </div>
-            </div>
-            <div className='separator ' id='show-assigned'>
-                <div className='section-title'>
-                    <label>Assigned Rooms</label> <span>({student.assigned_rooms.length})</span>
-                </div>
-                <div className='room-list'>
-                    {assigned_rooms}
-                </div>
-            </div>
-            <div className='separator ' id='show-solo'>
-                <div className='section-title'>
-                    <label>Solo Rooms</label> <span>({student.solo_rooms.length})</span>
-                </div>
-                <div className='room-list'>
-                    {solo_rooms}
-                    <button className='create-btn' onClick={ createSoloRoom }>Create Solo Room</button>
-                </div>
-            </div>
-        </section>
+        <main id='dashboard-main'>
+            <Sidebar checkParams={checkParams} position={auth.position}/>
+            <section className='dash-section flex-column'>
+                <CoursesTab user={student}/>
+                <div className='display-content flex-column'>
+                    <div className='separator' id='show-teams'>
+                        <div className='section-title'>
+                            <label>Teams</label>
+                        </div>
+                        <div>
+                            <button className='create-btn' onClick={openTeamPopup}>Create Team</button>
+                        </div>
+                    </div>
+                    <div className='separator ' id='show-assigned'>
+                        <div className='section-title'>
+                            <label>Assigned Rooms</label>
+                        </div>
+                        <div className='room-list'>
+                            {assigned_list}
+                        </div>
+                    </div>
+                    <div className='separator ' id='show-solo'>
+                        <div className='section-title'>
+                            <label>Solo Rooms</label>
+                        </div>
+                        <div className='room-list'>
+                            {solo_list}
+                            <button className='create-btn' onClick={ createSoloRoom }>Create Solo Room</button>
+                        </div>
+                    </div>
+                </div>                
+                {
+                    isModalOpen && ( <CreateTeam student={student} exit={() => {setIsModalOpen(false)}} /> )
+                }
+            
+            </section>
+        </main>
     )
 }
 
 export default StudentBoard
 
-//     return (
-//         <section className='dashroom-section'>
-//             <div className='separator '>
-//                 <label className='section-title'>
-//                     <b>Teams</b> <span>({student.teams.length})</span>
-//                 </label>
-//             </div>
-//             <div className='separator '>
-//                 <label className='section-title'>
-//                     <b>Assigned Rooms</b> <span>({student.assigned_rooms.length})</span>
-//                 </label>
 //                 <div className='room-list'>
 //                     { rooms ? <ListGrouped rooms={rooms.assigned_rooms} /> : null}
 //                 </div>
-//             </div>
-//             <div className='separator '>
-//                 <label className='section-title'>
-//                     <b>Solo Rooms</b> <span>({student.solo_rooms.length})</span>
-//                 </label>
+// 
 //                 <div className='room-list'>
 //                     { rooms ? <ListSolo rooms={rooms.solo_rooms} /> : null}
 //                 </div>
-//             </div>
-//         </section>
-//     )
-// }
-
-// export default StudentBoard

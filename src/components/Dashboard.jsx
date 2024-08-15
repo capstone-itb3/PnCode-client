@@ -3,8 +3,8 @@ import { jwtDecode } from 'jwt-decode';
 import { useNavigate, useParams } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Header from './dashboard/Header';
-import Sidebar from './dashboard/Sidebar';
 import StudentBoard from './dashboard/StudentBoard';
+import ProfessorBoard from './dashboard/ProfessorBoard';
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -12,7 +12,7 @@ function Dashboard() {
     const [auth, setAuth] = useState(() => {
         const token = Cookies.get('token');
         if (!token) {
-            navigate('/login');
+            window.location.href = '/login';
             return null;
         }
       
@@ -22,7 +22,7 @@ function Dashboard() {
         } catch (error) {
             console.error('Invalid token: ', error);
             Cookies.remove('token');
-            navigate('/login');
+            window.location.href = '/login';
             return null;
         }
     });
@@ -58,13 +58,13 @@ function Dashboard() {
     return (
         <div>
             <Header auth={auth} />
-            <Sidebar checkParams={checkParams} />
-            <main id='dashboard-main'>
-                {
-                    auth.position === 'Student' &&
-                    <StudentBoard auth={auth} />
-                }
-            </main>
+            {
+                ( auth.position === 'Student' &&
+                <StudentBoard auth={auth} checkParams={checkParams}/> ) 
+                ||
+                ( auth.position === 'Professor' &&
+                <ProfessorBoard auth={auth} checkParams={checkParams}/> )
+            }
         </div>
     );
 }

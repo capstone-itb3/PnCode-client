@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Signup() {
-    const [ student_id, setStudentId ] = useState('');
+    const [ email, setEmail ] = useState('');
     const [ first_name, setFirstName ] = useState('');
     const [ last_name, setLastName ] = useState('');
     const [ current_year, setCurrentYear ] = useState('1');
@@ -20,21 +20,22 @@ function Signup() {
                 'Content-Type': 'application/json'   
             },
             body: JSON.stringify({
-                student_id,
+                email,
                 first_name,
                 last_name,
-                section: [current_year + current_section],
+                year: current_year,
+                section: current_section,
                 password,
                 conf_password
             })
         });
         const data = await response.json();
+        alert(data.message);
 
         if(data.status === 'ok') {
-            alert ('Sign up successful. now you can log in.');
             navigate('/login');
-        } else if (data.status === 'error') {
-            alert (data.message);
+        } else {
+            console.error(data.message);
         }    
     };
     
@@ -46,20 +47,22 @@ function Signup() {
                 </section>
                 <section className='body'>
                     <div className='input-form'>
-                        <div className='input-data'>
-                            <label>Student ID</label>
+                        <div className='input-div'>
+                            <label>Email</label>
                             <input 
+                                className='input-data'
                                 type='text'
-                                value={student_id}
-                                placeholder='Enter your student ID'
-                                onChange={(e) => setStudentId(e.target.value)}
+                                value={email}
+                                placeholder='Enter your email address'
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             /> 
                         </div>
                         <div></div>
-                        <div className='input-data'>                        
+                        <div className='input-div'>                        
                             <label>First Name</label>
                             <input 
+                                className='input-data'
                                 type='text'
                                 value={first_name}
                                 placeholder='Enter your first name'
@@ -67,9 +70,10 @@ function Signup() {
                                 required
                             /> 
                         </div>
-                        <div className='input-data'>                        
+                        <div className='input-div'>                        
                             <label>Last Name</label>
                             <input 
+                                className='input-data'
                                 type='text'
                                 value={last_name}
                                 placeholder='Enter your last name'
@@ -77,7 +81,7 @@ function Signup() {
                                 required
                             />
                         </div> 
-                        <div className='input-data'>
+                        <div className='input-div'>
                             <div className='option-select'>
                                 <label>Year</label>
                                 <select value={current_year} onChange={(e) => setCurrentYear(e.target.value)}>
@@ -97,12 +101,13 @@ function Signup() {
                                 </select>
                             </div>
                         </div>
-                        <div className='input-data' id='section-label'>
-                            <label>*If you're an irregular student, you can add another section later in the settings.</label>
+                        <div className='input-div' id='section-label'>
+                            <label>*If you're an irregular student, you can add/change your enrolled courses later in the settings.</label>
                         </div>
-                        <div className='input-data'>                        
+                        <div className='input-div'>                        
                             <label>Password</label>
                             <input 
+                                className='input-data'
                                 type='password'
                                 value={password}
                                 placeholder='Enter your password'
@@ -110,9 +115,10 @@ function Signup() {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
-                        <div className='input-data'>
+                        <div className='input-div'>
                             <label>Confirm Password</label>
                             <input 
+                                className='input-data'
                                 type='password'
                                 value={conf_password}
                                 placeholder='Re-type your password'
