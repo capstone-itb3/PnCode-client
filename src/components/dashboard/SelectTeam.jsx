@@ -36,9 +36,9 @@ function SelectTeam({uid, team}) {
             </div>
             <label className='name'>{team.team_name}</label>
             <label className='members'>Members: {team.members.length}</label>
-            {showViewTeam && 
-            <ViewTeam team={team} uid={uid} isIncluded={isIncluded()}/>}
-            
+             {/* {showViewTeam &&
+             <ViewTeam team={team} uid={uid} isIncluded={isIncluded()}/>} */}
+
         </div>
     )
 }
