@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiUsers } from 'react-icons/fi';
 
-function RoomSelect({ room, index, type }) {
+function SelectRoom({ room, index, type }) {
   const [display, setDisplay] = useState(() => {
     const date = new Date(room.updatedAt);
 
@@ -39,4 +38,4 @@ function RoomSelect({ room, index, type }) {
   }
 }
 
-export default RoomSelect;
+export default SelectRoom;

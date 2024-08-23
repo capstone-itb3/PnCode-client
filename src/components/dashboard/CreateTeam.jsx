@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { BsXLg, BsExclamationCircleFill } from 'react-icons/bs';
 
 function CreateTeam({ user, course, section, exit }) {
@@ -10,18 +9,16 @@ function CreateTeam({ user, course, section, exit }) {
   const [warning, setWarning] = useState(0);
 
   useEffect(() => {
-    arrangeDisplay(course, section);
+    async function init() {
+      const students = await user.getCourseStudents(course, section);
+      setStudentList(students);
 
+      setStudentsSelected([]);
+      showSearchResults(false);
+      setSearch('');
+    }
+    init();
   }, []);
-
-  async function arrangeDisplay(course, section) {
-    const students = await user.getCourseStudents(course, section);
-    setStudentList(students);
-    setStudentsSelected([]);
-
-    showSearchResults(false);
-    setSearch('');
-  }
 
   function showSearchResults(bool) {
     const search_list = document.getElementById('member-search-list');
@@ -34,7 +31,7 @@ function CreateTeam({ user, course, section, exit }) {
       
       setTimeout(() => { 
         search_list.style.visibility = 'hidden';  
-      }, 300);
+      }, 350);
     }
   }
 
@@ -79,8 +76,8 @@ function CreateTeam({ user, course, section, exit }) {
   }
 
   return (
-    <div id='popup-gray-background'>
-      <div id='create-team'>
+    <div id='popup-gray-background' className='items-start'>
+      <div id='create-popup' className='team'>
         <div className='scroll'>
           <div id='popup-close'onClick={ exit } >
             <BsXLg size={ 18 }/>
@@ -127,7 +124,7 @@ function CreateTeam({ user, course, section, exit }) {
                 onBlur={() => {showSearchResults(false)}}
                 onChange={(e) => {setSearch(e.target.value)}}
               />
-              <div id='search-results-div'>
+              <div id='search-results-div' className='width-100'>
                 <SearchStudents students_list={student_list} search={search} addToSelectedList={addToSelectedList}/>
               </div>
             </div>

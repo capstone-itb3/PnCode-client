@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { BsListUl } from 'react-icons/bs';
 import Sidebar from './Sidebar';
-import CoursesTab from './CoursesTab';
-import RoomSelect from './RoomSelect';
-import TeamSelect from './TeamSelect';
+import TabCourse from './TabCourse';
+import SelectRoom from './SelectRoom';
+import SelectTeam from './SelectTeam';
+import SelectActivity from './SelectActivity';
 import CreateTeam from './CreateTeam';
+import CreateActivity from './CreateActivity';
 import { Professor } from '../../classes/UserClass';
 
-function ProfessorBoard({auth, checkParams}) {
+function BoardProfessor({ auth, checkParams }) {
     const [professor, setProfessor] = useState(() => {
         return new Professor(
             auth.uid, 
@@ -15,14 +18,15 @@ function ProfessorBoard({auth, checkParams}) {
             auth.first_name, 
             auth.last_name, 
             auth.position, 
+            auth.notifications,
             auth.preferences,
             auth.assigned_courses, 
         );
         
     });
-    const [display_teams, setDisplayTeams] = useState(<div>Retrieving...</div>);
-    const [display_groups, setDisplayGroup] = useState(<div>Retrieving...</div>);
-    const [display_solo, setDisplaySolo] = useState(<div>Retrieving...</div>);
+    const [display_teams, setDisplayTeams] = useState(<div className='in-retrieve'>Retrieving...</div>);
+    const [display_activities, setDisplayActivities] = useState(<div className='in-retrieve'>Retrieving...</div>);
+    const [display_solo, setDisplaySolo] = useState(<div className='in-retrieve'>Retrieving...</div>);
     const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
     const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
     const navigate = useNavigate();
@@ -36,13 +40,36 @@ function ProfessorBoard({auth, checkParams}) {
     }, []);
 
     useEffect(() => {
+        setDisplayTeams(<div className='in-retrieve'>Retrieving...</div>);
+        setDisplayActivities(<div className='in-retrieve'>Retrieving...</div>);
+
         async function init() {
             displayTeams(await professor.getTeams(course, section));
+            displayActivities(await professor.getActivities(course, section));
         }
         init();
     }, [course, section]);
         
-    function displaySoloRooms(rooms) {
+    function displayTeams(teams = []) {
+        setDisplayTeams(<div id='team-selection' className='flex-row'>
+                            <button className='team-plus' onClick={openTeamPopup}>+</button>
+                            {teams.map((team) => (
+                                <SelectTeam key={team.team_id} team={team} />
+                            ))}
+                        </div>
+        )
+    }
+
+    function displayActivities(activities = []) {
+        setDisplayActivities(<div id='activity-selection' className='flex-column'>
+                                {activities.map((activity, index) => (
+                                    <SelectActivity key={activity.activity_id} activity={activity} index={index} />
+                                ))}
+                             </div>
+        );
+    }
+
+    function displaySoloRooms(rooms = []) {
         if (rooms.length === 0) {
             setDisplaySolo( <div className='no-results'>
                                 No room is created yet.
@@ -57,7 +84,7 @@ function ProfessorBoard({auth, checkParams}) {
                                         <th className='col-3'>Date Updated</th>
                                     </tr>
                                     {rooms.map((room, index) => (
-                                        <RoomSelect key={room.room_id} type={'solo'} room={room} index={index} />
+                                        <SelectRoom key={room.room_id} type={'solo'} room={room} index={index} />
                                     ))}             
                                 </tbody>
                             </table> 
@@ -65,22 +92,6 @@ function ProfessorBoard({auth, checkParams}) {
         }
     }
 
-    function displayTeams(teams) {
-        if (teams.length === 0) {
-            setDisplayTeams( <div className='no-results'>
-                                No team is created yet.
-                            </div>
-            );
-        } else {
-            setDisplayTeams(<div className='team-selection flex-row'>
-                                {teams.map((team) => (
-                                    <TeamSelect key={team.team_id} team={team} />
-                                ))}
-                            </div>
-            );
-            console.log(teams);
-        }
-    }
     function createSoloRoom() {
         professor.createSoloRoom();
     }
@@ -91,13 +102,18 @@ function ProfessorBoard({auth, checkParams}) {
 
     function openActivityPopup () {
         setIsActivityModalOpen(true);
-    }    
+    }
     
+    function showSidebar () {
+        document.getElementById('sidebar-main').style.left = 0;
+    }
+
     return (
         <main id='dashboard-main'>
             <Sidebar checkParams={checkParams} position={auth.position}/>
             <section className='dash-section flex-column'>
-                <CoursesTab user={professor}/>
+                <button id='dash-burger' onClick={ showSidebar }><BsListUl size={ 30 }/></button>
+                <TabCourse user={professor}/>
                 <div className='display-content flex-column'>
                     <div className='content-header' id='show-solo-rooms'>
                         <label className='title-course'></label>
@@ -110,14 +126,14 @@ function ProfessorBoard({auth, checkParams}) {
                         </div>
                         <div>
                             {display_teams}
-                            <button className='create-btn' onClick={openTeamPopup}>Create Team</button>
                         </div>
                     </div>
-                    <div className='separator' id='show-groups'>
+                    <div className='separator' id='show-activities'>
                         <div className='section-title'>
                             <label>Group Activities</label>
                         </div>
                         <div>
+                            {display_activities}
                             <button className='create-btn' onClick={openActivityPopup}>Create Activity</button>
                         </div>
                     </div>
@@ -139,16 +155,20 @@ function ProfessorBoard({auth, checkParams}) {
                         section={section}
                         exit={() => {setIsTeamModalOpen(false)}} /> )
                 }
-                {/* {
-                    isTeamModalOpen && 
-                    ( <CreateTeam user={professor} exit={() => {setIsTeamModalOpen(false)}} /> )
-                } */}
+                {
+                    isActivityModalOpen && 
+                    ( <CreateActivity
+                        user={professor} 
+                        course={course}
+                        section={section}
+                        exit={() => {setIsActivityModalOpen(false)}} /> )
+                }
             </section>
         </main>
     )
 }
 
-export default ProfessorBoard
+export default BoardProfessor
 
 //                 <div className='room-list'>
 //                     { rooms ? <ListGrouped rooms={rooms.assigned_rooms} /> : null}

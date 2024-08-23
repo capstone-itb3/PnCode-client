@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 
 
-function CoursesTab({user}) {
+function TabCourse({user}) {
     const [showArrows, setShowArrows] = useState(false);
     const scrollContainerRef = useRef(null);
     const navigate = useNavigate();
@@ -69,34 +69,34 @@ function CoursesTab({user}) {
 
     return (
         <div id='courses-tab'>
-        {showArrows && 
-        <button className="scroll-arrow left" onClick={scrollLeft}>&lt;</button>}
-        <div className='course-scroll' ref={scrollContainerRef}>
-            {user.position === 'Student' && user.enrolled_courses.map((course) => (
-                <button 
-                    className="course-button"
-                    key={`${course.course_code}`}
-                    id={`${course.course_code}`}
-                    onClick={()=> navigate(`/dashboard/${course.course_code}/${params.select}`)}>
-                    {course.course_code}
-                </button>
-            ))}
-            {user.position === 'Professor' && user.assigned_courses.map((course) => (
-                course.sections.map((section) => (
+            {showArrows && 
+            <button className="scroll-arrow left" onClick={scrollLeft}>&lt;</button>}
+            <div className='course-scroll width-100' ref={scrollContainerRef}>
+                {user.position === 'Student' && user.enrolled_courses.map((course) => (
                     <button 
                         className="course-button"
-                        id={`${course.course_code}-${section}`}
-                        key={`${course.course_code}-${section}`} 
-                        onClick={()=> navigate(`/dashboard/${course.course_code}/${section}/${params.select}`) }>
-                        {section} - {course.course_code}
+                        key={`${course.course_code}`}
+                        id={`${course.course_code}`}
+                        onClick={()=> navigate(`/dashboard/${course.course_code}/${params.select}`)}>
+                        {course.course_code}
                     </button>
-                ))
-            ))}
+                ))}
+                {user.position === 'Professor' && user.assigned_courses.map((course) => (
+                    course.sections.map((section) => (
+                        <button 
+                            className="course-button"
+                            id={`${course.course_code}-${section}`}
+                            key={`${course.course_code}-${section}`} 
+                            onClick={()=> navigate(`/dashboard/${course.course_code}/${section}/${params.select}`) }>
+                            {section} - {course.course_code}
+                        </button>
+                    ))
+                ))}
+            </div>
+            {showArrows && 
+            <button className="scroll-arrow right" onClick={scrollRight}>&gt;</button>}
         </div>
-        {showArrows && 
-        <button className="scroll-arrow right" onClick={scrollRight}>&gt;</button>}
-    </div>
     )
 }
 
-export default CoursesTab
+export default TabCourse
