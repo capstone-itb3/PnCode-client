@@ -7,6 +7,9 @@ import Signup from './components/Signup';
 import Login from './components/Login';
 import ProfLogin from './components/ProfLogin';
 import Dashboard from './components/Dashboard';
+import PageTeam from './components/dashboard/teampage/PageTeam';
+import PageActivity from './components/dashboard/activitypage/PageActivity';
+
 
 function App() {
 
@@ -23,6 +26,8 @@ function App() {
       <Route path = '/dashboard/:course/:select' element={ <Dashboard/> }/>
       <Route path = '/dashboard/:course/:section' element={ <Dashboard/> }/>
       <Route path = '/dashboard/:course/:section/:select' element={ <Dashboard/> }/>
+      <Route path = '/team/:team_id' element={ <PageTeam/> }/>
+      <Route path = '/activity/:activity_id' element={ <PageActivity/> }/>
       <Route path = '/:room_type/:room_id' element={ <Room/> }/>
       <Route path = '/:room_type/:room_id' element={ <Room/> }/>
     </Routes>

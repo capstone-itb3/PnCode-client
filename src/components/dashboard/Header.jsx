@@ -1,8 +1,10 @@
 import React from 'react'
 import { FiBell, FiList } from 'react-icons/fi';
+import UserAvatar from '../UserAvatar';
 
 function Header({auth}) {
-  
+  const shortened_name = auth.last_name + ', ' + auth.first_name.charAt(0);
+
   let visible = 0;
   function toggleSidebar() {
       let sidebar = document.getElementById('sidebar-main');
@@ -26,10 +28,10 @@ function Header({auth}) {
   return (
     <header>
       <nav className='left-nav'>
-        {/* <button id='sidebar-toggler' onClick={ toggleSidebar }><FiList size={30} color={'white'}/></button> */}
         <a href='/' id='company-logo'>PnCode</a>
-        <div className='top-profile'>
-            {auth.first_name} {auth.last_name} • {auth.position}
+        <div className='flex-row top-profile'>
+            <UserAvatar name={shortened_name} size={25}/>
+            <label>{auth.last_name}, {auth.first_name}<span>•</span>{auth.position}</label>
         </div>
       </nav>
       <nav className='right-nav'>

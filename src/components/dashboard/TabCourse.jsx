@@ -9,6 +9,7 @@ function TabCourse({user}) {
     const params = useParams();
 
     useEffect(() => {
+        console.log(user);
         try {
             checkForArrows();
             window.addEventListener('resize', checkForArrows);

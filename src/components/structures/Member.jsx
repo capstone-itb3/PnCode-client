@@ -1,7 +1,7 @@
 import React from 'react';
 import Avatar from 'react-avatar';
 
-function User({ joiner }) {
+function Member({ joiner }) {
   return (
     <section className='user-section'>
       <Avatar name={ joiner } size='30' round='30px'/>
@@ -10,4 +10,4 @@ function User({ joiner }) {
   )
 }
 
-export default User
+export default Member

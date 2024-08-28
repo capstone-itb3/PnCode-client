@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import User from './structures/User';
+import Member from './structures/Member';
 import Editor from './structures/Editor';
 import { initSocket } from '../socket';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -251,7 +251,7 @@ function Room() {
         <div className='member-list'>
           <h4>Members</h4>
           {userlist.map((user) => (
-            <User key={user.socketId} joiner={user.username}/>
+            <Member key={user.socketId} joiner={user.username}/>
           ))}
         </div>
         <div className='button-list'>

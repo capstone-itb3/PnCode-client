@@ -1,6 +1,6 @@
 import './RoomClass.jsx';
-import './TeamClass.jsx';
-import './ActivityClass.jsx';
+import Team from './TeamClass';
+import Activity from './ActivityClass.jsx';
 import toast from'react-hot-toast';
 import Cookies from 'js-cookie';
 
@@ -98,6 +98,42 @@ export class User {
         }
     }
 
+    async getTeamDetails(auth, team_id) {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/get-team-details/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    auth: auth,
+                    team_id: team_id
+                })
+            });
+        
+            const data = await response.json();
+            
+            if (data.status === 'ok' && data.access) {
+                const info = data.team;
+        
+                return { team_class : new Team(
+                            info.team_id, 
+                            info.team_name, 
+                            info.course, 
+                            info.section, 
+                            info.members ), 
+                            access : data.access 
+                        };
+            } else {
+                window.location.href = '/dashboard';
+                return null;
+            }    
+        } catch (e) {
+            console.error(e);
+            window.location.href = '/dashboard';
+        }
+    }
+
     async createSoloRoom() {
         toast.success('Redirecting you to a new Room...');
     
@@ -151,7 +187,7 @@ export class User {
         }
     }
 
-    async createTeam(team_name, course, section, members) {
+    async createTeam(team_name, course, section) {
         try {
             const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/create-team`, {
                 method: 'POST',
@@ -165,7 +201,6 @@ export class User {
                     name: team_name,
                     course,
                     section,
-                    members
                 })
             });
 
@@ -173,11 +208,12 @@ export class User {
 
             if (data.status === 'ok') {
                 toast.success('Team created successfully.');
-                
                 window.location.reload();
             } else {
-                toast.error('Error. Team creation failed.');
-                return null;
+                toast.error(data.message ? data.message : 'Server connection error.');
+                if (data.reload) {
+                    windoes.location.reload();
+                }
             }
         } catch (e) {
             console.log(e);
@@ -242,6 +278,7 @@ export class Student extends User {
             toast.error('Connection error. Please try again later.');
         }
     }
+
     async visitActivity(activity_id, course) {
         try {
             let section = null;
@@ -274,8 +311,8 @@ export class Student extends User {
                 window.location.href = `/room/${activity_id}`;
 
             } else {
-                toast.error(data.message);
-                console.error(data.message);
+                alert(data.message);
+                console.log(data.message);
             }
             
         } catch (e) {
@@ -323,6 +360,44 @@ export class Professor extends User {
             }
         } catch (e) {
             console.log(e);
+        }
+    }
+
+    async getActivityDetails(auth, activity_id) {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/get-activity-details`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    auth: auth,
+                    activity_id: activity_id
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'ok' && data.access) {
+                const info = data.activity;
+
+                return {activity_class: new Activity(
+                    info.activity_id,
+                    info.activity_name,
+                    info.course_code,
+                    info.section,
+                    info.instructions,
+                    info.open_time,
+                    info.close_time,
+                    info.deadline,
+                ), rooms: data.rooms};
+            } else {
+                window.location.href = '/dashboard';
+                return null;
+            }
+        } catch (e) {
+            console.error(e);
+            window.location.href = '/dashboard';
         }
     }
 }

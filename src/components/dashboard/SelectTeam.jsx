@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-// import ViewTeam from './ViewTeam';
+import { useNavigate } from 'react-router-dom';
 
 function SelectTeam({uid, team}) {
-    const [showViewTeam, setShowViewTeam] = useState(false);
+    const navigate = useNavigate();
+    
     const imageDisplay = () => {
         return team.members.slice(0, 5).map((member, index) => {
             const image = member.image || '/profile.png';
@@ -16,29 +17,24 @@ function SelectTeam({uid, team}) {
             );
         });
     };
-
+    
     const isIncluded = (() => {
-        for (let i = 0; i < team.members.length; i++) {
-            if (uid !== undefined && team.members[i].uid === uid) {
-                return true
-            };
-        }
-        return false;
+        return team.members.some(member => member.uid === uid);
     });
 
+
+    function goToTeamPage () {
+        navigate(`/team/${team.team_id}`);
+    }
+
     return (
-        <div className='team-box flex-column' onClick={() => setShowViewTeam(true)}>
-            {isIncluded() ?  
-            <div className='your-team'>Your Team</div> 
-            : null}
+        <div className='team-box flex-column' onClick={goToTeamPage}>
+            {isIncluded() && <div className='your-team'>Your Team</div>}
             <div className='team-box-images'>
                 {imageDisplay()}
             </div>
             <label className='name'>{team.team_name}</label>
             <label className='members'>Members: {team.members.length}</label>
-             {/* {showViewTeam &&
-             <ViewTeam team={team} uid={uid} isIncluded={isIncluded()}/>} */}
-
         </div>
     )
 }

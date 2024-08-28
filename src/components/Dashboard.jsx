@@ -5,27 +5,20 @@ import Cookies from 'js-cookie';
 import Header from './dashboard/Header';
 import BoardStudent from './dashboard/BoardStudent';
 import BoardProfessor from './dashboard/BoardProfessor';
+import { getToken } from './validator';
 
 function Dashboard() {
     const navigate = useNavigate();
-    const { course, select } = useParams();
     const [auth, setAuth] = useState(() => {
         const token = Cookies.get('token');
-        if (!token) {
-            window.location.href = '/login';
-            return null;
-        }
-      
-        try {
-            const user = jwtDecode(token);
-            return user;
-        } catch (error) {
-            console.error('Invalid token: ', error);
-            Cookies.remove('token');
-            window.location.href = '/login';
-            return null;
+        if (token) {
+            return getToken(token);
+        } else {
+            navigate('/login');
         }
     });
+
+    const { select } = useParams();
 
     useEffect(() => {
         if (select) {   
