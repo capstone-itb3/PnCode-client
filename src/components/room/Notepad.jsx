@@ -7,12 +7,12 @@ import { exampleSetup } from 'prosemirror-example-setup'
 import { keymap } from 'prosemirror-keymap'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
-import { schema } from 'prosemirror-schema-basic'
+import { schema } from './utils/schema'
 
 function Notepad({room, user, socket}) {
     const editorRef = useRef(null)
     const ydoc = new Y.Doc()
-    const provider = new WebsocketProvider('ws://codlin-server.onrender.com', 
+    const provider = new WebsocketProvider('wss://codlin-server.onrender.com', 
         `${room.room_id.toString()}-notepad`, ydoc
     )
     const type = ydoc.getXmlFragment('prosemirror');
