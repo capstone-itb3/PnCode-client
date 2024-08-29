@@ -10,9 +10,7 @@ import CreateTeam from './CreateTeam';
 import { getClass } from '../validator';
 
 function BoardStudent({auth, checkParams}) {
-    const [student, setStudent ] = useState(() => {
-        return getClass(auth, 'Student');
-    });
+    const [student, setStudent ] = useState(getClass(auth, 'Student'));
     const { course } = useParams();
     const [course_info, setCourseInfo] = useState({ 
         course_code: course,
@@ -108,7 +106,9 @@ function BoardStudent({auth, checkParams}) {
                         </div>
                         {loading_teams 
                             ? <div className='in-retrieve'>Retrieving...</div>
-                            : <TeamBoard uid={student.uid} teams={list_teams} openTeamPopup={openTeamPopup}/>
+                            : <TeamBoard uid={student.uid} 
+                                         teams={list_teams} 
+                                         openTeamPopup={openTeamPopup}/>
                         }
                     </div>
                     <div className='separator ' id='show-activities'>
@@ -117,7 +117,10 @@ function BoardStudent({auth, checkParams}) {
                         </div>
                         {loading_activities
                             ? <div className='in-retrieve'>Retrieving...</div> 
-                            : <ActivityBoard activities={list_activities} student={student} course={course}/>
+                            : <ActivityBoard activities={list_activities} 
+                                             student={student} 
+                                             course={course} 
+                                             section={course_info.section}/>
                         }
                     </div>
                     <div className='separator ' id='show-solo'>
@@ -181,9 +184,9 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
     )
 }
 
-function ActivityBoard({activities, student, course}) {
+function ActivityBoard({activities, student, course, section}) {
     function goToAssignedRoom(activity_id) {
-        student.visitActivity(activity_id, course);
+        student.visitActivity(activity_id, course, section);
     }
 
     if (activities.length === 0) {

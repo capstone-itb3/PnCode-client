@@ -2,6 +2,11 @@ import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import { Student, Professor } from '../classes/UserClass';
 function getToken(token) {
+    if (!token) {
+        window.location.href = '/login';
+        return null;
+    }
+
     try {
         const user = jwtDecode(token);
         return user;
@@ -10,7 +15,7 @@ function getToken(token) {
         Cookies.remove('token');
         window.location.href = '/login';
         return null;
-    }
+    }    
 }
 
 function getClass(auth, position) {

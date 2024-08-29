@@ -10,25 +10,12 @@ import ManageDates from './ManageDates';
 function PageActivity() {
     const { activity_id } = useParams();
     const navigate = useNavigate();
-    const [auth, getAuth] = useState(() => {
-    const token = Cookies.get('token');
-    if (token) {
-        return getToken(token);
-    } else {
-        window.location.href = '/login';
-    }
-    });
-    const [professor, setProfessor ] = useState(() => {
-        if (auth.position === 'Professor') {
-            return getClass(auth, 'Professor');
-
-        } else {
-            window.location.href = '/dashboard';
-            return null;
-        }
-    });
+    const [auth, getAuth] = useState(getToken(Cookies.get('token')));
+    const [professor, setProfessor ] = useState(getClass(auth, 'Professor'));
     const [activity, setActivity] = useState(null);
     const [room_list, setRoomList] = useState([]);
+    const [instructions, setInstructions] = useState('');
+    const [showInstructionInputs, setShowInstructionInputs] = useState(false);
 
     useEffect(() => {
         async function init () {
@@ -60,7 +47,7 @@ function PageActivity() {
             if (result2) {
                 const deleted = await activity.deleteActivity();
                 if (deleted) {
-                    window.location.href = '/dashboard';
+                    navigate(`/dashboard/${activity.course_code}/${activity.section}/all`);
                 }
             }
         }
@@ -80,6 +67,16 @@ function PageActivity() {
                         <div className='two-column-grid'>
                             <label>Course: <b>{activity.course_code}</b></label>
                             <label>Section: <b>{activity.section}</b></label>
+                        </div>
+                    </div>
+                    <div className='flex-column'>
+                    <h3>Instructions</h3>
+                        <p>{activity.instructions}</p>
+                        <div>
+                        {showInstructionInputs &&
+                            <button className='create-btn' onClick={updateDates}>Save</button>
+                        }
+                        <button id='edit-deadline' className='create-btn' onClick={() => toggleDeadline(showDeadlineInputs)}>Edit Deadline</button>
                         </div>
                     </div>
                     <div id='activity-room-list'>
@@ -113,7 +110,7 @@ function PageActivity() {
                     <ManageDates activity={activity} renderActivity={renderActivity}/>
 
                     <div id='activity-footer'>
-                    <a href='/dashboard'>&lt; BACK</a>
+                    <a href={`/dashboard/${activity.course_code}/${activity.section}/all`}>&lt; BACK</a>
                         <button id='delete-btn' onClick={deleteActivity}><BsTrash size={20}/><label>Delete Activity</label></button>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast';
 
-class Activity {
+export default class Activity {
     constructor (activity_id, activity_name, course_code, section, instructions, open_time, close_time, deadline) {
         this.activity_id = activity_id;
         this.activity_name = activity_name;
@@ -73,5 +73,3 @@ class Activity {
         }
     }
 }
-
-export default Activity;

@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast';
 
-class Team {
+export default class Team {
     constructor (team_id, team_name, course, section, members) {
         this.team_id = team_id;
         this.team_name = team_name; 
@@ -102,5 +102,3 @@ class Team {
         }
     }
 }
-
-export default Team;

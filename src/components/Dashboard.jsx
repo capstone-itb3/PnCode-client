@@ -9,15 +9,8 @@ import { getToken } from './validator';
 
 function Dashboard() {
     const navigate = useNavigate();
-    const [auth, setAuth] = useState(() => {
-        const token = Cookies.get('token');
-        if (token) {
-            return getToken(token);
-        } else {
-            navigate('/login');
-        }
-    });
-
+    const [auth, getAuth] = useState(getToken(Cookies.get('token')));
+  
     const { select } = useParams();
 
     useEffect(() => {

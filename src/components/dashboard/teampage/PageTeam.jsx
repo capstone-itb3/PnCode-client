@@ -9,17 +9,8 @@ import AddMember from './AddMember';
 
 function PageTeam() {
   const { team_id } = useParams();
-  const [auth, getAuth] = useState(() => {
-    const token = Cookies.get('token');
-    if (token) {
-        return getToken(token);
-    } else {
-        window.location.href = '/login';
-    }
-  });
-  const [user, setUser ] = useState(() => {
-    return getClass(auth, auth.position);
-  });
+  const [auth, getAuth] = useState(getToken(Cookies.get('token')));
+  const [user, setUser ] = useState(getClass(auth, auth.position));
   const [team, setTeam] = useState(null);
   const [showMemberSearch, setShowMemberSearch] = useState(false);
   const [permitted, setPermitted] = useState(true);

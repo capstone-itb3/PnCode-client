@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
 import './App.css';
 import Room from './components/Room';
+import SoloRoom from './components/room/SoloRoom';
 import Signup from './components/Signup';
 import Login from './components/Login';
 import ProfLogin from './components/ProfLogin';
@@ -28,8 +29,8 @@ function App() {
       <Route path = '/dashboard/:course/:section/:select' element={ <Dashboard/> }/>
       <Route path = '/team/:team_id' element={ <PageTeam/> }/>
       <Route path = '/activity/:activity_id' element={ <PageActivity/> }/>
-      <Route path = '/:room_type/:room_id' element={ <Room/> }/>
-      <Route path = '/:room_type/:room_id' element={ <Room/> }/>
+      <Route path = '/room/:room_id' element={ <Room/> }/>
+      <Route path = '/solo/:room_id' element={ <SoloRoom/> }/>
     </Routes>
     </>
   )

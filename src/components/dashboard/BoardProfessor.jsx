@@ -11,9 +11,7 @@ import CreateActivity from './CreateActivity';
 import { getClass } from '../validator'
 
 function BoardProfessor({ auth, checkParams }) {
-    const [professor, setProfessor] = useState(() => {
-        return getClass(auth, 'Professor');        
-    });
+    const [professor, setProfessor] = useState(getClass(auth, 'Professor'));
     const { course, section } = useParams();
     const [course_info, setCourseInfo] = useState({ 
         course_code: course,
@@ -190,7 +188,7 @@ function ActivityBoard({activities}) {
 
     if (activities.length === 0) {
         return ( <div className='no-results'>
-                    You have no activity to do yet.
+                    You have no activity for the students to do yet.
                 </div> 
         );
     } else {
