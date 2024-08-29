@@ -102,7 +102,7 @@ function Signup() {
                             </div>
                         </div>
                         <div className='input-div' id='section-label'>
-                            <label>*If you're an irregular student, you can add/change your enrolled courses later in the settings.</label>
+                            <label>*If you're an irregular student, you can ask a request to your professor to add/change your enrolled courses after signing up.</label>
                         </div>
                         <div className='input-div'>                        
                             <label>Password</label>
