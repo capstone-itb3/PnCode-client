@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import * as Y from 'yjs'
+import { useParams, useNavigate } from 'react-router-dom';
 
+import * as Y from 'yjs'
 import { yCollab, yRemoteSelectionsTheme, yUndoManagerKeymap } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'
 import { EditorView, basicSetup } from 'codemirror'
@@ -14,10 +15,16 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import * as random from 'lib0/random'
 
 
-function Editor({ room_id, auth, code, socketRef, socketId }) {
+function Editor({ room, user, file, socket }) {
+  const { room_id } = useParams();
+  const [socketId, setSocketId] = useState(user.uid);
+  const [savedCodeInserted, setSavedCodeInserted] = useState(false);
+  const [ code, setCode ] = useState('');
+  const [ updates, setUpdates ] = useState();
+  const [ view, setView ] = useState({ state: { doc: null } });
 
   const usercolors = [  
-    { color: '#30bced', light: '#30bced33' },
+    { color: 'red', light: '#30bced33' },
     { color: '#6eeb83', light: '#6eeb8333' },
     { color: '#ffbc42', light: '#ffbc4233' },
     { color: '#ecd444', light: '#ecd44433' },
@@ -28,99 +35,65 @@ function Editor({ room_id, auth, code, socketRef, socketId }) {
   ];
   const userColor = usercolors[random.uint32() % usercolors.length];
 
-  const [ updates, setUpdates ] = useState();
-  const [ view, setView ] = useState({ state: { doc: null } });
   const [ state, setState ] = useState(() => {
-      const ydoc = new Y.Doc();
-      const provider = new WebsocketProvider('wss://demos.yjs.dev/ws', room_id, ydoc);
-      const ytext = ydoc.getText('codemirror')
-  
-      provider.awareness.setLocalStateField('user', {
-        name: auth.last_name + ', ' + auth.first_name[0] + '.',
-        color: userColor.color,
-        colorLight: userColor.light
-      })
-      
-      return EditorState.create({
-        doc: ytext.toString(),
-        extensions: [
-          keymap.of([
-            ...yUndoManagerKeymap
-          ]),
-          basicSetup,
-          html(),
-          yCollab(ytext, provider.awareness),
-          oneDark,
-          EditorView.updateListener.of((e) => {
-            setUpdates(e.state.doc.toString());
-          })
-        ]
-      });
+    const ydoc = new Y.Doc();
+    const provider = new WebsocketProvider(import.meta.env.VITE_APP_WEBSOCKET, 
+      `${room_id}-${file}`, 
+      ydoc
+    );
+    const ytext = ydoc.getText('codemirror')
+    
+    provider.awareness.setLocalStateField('user', {
+      userId: user.uid,
+      name: user.last_name + ', ' + user.first_name[0] + '.',
+      color: userColor.color,
+      colorLight: userColor.light
+    })
+
+    // addToActiveMembers(provider.awareness.getLocalStateField('user'));
+
+    return EditorState.create({
+      doc: ytext.toString(),
+      extensions: [
+        keymap.of([
+          ...yUndoManagerKeymap
+        ]),
+        basicSetup,
+        html(),
+        yCollab(ytext, provider.awareness),
+        oneDark,
+        EditorView.updateListener.of((e) => {
+          setUpdates(e.state.doc.toString());
+        })
+      ]
+    });
   });
 
-  let gotView = 0;
   useEffect(() => {
-    if (!view.state.doc && gotView === 0) {
-      setView(new EditorView({ state, parent: /** @type {HTMLElement} */ (document.querySelector('#editor-div')) }));
-      gotView = 1;
+    if (!view.state.doc && !savedCodeInserted) {
+      setView(new EditorView({ 
+                      state, 
+                      parent: /** @type {HTMLElement} */ 
+                              (document.querySelector(`#editor-div`))
+      }));
 
-    } else if (view.state.doc && gotView === 1){
+    } else if (view.state.doc && !savedCodeInserted) {
       view.dispatch({
         changes: {from: 0, to: view.state.doc.length, insert: code}
       });    
-      gotView = 2;
-    }    
-
-    try {
-      const output = view.state.doc ? view.state.doc.toString() : 'Loading...';
-
-      const iframe = document.getElementById('output-div');
-      iframe.contentDocument.body.innerHTML = output;
-      const scripts = iframe.contentDocument.getElementsByTagName('script');
-      for (let i = 0; i < scripts.length; i++) {
-        iframe.contentWindow.eval(scripts[i].innerText);
-      }
-
-      console.log('Window render successful');
-    } catch (e) {
-      console.error(`Window render error: ${e}`);
+      setSavedCodeInserted(true);
     }
-  }, [view.state]);
+  }, [view.state.doc]);
 
-  useEffect(() => {
-    if(socketRef.current && view.state.doc !== null) {
-      socketRef.current.emit('update', {
-        room_id,
-        code: updates,
-        socketId
-      })
+  //   return () => {
+  //     socket.off('update');
+  //   };
 
-    //   socketRef.current.on('sync', ({ code }) => {
-    //     if (code !== null && view.state.doc !== null) {
-    //       view.state.doc = code; 
-
-    //       let iframe = document.getElementById('output-div').contentWindow.document;
-    //       iframe.open();
-    //       iframe.write(view.state.doc.toString());
-    //       iframe.close(); 
-    //     }
-    //       console.log('hello')
-    //   });
-    }
-
-    return () => {
-      socketRef.current.off('update');
-    };
-
-  }, [updates])
+  // }, [updates]);
 
   return (
-    <section id='editor-section'>
-      <iframe title= 'Displays Output' id='output-div' /**onKeyUp={ escapeFullView }*/>
-      </iframe>
-      <div id='editor-div'>
+      <div id={`editor-div`} className='editor-div'>
       </div>
-    </section>
   )
 }
 

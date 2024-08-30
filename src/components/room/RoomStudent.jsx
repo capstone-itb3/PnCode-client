@@ -6,10 +6,10 @@ import toast from 'react-hot-toast';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
 import Options from './Options';
+import FileDrawer from './FileDrawer';
 import Notepad from './Notepad';
 import Members from './Members';
-import Editor from './Editor';
-
+import EditorTab from './EditorTab';
 
 function RoomStudent({auth}) {   
   const { room_id } = useParams();
@@ -17,10 +17,12 @@ function RoomStudent({auth}) {
   const [room, setRoom] = useState(null);
   const [instructions, setInstructions] = useState(null);
   const [members, setMembers] = useState ([]);
+  const [activeMembers, setActiveMembers] = useState ([]);
+  const [activeFile, setActiveFile] = useState(null);
   const [access, setAccess] = useState(null);
-
-  const [socket, setSocket] = useState(null);
+  const [leftDisplay, setLeftDisplay] = useState('files');
   const socketRef = useRef(null);
+  const [socketConnected, setSocketConnected] = useState(false);
 
   useEffect(() => {
     disableCopyPaste();
@@ -31,41 +33,72 @@ function RoomStudent({auth}) {
       setInstructions(data_info.instructions);
       setMembers(data_info.members);
       setAccess(data_info.access);
+      setActiveFile(data_info.room.files[0]);
     }
     initRoom();
-
-    const newSocket = io(import.meta.env.VITE_APP_BACKEND_URL);
-    setSocket(newSocket);
-  
-    // newSocket.emit('join_room', room_id);
-  
   }, []);
+
+  useEffect(() => {
+    if (room && access) {
+      // const newSocket = io(import.meta.env.VITE_APP_BACKEND_URL);
+      // socketRef.current = newSocket;
+      
+      setSocketConnected(true);
+
+      // return () => {
+      //   socketRef.current.disconnect();
+      // }  
+    }
+  }, [access, room])
+
+  function addToActiveMembers(member) {
+    setActiveMembers(member);
+  }
+
+  function leftDisplaySwitch () {
+
+  }
 
   return (
     <> 
-      {room && instructions && members && access && socket &&
+      {room && instructions && members && access && socketConnected && activeFile &&
         (<main className='room-main'>
           <Options type='assigned' room={room} user={student}/>        
           <aside id='side-lists'>
-            <Notepad room={room} user={student} socket={socket}/>
-            <Members members={members}/>
-          </aside>
-            <section id='editor-section'>
-              {/* <div id='output-div'>
-                <div className='output-header'>
-                  <label>Output</label>
-                  <div className='items-center'>
-                    <button className='output-btn items-center' id='hide-btn' onClick={ hideView } >—</button>
-                    <button className='output-btn items-center' id='full-btn' onClick={ fullView } >
-                      <ImArrowUpRight2 color={'#505050'}size={17}/>
-                    </button>
-                  </div>
-                </div>
-                <iframe title= 'Displays Output' id='output-iframe'/>
-              </div> */}
-              <div id='editor-div'>
+            <div className='left-side-tab top'>
+              <div className='left-side-tab-buttons'>
+                <button className={`left-side-tab-button ${leftDisplay === 'files' && 'active'}`}
+                        onClick={() => setLeftDisplay('files')}>
+                        Files
+                </button>
+                <button className={`left-side-tab-button ${leftDisplay === 'notepad' && 'active'}`} 
+                        onClick={() => setLeftDisplay('notepad')}>
+                        Notepad
+                </button>
               </div>
-            </section>
+            {leftDisplay === 'files' &&
+              <FileDrawer 
+                room={room} 
+                activeFile={activeFile}
+                setActiveFile={setActiveFile}/>
+            }
+            {leftDisplay === 'notepad' &&
+              <Notepad 
+                room={room} 
+                user={student} 
+                socket={socketRef.current}/>
+            }
+              </div>
+            <Members 
+              members={members} 
+              activeMembers={activeMembers}/>
+          </aside>
+          <EditorTab 
+            room={room} 
+            user={student} 
+            socket={socketRef.current} 
+            activeFile={activeFile}
+            addToActiveMembers={addToActiveMembers}/>
         </main>  
         )
       }

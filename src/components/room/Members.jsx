@@ -1,10 +1,10 @@
 import React from 'react';
 import UserAvatar from '../UserAvatar'
 
-function Members({ members }) {
+function Members({ members, activeMembers }) {
   console.log(members);
   return (
-    <div className='member-list'>
+    <div className='left-side-tab'>
     <h5>Members</h5>
     <div className='flex-column'>
       {members.map((member, index) => {
@@ -16,6 +16,10 @@ function Members({ members }) {
           <span> 
             {`${member.last_name}, ${member.first_name}`}
           </span>
+          {activeMembers.includes(member.uid) ?
+            <label className='active-label'>Active</label> 
+            : null
+          }
         </section>  
         )})        
       }

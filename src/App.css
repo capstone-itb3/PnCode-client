@@ -874,7 +874,7 @@ header a {
   right: 0;
   bottom: 0;
   color: var(--gray-dark);
-  overflow: scroll;
+  overflow: auto;
   min-width: 300px;
 }
 
@@ -915,7 +915,7 @@ header a {
   width: 15%;
 }
 
-.team-member .col-2 label, .member-search-item label, .assigned-item .col-2 label, .user-section span {
+.team-member .col-2 label, .member-search-item label, .assigned-item .col-2 label, .user-section span, #file-drawer .item button label {
   display: -webkit-box;
   white-space: normal;
   overflow: hidden;
@@ -1046,6 +1046,11 @@ header a {
 /*? ROOM ?*/
 
 .room-main {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   min-width: 600px;
   min-height: 500px;
   font-family: 'Roboto', sans-serif;
@@ -1115,16 +1120,85 @@ header a {
   transition: 0.5s;
 }
 
-.member-list {
+.left-side-tab {
   padding: 10px;
   margin: 7px;
   border: 2px solid var(--gray-dark);
   overflow-y: auto;
-  height: calc(50% - 34px);
+  height: calc(50% - 24px);
   min-height: 200px;
 }
 
-.member-list h5 {
+.left-side-tab.top {
+  padding: 0;
+}
+
+.left-side-tab-buttons {
+  border-bottom: 2px solid var(--gray-dark);
+  background-color: transparent;
+  padding: 0;
+}
+
+.left-side-tab-buttons button {
+  border: 0;
+  background-color: transparent;
+  border-radius: 0 3px 0 0 ;
+  padding: 2px 15px;
+  margin-top: 1px;
+  font-size: 15px;
+  border-top: 2px solid var(--gray);
+  border-left: 1px solid var(--gray);
+  border-right: 2px solid var(--gray);
+  font-family: 'Calibri', Tahoma, Geneva, Verdana, sans-serif;
+}
+.left-side-tab-buttons button.active {
+  background-color: var(--gray-light);
+}
+
+
+#file-drawer {
+  padding: 10px;
+}
+
+#file-drawer .item {
+  justify-content: space-between;
+  border-radius: 10px;
+  padding: 5px 0;
+}
+
+#file-drawer .item *{
+  cursor: pointer;
+}
+
+#file-drawer .item button {
+  border: 0;
+  background-color: transparent;
+  font-size: 16px;
+  padding: 0 10px;
+  color: var(--gray-dark);
+  cursor: pointer;
+}
+
+#file-drawer .item .name-button {
+  width: 100%;
+}
+
+#file-drawer .item button label {
+  padding-left: 10px;
+  cursor: pointer;
+}
+
+#file-drawer .item.active-file {
+  background-color: var(--gray-light);
+}
+
+#file-drawer .item.active-file button label {
+  background-color: var(--gray-light);
+  font-weight: bold;
+}
+
+
+.left-side-tab h5 {
   font-size: 18px;
   border-bottom: 1px solid var(--gray);
   padding-bottom: 3px; 
@@ -1137,35 +1211,80 @@ header a {
   color: var(--gray-dark)
 }
 
-#editor-section {
+#file-container {
+
+}
+
+#editor-tab {
   position: absolute;
-  display: flex;
-  flex-direction: row-reverse;
   top: 34px;
-  left: 240px;
+  left: 300px;
   right: 0;
   bottom: 0;
   transition: 0.5s;
 }
 
-#editor-div {
+#editor-section {
+  position: absolute;
+  top: 34px;
+  left: 240px;
+  right: 0;
+  bottom: 0;
+  transition: 0.5s;
+  overflow-y: hidden;
+}
+
+.editor-container {
+  position: absolute;
+  top: 0;
+  margin: 7px 7px 7px 0;
   min-height: 500px;
   height: calc(100% - 14px);
   width: calc(50% - 7px);
-  margin: 7px 7px 7px 0;
+  min-width: 300px;
+  overflow: hidden;
+  bottom: 0;
+}
+
+.file-name-container {
+  height: 25px;
+  width: calc(100%);
+  background-color: rgb(40, 44, 52);
+}
+
+.file-name-container div {
+  color: var(--near-white);
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0 15px 3px 15px;
+  font-size: 12px;
+  font-family: 'Roboto', sans-serif;
+  height: calc(100% - 3px);
+  display: flex;
+  align-items: flex-end;
+  border-right: 2px solid var(--gray-dark);
+}
+
+.editor-div {
+  position: absolute;
+
+  width: 100%;
+  min-width: 300px;
+  height: 100%;
   font-size: 15px;
   transition: 0.5s ease;
   background-color: #282c34;
-  overflow-y: scroll;
   overflow-x: hidden;
   border: 2px solid var(--gray-dark);
 }
 
 #output-div {
+  position: absolute;
+  min-width: 300px;
   min-height: 500px;
-  height: calc(100% - 14px);
-  width: calc(50% - 7px);
-  margin: 7px 7px 7px 0;
+  right: 0;
+  height: calc(100% - 18px);
+  width: calc(50% - 10px);
+  margin: 7px;
   border: 2px solid var(--gray-dark);
   transition: 0.5s;
 }
