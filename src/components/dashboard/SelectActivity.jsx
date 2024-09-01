@@ -41,7 +41,9 @@ function SelectActivity({ activity, index, onClick }) {
                 <span>{Date.now() > new Date(activity.deadline) ? ' Closed • ' :' '}</span>
                 {activity.activity_name}
             </label>
-            <p className='instructions'>{activity.instructions}</p>
+            <div className='instruc-div'>
+                <p className='instructions'>{activity.instructions}</p>
+            </div>
             <div className='dates'>
                 <label  >Created: {createdAt}</label>
                 <label>Deadline: {deadline}</label>

@@ -71,7 +71,7 @@ function PageActivity() {
                     </div>
                     <div className='flex-column'>
                     <h3>Instructions</h3>
-                        <p>{activity.instructions}</p>
+                        <p className='instructions'>{activity.instructions}</p>
                         <div>
                         {showInstructionInputs &&
                             <button className='create-btn' onClick={updateDates}>Save</button>

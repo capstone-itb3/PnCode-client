@@ -1,27 +1,30 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Editor from './Editor'
-import TabOutput from './TabOutput';
 
-function EditorTab({room, user, socket, activeFile, addToActiveMembers}) {
+function EditorTab({room, user, socket, activeFile}) {
   return (
-    <div id='editor-tab'>
-        <div className='editor-section flex-row'>
-            <div className='editor-container'>
-                <div className='file-name-container items-start'>
-                    <div>
-                        <label>{activeFile}</label>
-                    </div>
+        <div className='editor-container'>
+            <div className='file-name-container items-start'>
+                <div>
+                    {activeFile &&
+                        <label>{activeFile.name}</label>
+                    }
                 </div>
+            </div>
+            {!activeFile &&
+                <div className='loading'>
+                    <div className='loading-spinner'/>
+                </div>              
+            }
+            {activeFile &&
                 <Editor 
                     room={room}  
                     user={user} 
                     socket={socket} 
                     file={activeFile} 
-                    addToActiveMembers={addToActiveMembers}/>
-            </div>
-            <TabOutput />        
+                />
+            }
         </div>
-    </div>
   )
 }
 

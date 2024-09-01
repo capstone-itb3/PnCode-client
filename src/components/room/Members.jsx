@@ -1,8 +1,7 @@
 import React from 'react';
 import UserAvatar from '../UserAvatar'
 
-function Members({ members, activeMembers }) {
-  console.log(members);
+function Members({ members}) {
   return (
     <div className='left-side-tab'>
     <h5>Members</h5>
@@ -16,10 +15,10 @@ function Members({ members, activeMembers }) {
           <span> 
             {`${member.last_name}, ${member.first_name}`}
           </span>
-          {activeMembers.includes(member.uid) ?
-            <label className='active-label'>Active</label> 
+          {/* {activeMembers.includes({ uid: member.uid}) ?
+            <label className='active-label'> [Active]</label> 
             : null
-          }
+          } */}
         </section>  
         )})        
       }
