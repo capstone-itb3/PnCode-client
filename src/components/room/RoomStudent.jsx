@@ -22,7 +22,6 @@ function RoomStudent({auth}) {
   const [members, setMembers] = useState ([]);
   const [access, setAccess] = useState(null);
   const [activeFile, setActiveFile] = useState(null);
-
   const socketRef = useRef(null);
   const [roomUsers, setRoomUsers] = useState([]);
   const [editorUsers, setEditorUsers]  = useState([]);
@@ -30,6 +29,8 @@ function RoomStudent({auth}) {
 
   const [leftDisplay, setLeftDisplay] = useState('files');
   const [addNewFile, setAddNewFile] = useState(false);
+  const [cursorColor, setCursorColor] = useState(null);
+
   useEffect(() => {
     disableCopyPaste();
 
@@ -48,23 +49,23 @@ function RoomStudent({auth}) {
       async function init() {
         socketRef.current = await initSocket();
       
+        socketRef.current.emit('join_room', { 
+          room_id, 
+          user_id: student.uid,
+        })
+
         socketRef.current.on('room_users_updated', (users) => {
           setRoomUsers(users);
           console.log('room');
           console.log(users);
-        });
 
-        socketRef.current.emit('join_room', { 
-          room_id, 
-          user_id: student.uid 
+          setCursorColor(users.find((u) => u.user_id === student.uid)?.cursor);
         })
 
         displayFile(room.files[0]);
       }
       init();
       setSocketConnected(true);
-
-
 
       return () => {
         if (socketRef.current) {
@@ -154,7 +155,8 @@ function RoomStudent({auth}) {
               }
               </div>
             <Members 
-              members={members}/>
+              members={members}
+              roomUsers={roomUsers}/>
           </aside>
           <div className='flex-column' id='room-body'>
             <Instructions 
@@ -163,8 +165,11 @@ function RoomStudent({auth}) {
               <EditorTab 
               room={room} 
               user={student} 
+              cursorColor={cursorColor}
               socket={socketRef.current} 
-              activeFile={activeFile}/>              
+              activeFile={activeFile}
+              editorUsers={editorUsers}
+              setEditorUsers={setEditorUsers}/>              
               <TabOutput />        
             </div>
           </div>

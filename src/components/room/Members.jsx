@@ -1,29 +1,35 @@
-import React from 'react';
-import UserAvatar from '../UserAvatar'
+import React, { useState, useEffect } from 'react';
+import { RxSewingPinFilled } from 'react-icons/rx';
 
-function Members({ members}) {
+function Members({ members, roomUsers}) {
+  const [displayMembers, setDisplayMembers] = useState(null);
+
+  useEffect(() => {
+    setDisplayMembers(() => { 
+      return members.map((member, index) => {
+          const user = roomUsers.find(user => user.user_id === member.uid);
+          return (
+            <section className='items-center user-section' key={member.uid}>
+              <div className='user-pin'>
+              {user &&
+                <RxSewingPinFilled size={20} color={`${user.cursor.color}`}/>
+              }
+              </div>
+              <span className={`${user ? '': 'inactive' }`}> 
+                {`${member.last_name}, ${member.first_name}`}
+              </span>
+            </section>
+          )})
+  });
+  }, [roomUsers]);
+
   return (
     <div className='left-side-tab'>
-    <h5>Members</h5>
-    <div className='flex-column'>
-      {members.map((member, index) => {
-        return (
-        <section className='items-center user-section' key={member.uid}>
-          <UserAvatar 
-                      name={`${member.last_name}, ${member.first_name.charAt(0)}`} 
-                      size={20}/>
-          <span> 
-            {`${member.last_name}, ${member.first_name}`}
-          </span>
-          {/* {activeMembers.includes({ uid: member.uid}) ?
-            <label className='active-label'> [Active]</label> 
-            : null
-          } */}
-        </section>  
-        )})        
-      }
+      <h5>Members</h5>
+      <div className='flex-column'>
+        {displayMembers}
+      </div>
     </div>
-  </div>
   )
 }
 

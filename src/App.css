@@ -1075,7 +1075,7 @@ header a {
     height: 34px;
     transition: 0.5s;
     background-color: var(--gray-dark);
-    z-index: 75;
+    z-index: 150;
 }
 
 #room-header button {
@@ -1117,6 +1117,36 @@ header a {
 .options-menu .item {
     padding: 7px 15px;
     border-bottom: var(--gray-light) 1px solid;
+}
+
+.loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--gray);
+    border-top: 5px solid var(--base);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 #editor-tab {
@@ -1252,11 +1282,21 @@ header a {
 }
 
 .user-section {
+    position: relative;
     padding: 5px;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--gray-dark)
+    font-size: 14px;
+    color: var(--gray-dark);
 }
+
+.user-section .inactive {
+    color: var(--gray);
+}
+
+
+.user-section .user-pin {
+    width: 25px;
+}
+
 
 #room-body {
     width: 80%;
@@ -1334,6 +1374,8 @@ header a {
 
 .editor-container {
     width: 60%;
+    background-color: rgb(40, 44, 52);
+    height: 100%;
     overflow: hidden;
     bottom: 0;
 }
