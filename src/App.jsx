@@ -31,7 +31,7 @@ function App() {
       <Route path = '/activity/:activity_id' element={ <PageActivity/> }/>
       <Route path = '/room/:room_id/' element={ <Room/> }/>
       <Route path = '/solo/:room_id/' element={ <SoloRoom/> }/>
-      <Route path = '/room/:room_id/:file_name' element={ <FullView/> }/>
+      <Route path = '/view/:room_id/:file_name' element={ <FullView/> }/>
     </Routes>
     </>
   )

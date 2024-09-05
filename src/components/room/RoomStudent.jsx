@@ -148,7 +148,7 @@ function RoomStudent({auth}) {
     setRightDisplay('output');
 
     if (activeFile.type === 'html') {
-      outputRef.current.src = `${activeFile.name}`;
+      outputRef.current.src = `/view/${room_id}/${activeFile.name}`;
       setOutputLabel(`Running from ${activeFile.name}.`);
 
     } else {
@@ -156,7 +156,7 @@ function RoomStudent({auth}) {
         let active = room_files.find((f) => f.type = 'html');
   
         if (active) {
-          outputRef.current.src = `${active.name}`;
+          outputRef.current.src = `/view/${room_id}/${active.name}`;
           setOutputLabel(`Running from ${active.name}.`);
         } else {
           outputRef.current.src = null;
