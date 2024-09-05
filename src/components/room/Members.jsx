@@ -15,7 +15,7 @@ function Members({ members, roomUsers}) {
                 <RxSewingPinFilled size={20} color={`${user.cursor.color}`}/>
               }
               </div>
-              <span className={`${user ? '': 'inactive' }`}> 
+              <span className={`${user ? '': 'inactive' } single-line`}> 
                 {`${member.last_name}, ${member.first_name}`}
               </span>
             </section>
@@ -24,7 +24,7 @@ function Members({ members, roomUsers}) {
   }, [roomUsers]);
 
   return (
-    <div className='left-side-tab'>
+    <div className='side-tab'>
       <h5>Members</h5>
       <div className='flex-column'>
         {displayMembers}

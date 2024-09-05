@@ -10,7 +10,7 @@ import ProfLogin from './components/ProfLogin';
 import Dashboard from './components/Dashboard';
 import PageTeam from './components/dashboard/teampage/PageTeam';
 import PageActivity from './components/dashboard/activitypage/PageActivity';
-
+import FullView from './components/room/FullView';
 
 function App() {
 
@@ -29,8 +29,9 @@ function App() {
       <Route path = '/dashboard/:course/:section/:select' element={ <Dashboard/> }/>
       <Route path = '/team/:team_id' element={ <PageTeam/> }/>
       <Route path = '/activity/:activity_id' element={ <PageActivity/> }/>
-      <Route path = '/room/:room_id' element={ <Room/> }/>
-      <Route path = '/solo/:room_id' element={ <SoloRoom/> }/>
+      <Route path = '/room/:room_id/' element={ <Room/> }/>
+      <Route path = '/solo/:room_id/' element={ <SoloRoom/> }/>
+      <Route path = '/room/:room_id/:file_name' element={ <FullView/> }/>
     </Routes>
     </>
   )

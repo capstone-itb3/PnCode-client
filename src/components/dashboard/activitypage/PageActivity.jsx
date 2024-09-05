@@ -99,7 +99,7 @@ function PageActivity() {
                                                 <label>{index + 1}</label>
                                             </td>
                                             <td className='col-2'>
-                                                <label>{room.room_name.slice(0, -4)}<span>{room.room_name.slice(-4)}</span></label>
+                                                <label className='single-line'>{room.room_name.slice(0, -4)}<span>{room.room_name.slice(-4)}</span></label>
                                             </td>
                                         </tr>
                                     )

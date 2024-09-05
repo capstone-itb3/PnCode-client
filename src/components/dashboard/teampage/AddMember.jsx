@@ -83,7 +83,7 @@ function SearchStudents({ students_list, search, addStudentToTeam }) {
             return (
               <li key={index} className='member-search-item flex-row items-center' onClick={() => (addStudentToTeam(s))}>
                 <UserAvatar name={`${s.last_name}, ${s.first_name.charAt(0)}`} size={24}/>
-                <label>{s.last_name}, {s.first_name}</label>
+                <label className='single-line'>{s.last_name}, {s.first_name}</label>
               </li>
             );  
           }      

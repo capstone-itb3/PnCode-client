@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import { FaHtml5, FaCss3, FaJs } from 'react-icons/fa';
 import { BsTrash, BsFileEarmark } from 'react-icons/bs';
-function FileDrawer({room, socket, activeFile, displayFile, addNewFile, setAddNewFile}) {
-    const [files, setFiles] = useState(room.files);
+function FileDrawer({room, socket, room_files, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile}) {
     const [new_file_name, setNewFileName] = useState('');
     const [new_file_type, setNewFileType] = useState('html');
     const [warning, setWarning] = useState(false);
 
     useEffect(() => {
       socket.on('file_added', ({ file }) => {
-        setFiles(prevFiles => [...prevFiles, file]);
+        setRoomFiles(prevFiles => [...prevFiles, file]);
       });
     
-    //   return () => {
-    //     socket.off('file_added');
-    //   }
-    }, []);
+      return () => {
+        socket.off('file_added');
+      }
+    }, [room_files]);
     
     function addFile(e) {
         e.preventDefault();
@@ -42,7 +41,7 @@ function FileDrawer({room, socket, activeFile, displayFile, addNewFile, setAddNe
     return (
         <div className='room-top-left'> 
             <div id='file-drawer'>
-                {files.map((file, index) => {
+                {room_files.map((file, index) => {
                     return (
                         <div className={`${file.name === activeFile.name ? 'active-file' : ''} flex-row item`} key={index} >
                             <button 
@@ -51,7 +50,7 @@ function FileDrawer({room, socket, activeFile, displayFile, addNewFile, setAddNe
                                 { file.type === 'html' && <FaHtml5 size={22}/> }
                                 { file.type === 'css' && <FaCss3 size={22}/> }
                                 { file.type === 'js' && <FaJs size={22}/> }
-                                <label>{file.name}</label>
+                                <label className='single-line'>{file.name}</label>
                             </button>
                         </div>    
                     )})

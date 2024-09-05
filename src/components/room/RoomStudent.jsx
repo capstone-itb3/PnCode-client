@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
 import { initSocket } from '../../socket';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsBoxArrowInRight } from 'react-icons/bs';
@@ -13,35 +12,49 @@ import Members from './Members';
 import Instructions from './Instructions';
 import EditorTab from './EditorTab';
 import TabOutput from './TabOutput';
+import History from './History';
 
 function RoomStudent({auth}) {  
   const { room_id } = useParams();
+  const navigate = useNavigate();
   const [student, setStudent] = useState(getClass(auth, 'Student'));
   const [room, setRoom] = useState(null);
-  const [instructions, setInstructions] = useState(null);
+  const [room_files,  setRoomFiles] = useState([]);
+  const [activity, setActivity] = useState(null);
   const [members, setMembers] = useState ([]);
   const [access, setAccess] = useState(null);
+  
   const [activeFile, setActiveFile] = useState(null);
-  const socketRef = useRef(null);
-  const [roomUsers, setRoomUsers] = useState([]);
-  const [editorUsers, setEditorUsers]  = useState([]);
-  const [socketConnected, setSocketConnected] = useState(false);
-
-  const [leftDisplay, setLeftDisplay] = useState('files');
-  const [addNewFile, setAddNewFile] = useState(false);
   const [cursorColor, setCursorColor] = useState(null);
 
-  useEffect(() => {
+  const [roomUsers, setRoomUsers] = useState([]);
+  const [editorUsers, setEditorUsers]  = useState([]);
+  const socketRef = useRef(null);
+  const outputRef = useRef(null);
+  
+  const [leftDisplay, setLeftDisplay] = useState('files');
+  const [rightDisplay, setRightDisplay] = useState('output');
+  const [addNewFile, setAddNewFile] = useState(false);
+  const [outputLabel, setOutputLabel] = useState('Output');
+
+  useEffect(() => {    
+    if (!window.location.pathname.endsWith('/')) {
+      const added_slash = `${window.location.pathname}/`;
+      navigate(added_slash);
+    }
     disableCopyPaste();
 
     async function initRoom () {
       const data_info = await student.getAssignedRoomDetails(room_id);
       setRoom(data_info.room);
-      setInstructions(data_info.instructions);
+      setRoomFiles(data_info.room.files);
+      setActivity(data_info.activity);
       setMembers(data_info.members);
       setAccess(data_info.access);
+
+      document.title = data_info.activity.activity_name;
     }
-    initRoom();
+    initRoom()
   }, []);
 
   useEffect(() => {
@@ -65,7 +78,6 @@ function RoomStudent({auth}) {
         displayFile(room.files[0]);
       }
       init();
-      setSocketConnected(true);
 
       return () => {
         if (socketRef.current) {
@@ -76,28 +88,88 @@ function RoomStudent({auth}) {
     }
   }, [access, room])
 
-  function displayFile(file) {
-  
-      socketRef.current.emit('find_content', {
-        room_id,
-        file_name: file.name
-      });
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.altKey && event.key === 'r') {
+        runOutput();
+        return;
+      }
 
-      socketRef.current.on('found_content', ({ file }) => {
-        setActiveFile(file);
-      });
+      for (let i = 1; i <= room_files.length && i <= 10; i++) {
+        if (event.altKey && event.key === i.toString()) {
+          displayFile(room_files[i - 1]);
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    }  
+  }, [room_files, activeFile]);
+
+  useEffect(() => {
+    const output = document.getElementById('output-div');
+    const history = document.getElementById('history-div');
+
+    if (output && history) {
+      if (rightDisplay === 'output') {
+        output.style.display = 'block';
+        history.style.display = 'none';
+  
+      } else if (rightDisplay === 'history') {
+        output.style.display = 'none';
+        history.style.display = 'block';
+      }
+    }
+
+  }, [rightDisplay])
+
+  function displayFile(file) {
+      
+    socketRef.current.emit('find_content', {
+      room_id,
+      file_name: file.name
+    });
+
+    socketRef.current.on('found_content', ({ file }) => {
+      setActiveFile(file);
+    });
 
     return () => {
       socketRef.current.off('find_content');
       socketRef.current.off('found_content');
     }      
   }
+
+  function runOutput() {
+    setRightDisplay('output');
+
+    if (activeFile.type === 'html') {
+      outputRef.current.src = `${activeFile.name}`;
+      setOutputLabel(`Running from ${activeFile.name}.`);
+
+    } else {
+      if (activeFile.type !== 'html') {      
+        let active = room_files.find((f) => f.type = 'html');
+  
+        if (active) {
+          outputRef.current.src = `${active.name}`;
+          setOutputLabel(`Running from ${active.name}.`);
+        } else {
+          outputRef.current.src = null;
+          setOutputLabel('No HTML file found.');
+        }  
+      }
+    }
+  }
   
   function leaveRoom () {
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
-
     window.location.href = '/dashboard';
   }  
 
@@ -105,35 +177,42 @@ function RoomStudent({auth}) {
     <main className='room-main'>
       <div className='flex-row items-center' id='room-header'>
           <div className='items-center'>
-          {room && instructions && members && access && socketConnected &&
+          {room && activity && members && access && socketRef.current &&
             <Options 
               type={'assigned'} 
               room={room} 
               user={student}
-              setAddNewFile={setAddNewFile}/>
+              outputRef={outputRef}
+              setAddNewFile={setAddNewFile}
+              runOutput={runOutput}/>
           }
           </div>
-          <div className  ='items-center'>
+          {activity &&
+            <div className='items-center room-logo single-line'>
+              {activity.activity_name}
+            </div>
+          }
+          <div className='items-center'>
             <button className='room-header-options' onClick={ leaveRoom }>
                     <BsBoxArrowInRight size={23} color={ '#f8f8f8' } />
             </button>
           </div>
       </div>
-      {!(room && instructions && members && access && socketConnected) &&
+      {!(room && activity && members && access && socketRef.current) &&
           <div className='loading'>
             <div className='loading-spinner'/>
           </div>
       }
-      {room && instructions && members && access && socketConnected &&
+      {room && activity && members && access && socketRef.current &&
         <div id='editor-tab' className='flex-row'>
           <aside className='flex-column' id='side-lists'>
-            <div className='flex-column left-side-tab top'>
-              <div className='left-side-tab-buttons'>
-                <button className={`left-side-tab-button ${leftDisplay === 'files' && 'active'}`}
+            <div className='flex-column side-tab top'>
+              <div className='side-tab-buttons'>
+                <button className={`side-tab-button ${leftDisplay === 'files' && 'active'}`}
                         onClick={() => setLeftDisplay('files')}>
                         Files
                 </button>
-                <button className={`left-side-tab-button ${leftDisplay === 'notepad' && 'active'}`} 
+                <button className={`side-tab-button ${leftDisplay === 'notepad' && 'active'}`} 
                         onClick={() => setLeftDisplay('notepad')}>
                         Notepad
                 </button>
@@ -142,6 +221,8 @@ function RoomStudent({auth}) {
                 <FileDrawer 
                   room={room} 
                   socket={socketRef.current}
+                  room_files={room_files}
+                  setRoomFiles={setRoomFiles}
                   activeFile={activeFile}
                   displayFile={displayFile}
                   addNewFile={addNewFile}
@@ -151,6 +232,7 @@ function RoomStudent({auth}) {
                 <Notepad 
                   room={room} 
                   user={student} 
+                  cursorColor={cursorColor}
                   socket={socketRef.current}/>
               }
               </div>
@@ -160,17 +242,34 @@ function RoomStudent({auth}) {
           </aside>
           <div className='flex-column' id='room-body'>
             <Instructions 
-              instructions={instructions} />
+              instructions={activity.instructions} />
             <div className='flex-row' id='editor-section'>
               <EditorTab 
-              room={room} 
-              user={student} 
-              cursorColor={cursorColor}
-              socket={socketRef.current} 
-              activeFile={activeFile}
-              editorUsers={editorUsers}
-              setEditorUsers={setEditorUsers}/>              
-              <TabOutput />        
+                room={room} 
+                user={student} 
+                cursorColor={cursorColor}
+                socket={socketRef.current} 
+                activeFile={activeFile}
+                editorUsers={editorUsers}
+                setEditorUsers={setEditorUsers}/>
+              <div className='flex-column' id='output-section'>
+                <div className='side-tab-buttons'>
+                  <button className={`side-tab-button ${rightDisplay === 'output' && 'active'}`}
+                          onClick={() => setRightDisplay('output')}>
+                          Output
+                  </button>
+                  <button className={`side-tab-button ${rightDisplay === 'History' && 'active'}`} 
+                          onClick={() => setRightDisplay('history')}>
+                          History
+                  </button>
+                </div>
+                <div className='right-body'>
+                  <TabOutput 
+                    outputRef={outputRef}
+                    outputLabel={outputLabel}/> 
+                  <History/>       
+                </div>
+              </div>
             </div>
           </div>
         </div>

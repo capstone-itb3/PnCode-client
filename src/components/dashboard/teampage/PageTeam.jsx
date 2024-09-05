@@ -111,7 +111,7 @@ function PageTeam() {
                         <UserAvatar name={`${member.last_name}, ${member.first_name.charAt(0)}`} size={30}/>
                       </td>
                       <td className='col-2'>
-                        <label>{member.last_name}, {member.first_name}</label>
+                        <label className='single-line'>{member.last_name}, {member.first_name}</label>
                       </td>
                       <td className='col-3'>
                         <button className='remove-member' onClick={() => {removeMember(member.uid)}}>Remove</button>

@@ -1,28 +1,30 @@
 import React, { useEffect, useState } from 'react'
-import { BsBoxArrowInRight } from 'react-icons/bs';
 
-
-function Options({type, room, user, setAddNewFile}) {
+function Options({type, room, user, outputRef, setAddNewFile, runOutput}) {
     const [isChecked, setIsChecked] = useState(true);
 
-
-    useEffect(() => {
-
-    }, [isChecked]);
-
     function openMenu(clicked) {
-        const all_menus = document.querySelectorAll('.options-menu');
-        all_menus.forEach((menu) => {
-            menu.classList.add('hidden');
-        });
-    
         const option = document.getElementById(`${clicked}-menu`);
         option.classList.toggle('hidden');
+
+        document.querySelectorAll('.options-menu').forEach((menu) => {
+            if (menu.id !== option.id && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+            }
+        });
     }
 
     function addFile() {
         setAddNewFile(true);
         const option = document.getElementById(`files-menu`);
+        option.classList.toggle('hidden');
+    }
+
+    function runCode() {
+        if (outputRef.current) {
+            runOutput();
+        }
+        const option = document.getElementById(`run-menu`);
         option.classList.toggle('hidden');
     }
 
@@ -34,7 +36,7 @@ function Options({type, room, user, setAddNewFile}) {
                     Files
                 </button>
                 <div id='files-menu' className='flex-column options-menu hidden'>
-                    <div className='item items-center' onClick={addFile}>
+                    <div className='item items-center'  onClick={addFile}>
                         <label>Add File</label>
                     </div>
                     <div className='item items-center'>
@@ -44,9 +46,22 @@ function Options({type, room, user, setAddNewFile}) {
             </>
             }
             {type === 'assigned' &&
-            <button className='room-header-options'>
-                View
-            </button>
+            <>
+                <button className='room-header-options' onClick={() => openMenu('view')}>
+                    View
+                </button>
+                <div id='view-menu' className='flex-column options-menu hidden'>
+                    <div className='item items-center'>
+                        <label>Files/Notepad</label>
+                    </div>
+                    <div className='item items-center'>
+                        <label>Members</label>
+                    </div>
+                    <div className='item items-center'>
+                        <label>Output</label>
+                    </div>
+                </div>
+            </>
             }
             <button className='room-header-options' onClick={() => openMenu('preferences')}>
                 Preferences
@@ -66,9 +81,17 @@ function Options({type, room, user, setAddNewFile}) {
                     </div>
                 </div>
             </div>
-            <button className='room-header-options'>
+            <button className='room-header-options' onClick={() => openMenu('run')}>
                 Run
             </button>
+            <div id='run-menu' className='flex-column options-menu hidden'>
+                <div className='item items-center' onClick={runCode}>
+                    <label>Run</label>
+                </div>
+                <div className='item items-center'>
+                    <label>Run in Full View</label>
+                </div>
+            </div>
             {type === 'solo' &&
                 <button className='room-header-options'>
                     Delete Room

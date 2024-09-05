@@ -253,6 +253,34 @@ export class User {
             return null;
         }
     }  
+
+    async viewOutput(room_id, file_name) {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/view-output`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    room_id,
+                    file_name,
+                    uid: this.uid,
+                    position: this.position
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'ok') {
+                return { files: data.files, active: data.active };
+            } else {
+                console.error(data.message);
+                return null;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
 }
   
 export class Student extends User {
@@ -373,7 +401,7 @@ export class Student extends User {
                     info.notes,
                     info.feedback,
                     info.chat
-                ), instructions: data.instructions, 
+                ), activity: data.activity, 
                    members: data.members, 
                    access: data.access };
             } else {

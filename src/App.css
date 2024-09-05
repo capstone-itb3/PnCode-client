@@ -17,8 +17,10 @@ body {
     --gray-light: rgb(224, 224, 224);
     --near-white: rgb(248, 248, 248);
 
-    --note-color: rgb(248, 89, 15);
-    --warning: rgb(255, 51, 51);
+    --warn-color: rgb(255, 196, 0);
+    
+    --error-color: rgb(255, 51, 51);
+    
 }
 
 a {
@@ -296,7 +298,7 @@ input:checked + .slider:before {
 }
 
 #section-label label {
-    color: var(--note-color);
+    color: var(--warn-color);
 }
 
 .input-div label {
@@ -891,7 +893,7 @@ header a {
 
 #team-container h3, #activity-container h3 {
     margin-top: 50px;
-    border-bottom: var(--warning) 1px solid;
+    border-bottom: var(--error-color) 1px solid;
     padding-bottom: 5px;
     font-weight: normal;
 }
@@ -909,7 +911,7 @@ header a {
 }
 
 .team-member, .assigned-item {
-    border-bottom: var(--warning) 1px solid;
+    border-bottom: var(--error-color) 1px solid;
     text-align: left;
 }
 
@@ -919,7 +921,7 @@ header a {
     width: 15%;
 }
 
-.team-member .col-2 label, .member-search-item label, .assigned-item .col-2 label, .user-section span, #file-drawer .item button label {
+.single-line {
     display: -webkit-box;
     white-space: normal;
     overflow: hidden;
@@ -975,7 +977,7 @@ header a {
 
 .remove-member {
     border: 0;
-    color: var(--warning);
+    color: var(--error-color);
     background-color: transparent;
     padding-right:10%;
     font-size: 14px;
@@ -1041,9 +1043,9 @@ header a {
     align-items: center;
     padding: 10px 15px;
     background-color: #fff;
-    border: var(--warning) 1px solid;
+    border: var(--error-color) 1px solid;
     border-radius: 10px;
-    color: var(--warning);
+    color: var(--error-color);
     cursor: pointer;
 }
 
@@ -1073,10 +1075,18 @@ header a {
     justify-content: space-between;
     padding: 0 10px;
     height: 34px;
+    min-width: 629px;
     transition: 0.5s;
     background-color: var(--gray-dark);
     z-index: 150;
 }
+
+#room-header .room-logo {
+    font-family: 'Calibri', sans-serif;
+    font-size: 16px;
+    color: var(--near-white);
+}
+
 
 #room-header button {
     display: flex;
@@ -1097,17 +1107,32 @@ header a {
 
 .options-menu {
     position: absolute;
-    top: 34px;
+    top: 30px;
     background-color: var(--gray-dark);
     font-size: 15px;
     color: var(--near-white);
     font-family: 'Calibri', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
     height: auto;
+    border-radius: 2px;
+    border: var(--gray) 1px solid;
 }
+
+#view-menu {
+    left: 65px;
+}
+#preferences-menu {
+    left: 130px;
+}
+#run-menu {
+    left: 240px;
+}
+
+
 
 .options-menu.hidden {
     height: 0;
+    border: 0;
 }
 
 .options-menu * {
@@ -1116,7 +1141,6 @@ header a {
 
 .options-menu .item {
     padding: 7px 15px;
-    border-bottom: var(--gray-light) 1px solid;
 }
 
 .loading {
@@ -1161,43 +1185,43 @@ header a {
 
 #side-lists {
     justify-content: space-between;
-    width: 20%;
+    width: 20% !important;
     top: 34px;
     overflow: hidden;
     transition: 0.5s;
     min-width: 200px;
 }
 
-.left-side-tab {
+.side-tab {
     padding: 10px;
     border: 2px solid var(--gray-dark);
     height: calc(50% - 18px);
 }
 
-.left-side-tab.top {
+.side-tab.top {
     position: relative;
     padding: 0;
 }
 
-.left-side-tab-buttons {
+.side-tab-buttons {
     border-bottom: 2px solid var(--gray-dark);
     background-color: transparent;
     padding: 0;
 }
 
-.left-side-tab-buttons button {
+.side-tab-buttons button {
     border: 0;
     background-color: transparent;
     border-radius: 0 3px 0 0 ;
-    padding: 2px 15px;
-    margin-top: 1px;
+    padding: 2px 18px;
+    margin: 1px 0 0 1px;
     font-size: 15px;
-    border-top: 2px solid var(--gray);
-    border-left: 1px solid var(--gray);
-    border-right: 2px solid var(--gray);
+    border: 2px solid var(--gray);
+    border-bottom: 0;
     font-family: 'Calibri', Tahoma, Geneva, Verdana, sans-serif;
 }
-.left-side-tab-buttons button.active {
+
+.side-tab-buttons button.active {
     background-color: var(--gray-light);
 }
 
@@ -1208,6 +1232,20 @@ header a {
 
 #file-drawer {
     padding: 10px;
+
+}
+
+#note-container {
+    position: relative;
+    overflow-y: auto;
+}
+
+#file-drawer #notepad {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
 }
 
 #file-drawer .item {
@@ -1275,7 +1313,7 @@ header a {
     background-color: transparent;
 }
 
-.left-side-tab h5 {
+.side-tab h5 {
     font-size: 18px;
     border-bottom: 1px solid var(--gray);
     padding-bottom: 3px; 
@@ -1387,18 +1425,44 @@ header a {
 }
 
 .file-name-container div {
-    color: var(--near-white);
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 0 15px 3px 15px;
-    font-size: 12px;
-    font-family: 'Roboto', sans-serif;
-    height: calc(100% - 3px);
     display: flex;
     align-items: flex-end;
+    padding: 0 15px 3px 15px;
+    font-family: 'Roboto', sans-serif;
+    height: calc(100% - 3px);
+}
+
+.file-name-container #file-name {
+    color: var(--near-white);
+    background-color: rgba(255, 255, 255, 0.1);
+    font-size: 12px;
     border-right: 2px solid var(--gray-dark);
 }
 
-.editor-div {
+.file-name-container #file-warning {
+    font-size: 11px;
+    color: var(--warn-color);
+}
+
+.file-name-container #save-status {
+    font-size: 12px;
+}
+.file-name-container #save-status span, .file-name-container #file-warning span{
+    margin-left: 5px;
+}
+
+.file-name-container #save-status #saved {
+    color: lime;
+}
+.file-name-container #save-status #unsaved {
+    color: var(--warn-color);
+}
+.file-name-container #save-status #saving {
+    color: var(--near-white);
+}
+
+
+#editor-div {
     width: 100%;
     min-width: 300px;
     height: 100%;
@@ -1408,11 +1472,31 @@ header a {
     overflow-x: hidden;
     border: 2px solid var(--gray-dark);
 }
+#editor-div::-webkit-scrollbar-thumb {
+    background: var(--base); 
+}
 
-#output-div {
+#output-section {
     width: 40%;
     border: 2px solid var(--gray-dark);
-    transition: 0.5s;
+    height: calc(100% - 4px);
+}
+
+.right-body {
+    position: relative;
+    height: calc(100% - 10px);
+}
+
+#output-div, #history-div {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+#history-div {
+    display: none;
 }
 
 .output-header {
@@ -1423,7 +1507,6 @@ header a {
     height: 20px;
     border-bottom: 2px solid var(--gray-dark);
     font-size: 14px;
-    font-weight: bold;
 }
 
 .output-btn {
@@ -1442,9 +1525,44 @@ header a {
 }
 
 #output-iframe {
-    height: calc(100% - 21px);
     width: 100%;
+    height: 100%;
     border: 0;
+}
+
+.loading-line {
+    width: 100%;
+    height: 5px;
+    background-color: var(--gray-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-line ::after {
+    content: '';
+    position: absolute;
+    left: -50%;
+    height: 100%;
+    width: 40%;
+    background-color: var(--base);
+    animation: line 1s linear infinite;
+}
+
+@keyframes line {
+    0% { left: -50%; }
+    100% { left: 100%; }
+}  
+
+#full-view-iframe {
+    position: absolute;
+    top: 0;
+    right: 0; 
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    overflow: auto;
 }
 
 @media (width < 800px) {
