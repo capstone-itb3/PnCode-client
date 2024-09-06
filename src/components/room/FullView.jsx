@@ -65,14 +65,14 @@ function FullView() {
                         convertToScriptTag(info.active.content);
                     }
 
-                    outputRef.current.contentDocument.head.innerHTML += `<base target="_parent">`;
+                    // outputRef.current.contentDocument.head.innerHTML += `<base target="_parent">`;
 
-                    const title = outputRef.current.contentDocument.querySelector('title')?.textContent;
-                    if (title !== undefined && !(/^\s*$/.test(title))) {
-                        document.title = title;
-                    } else {
-                        document.title = file_name;
-                    }
+                    // const title = outputRef.current.contentDocument.querySelector('title')?.textContent;
+                    // if (title !== undefined && !(/^\s*$/.test(title))) {
+                    //     document.title = title;
+                    // } else {
+                    //     document.title = file_name;
+                    // }
                 }, 100);  
             } else {
                 setFileExists(false);
@@ -103,12 +103,12 @@ function FullView() {
                                 <div></div>
                             </div>
                     }
-                    <Frame 
+                    {/* <Frame 
                         ref={outputRef}
                         id='full-view-iframe'
                         initialContent={initialContent}
                     >
-                    </Frame>
+                    </Frame> */}
                 </>
             }
             {!fileExists &&
