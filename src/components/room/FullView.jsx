@@ -10,8 +10,6 @@ function FullView() {
     const [user, setUser] = useState(getClass(auth, auth.position));
     const [isLoaded, setIsLoaded] = useState(false);
     const [fileExists, setFileExists] = useState(true);
-    const [content, setContent] = useState(null);
-    const [scripts, setScripts] = useState([]);
     const outputRef = useRef(null);
     const initialContent = `<!DOCTYPE html><html><head>
                                 <base target="_parent">
@@ -22,56 +20,56 @@ function FullView() {
             const info = await user.viewOutput(room_id, file_name);
 
             if (info?.files) {
-                let newStyle = '', newScript = '';
-                const cssFiles = info.files.filter(f => f.type === 'css');
-                const jsFiles = info.files.filter(f => f.type === 'js');
+                // let newStyle = '', newScript = '';
+                // const cssFiles = info.files.filter(f => f.type === 'css');
+                // const jsFiles = info.files.filter(f => f.type === 'js');
 
-                setTimeout(() => {
-                    if (info.active.type === 'html' || info.active.type === 'css') {                    
-                        outputRef.current.contentDocument.body.innerHTML = info.active.content;
+                // setTimeout(() => {
+                //     if (info.active.type === 'html' || info.active.type === 'css') {                    
+                //         outputRef.current.contentDocument.body.innerHTML = info.active.content;
                         
-                        const links = outputRef.current.contentDocument.querySelectorAll('link[rel="stylesheet"]');
-                        links.forEach((link) => {
-                        if (link.href) {
-                            const linkUrl = new URL(link.href).pathname.split('/').pop();
-                            const css = cssFiles.find(f => f.name === linkUrl);
+                //         const links = outputRef.current.contentDocument.querySelectorAll('link[rel="stylesheet"]');
+                //         links.forEach((link) => {
+                //         if (link.href) {
+                //             const linkUrl = new URL(link.href).pathname.split('/').pop();
+                //             const css = cssFiles.find(f => f.name === linkUrl);
                     
-                            if (css) {
-                                newStyle +=`<style>${css.content}</style>`;
-                            }
-                        }
-                        });
-                        outputRef.current.contentDocument.body.innerHTML = newStyle + outputRef.current.contentDocument.body.innerHTML;
+                //             if (css) {
+                //                 newStyle +=`<style>${css.content}</style>`;
+                //             }
+                //         }
+                //         });
+                //         outputRef.current.contentDocument.body.innerHTML = newStyle + outputRef.current.contentDocument.body.innerHTML;
 
-                        const scripts = outputRef.current.contentDocument.querySelectorAll('script');
-                        scripts.forEach((script) => {
+                //         const scripts = outputRef.current.contentDocument.querySelectorAll('script');
+                //         scripts.forEach((script) => {
 
-                            if (script.src) {
-                                const scriptUrl = new URL(script.src).pathname.split('/').pop();
-                                const js = jsFiles.find(f => f.name === scriptUrl);
+                //             if (script.src) {
+                //                 const scriptUrl = new URL(script.src).pathname.split('/').pop();
+                //                 const js = jsFiles.find(f => f.name === scriptUrl);
                         
-                                if (js) {
-                                    newScript = js.content;
-                                } 
-                            } else {
-                                newScript = script.textContent;
-                            }
+                //                 if (js) {
+                //                     newScript = js.content;
+                //                 } 
+                //             } else {
+                //                 newScript = script.textContent;
+                //             }
 
-                            convertToScriptTag(newScript);
-                        });
+                //             convertToScriptTag(newScript);
+                //         });
 
-                    } else if (info.active.type === 'js') {
-                        outputRef.current.contentDocument.body.innerHTML = '';
-                        convertToScriptTag(info.active.content);
-                    }
+                //     } else if (info.active.type === 'js') {
+                //         outputRef.current.contentDocument.body.innerHTML = '';
+                //         convertToScriptTag(info.active.content);
+                //     }
 
-                    const title = outputRef.current.contentDocument.querySelector('title')?.textContent;
-                    if (title !== undefined && !(/^\s*$/.test(title))) {
-                        document.title = title;
-                    } else {
-                        document.title = file_name;
-                    }
-                }, 100);  
+                //     const title = outputRef.current.contentDocument.querySelector('title')?.textContent;
+                //     if (title !== undefined && !(/^\s*$/.test(title))) {
+                //         document.title = title;
+                //     } else {
+                //         document.title = file_name;
+                //     }
+                // }, 100);  
             } else {
                 setFileExists(false);
             }
@@ -99,11 +97,11 @@ function FullView() {
                         <div></div>
                     </div>
             }
-            <h1>Its bugged</h1>
-            <Frame 
+            <label>Its bugged</label>
+            {/* <Frame 
                 ref={outputRef}
                 id='full-view-iframe'
-                initialContent={initialContent}/>
+                initialContent={initialContent}/> */}
             {!fileExists &&
                 <div className='flex-column items-center'>
                     <h1>File Does Not Exist</h1>
