@@ -20,7 +20,6 @@ function FullView() {
     useEffect(() => {
         async function init () {
             const info = await user.viewOutput(room_id, file_name);
-            outputRef.current.contentWindow.eval("window.location.reload();");
 
             if (info?.files) {
                 let newStyle = '', newScript = '';
