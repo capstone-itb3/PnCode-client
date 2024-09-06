@@ -13,8 +13,8 @@ function FullView() {
     const [content, setContent] = useState(null);
     const [scripts, setScripts] = useState([]);
     const outputRef = useRef(null);
+    // <base target="_parent">
     const initialContent = `<!DOCTYPE html><html><head>
-                                <base target="_parent">
                             </head><body></body></html>`;
 
     useEffect(() => {
