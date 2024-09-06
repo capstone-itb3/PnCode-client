@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
+import Frame from 'react-frame-component';
 import Cookies from 'js-cookie';
 import { getToken, getClass } from '../validator'
 
@@ -9,20 +10,25 @@ function FullView() {
     const [user, setUser] = useState(getClass(auth, auth.position));
     const [isLoaded, setIsLoaded] = useState(false);
     const [fileExists, setFileExists] = useState(true);
+    const [content, setContent] = useState(null);
+    const [scripts, setScripts] = useState([]);
     const outputRef = useRef(null);
+    const initialContent = `<!DOCTYPE html><html><head>
+                                <base target="_parent">
+                            </head><body></body></html>`;
 
     useEffect(() => {
         async function init () {
             const info = await user.viewOutput(room_id, file_name);
+            outputRef.current.contentWindow.eval("window.location.reload();");
+
             if (info?.files) {
-                outputRef.current.contentWindow.eval("window.location.reload();");
-                let newStyle = '', cssFiles, jsFiles;
-              
+                let newStyle = '', newScript = '';
+                const cssFiles = info.files.filter(f => f.type === 'css');
+                const jsFiles = info.files.filter(f => f.type === 'js');
+
                 setTimeout(() => {
-                    if (info.active.type === 'html' || info.active.type === 'css') {
-                        cssFiles = info.files.filter(f => f.type === 'css');
-                        jsFiles = info.files.filter(f => f.type === 'js');
-                    
+                    if (info.active.type === 'html' || info.active.type === 'css') {                    
                         outputRef.current.contentDocument.body.innerHTML = info.active.content;
                         
                         const links = outputRef.current.contentDocument.querySelectorAll('link[rel="stylesheet"]');
@@ -37,37 +43,27 @@ function FullView() {
                         }
                         });
                         outputRef.current.contentDocument.body.innerHTML = newStyle + outputRef.current.contentDocument.body.innerHTML;
-                    
+
                         const scripts = outputRef.current.contentDocument.querySelectorAll('script');
                         scripts.forEach((script) => {
-                            let script_text = '';
 
                             if (script.src) {
                                 const scriptUrl = new URL(script.src).pathname.split('/').pop();
                                 const js = jsFiles.find(f => f.name === scriptUrl);
                         
                                 if (js) {
-                                    script_text = js.content;
+                                    newScript = js.content;
                                 } 
-                                // else {
-                                //     if (!script.src.toString().includes('https')) {
-                                //         const library = document.createElement('script');
-                                //         library.src = script.src;
-                                //         outputRef.current.contentDocument.head.appendChild(library);
-                                //     }
-                                // }
                             } else {
-                                script_text = script.textContent;
+                                newScript = script.textContent;
                             }
-                            const locationHrefRegex = /window\.location\.href\s*=(?!=)/g;
-                            
-                            script_text = script_text.replace(locationHrefRegex, 'window.parent.location.href =');
-                            outputRef.current.contentWindow.eval(script_text);
+
+                            convertToScriptTag(newScript);
                         });
 
                     } else if (info.active.type === 'js') {
                         outputRef.current.contentDocument.body.innerHTML = '';
-                        outputRef.current.contentWindow.eval(info.active.content);
+                        convertToScriptTag(info.active.content);
                     }
 
                     outputRef.current.contentDocument.head.innerHTML += `<base target="_parent">`;
@@ -87,6 +83,18 @@ function FullView() {
         init();
     },[]);
 
+    function convertToScriptTag(script) {
+        const locationHrefRegex = /window\.location\.href\s*=(?!=)/g;
+        script = script.replace(locationHrefRegex, 'window.parent.location.href =');
+        const scriptTag = document.createElement('script');
+        scriptTag.text = script;
+        outputRef.current.contentDocument.head.appendChild(scriptTag);
+    }
+
+    function contentDidMount() {
+
+    }
+
     return (
         <>
             {fileExists &&
@@ -96,8 +104,12 @@ function FullView() {
                                 <div></div>
                             </div>
                     }
-                    <iframe title='Full View' id='full-view-iframe' ref={outputRef}>
-                    </iframe>
+                    <Frame 
+                        ref={outputRef}
+                        id='full-view-iframe'
+                        initialContent={initialContent}
+                    >
+                    </Frame>
                 </>
             }
             {!fileExists &&
