@@ -83,8 +83,8 @@ function FullView() {
     },[]);
 
     function convertToScriptTag(script) {
-        const locationHrefRegex = /window\.location\.href\s*=(?!=)/g;
-        script = script.replace(locationHrefRegex, 'window.parent.location.href =');
+        // const locationHrefRegex = /window\.location\.href\s*=(?!=)/g;
+        // script = script.replace(locationHrefRegex, 'window.parent.location.href =');
         const scriptTag = document.createElement('script');
         scriptTag.text = script;
         outputRef.current.contentDocument.head.appendChild(scriptTag);
