@@ -99,6 +99,7 @@ function FullView() {
                         <div></div>
                     </div>
             }
+            <h1>Its bugged</h1>
             <Frame 
                 ref={outputRef}
                 id='full-view-iframe'
