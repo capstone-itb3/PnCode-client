@@ -93,7 +93,7 @@ function FullView() {
     }
 
     return (
-        <>
+        <div className='full-view-container'>
             {!isLoaded &&
                     <div className='loading-line'>
                         <div></div>
@@ -111,7 +111,7 @@ function FullView() {
                     </a>
                 </div>
             }
-        </>
+        </div>
   )
 }
 
