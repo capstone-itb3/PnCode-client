@@ -13,6 +13,7 @@ import Instructions from './Instructions';
 import EditorTab from './EditorTab';
 import TabOutput from './TabOutput';
 import History from './History';
+import Chats from './Chats';
 
 function RoomStudent({auth}) {  
   const { room_id } = useParams();
@@ -45,16 +46,16 @@ function RoomStudent({auth}) {
     disableCopyPaste();
 
     async function initRoom () {
-      const data_info = await student.getAssignedRoomDetails(room_id);
-      setRoom(data_info.room);
-      setRoomFiles(data_info.room.files);
-      setActivity(data_info.activity);
-      setMembers(data_info.members);
-      setAccess(data_info.access);
+      const info = await student.getAssignedRoomDetails(room_id);
+      setRoom(info.room);
+      setRoomFiles(info.files);
+      setActivity(info.activity);
+      setMembers(info.members);
+      setAccess(info.access);
 
-      document.title = data_info.activity.activity_name;
+      document.title = info.activity.activity_name;
     }
-    initRoom()
+    initRoom();
   }, []);
 
   useEffect(() => {
@@ -69,13 +70,13 @@ function RoomStudent({auth}) {
 
         socketRef.current.on('room_users_updated', (users) => {
           setRoomUsers(users);
-          console.log('room');
-          console.log(users);
 
           setCursorColor(users.find((u) => u.user_id === student.uid)?.cursor);
         })
 
-        displayFile(room.files[0]);
+        if (room_files.length > 0) {
+          displayFile(room_files[0]);
+        }
       }
       init();
 
@@ -92,6 +93,11 @@ function RoomStudent({auth}) {
     const handleKeyDown = (event) => {
       if (event.altKey && event.key === 'r') {
         runOutput();
+        return;
+      }
+
+      if (event.altKey && event.key === 'h') {
+        setRightDisplay('history');
         return;
       }
 
@@ -129,18 +135,18 @@ function RoomStudent({auth}) {
 
   function displayFile(file) {
       
-    socketRef.current.emit('find_content', {
+    socketRef.current.emit('find_file', {
       room_id,
-      file_name: file.name
+      file_id: file.file_id
     });
 
-    socketRef.current.on('found_content', ({ file }) => {
+    socketRef.current.on('found_file', ({ file }) => {
       setActiveFile(file);
     });
 
     return () => {
-      socketRef.current.off('find_content');
-      socketRef.current.off('found_content');
+      socketRef.current.off('find_file');
+      socketRef.current.off('found_file');
     }      
   }
 
@@ -217,7 +223,7 @@ function RoomStudent({auth}) {
                         Notepad
                 </button>
               </div>
-              {activeFile && leftDisplay === 'files' &&
+              {leftDisplay === 'files' &&
                 <FileDrawer 
                   room={room} 
                   socket={socketRef.current}
@@ -258,7 +264,7 @@ function RoomStudent({auth}) {
                           onClick={() => setRightDisplay('output')}>
                           Output
                   </button>
-                  <button className={`side-tab-button ${rightDisplay === 'History' && 'active'}`} 
+                  <button className={`side-tab-button ${rightDisplay === 'history' && 'active'}`} 
                           onClick={() => setRightDisplay('history')}>
                           History
                   </button>
@@ -267,11 +273,18 @@ function RoomStudent({auth}) {
                   <TabOutput 
                     outputRef={outputRef}
                     outputLabel={outputLabel}/> 
-                  <History/>       
+                  <div id='history-div'>
+                    {activeFile &&
+                      <History
+                      socket={socketRef.current}
+                      file={activeFile}/>                           
+                    }
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          <Chats room={room} user={student} socket={socketRef.current}/>
         </div>
       }
     </main>  

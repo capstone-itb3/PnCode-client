@@ -6,8 +6,8 @@ import { getToken, getClass } from '../validator'
 
 function FullView() {
     const { room_id, file_name } = useParams();
-    const [auth, getAuth] = useState(getToken(Cookies.get('token')));
-    const [user, setUser] = useState(getClass(auth, auth.position));
+    // const [auth, getAuth] = useState(getToken(Cookies.get('token')));
+    // const [user, setUser] = useState(getClass(auth, auth.position));
     const [isLoaded, setIsLoaded] = useState(false);
     const [fileExists, setFileExists] = useState(true);
     const outputRef = useRef(null);
@@ -17,7 +17,7 @@ function FullView() {
 
     useEffect(() => {
         async function init () {
-            const info = await user.viewOutput(room_id, file_name);
+            // const info = await user.viewOutput(room_id, file_name);
 
             if (info?.files) {
                 // let newStyle = '', newScript = '';

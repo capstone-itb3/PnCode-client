@@ -47,10 +47,9 @@ export class SoloRoom extends Room {
 }
 
 export class AssignedRoom extends Room {
-    constructor (room_id, room_name, room_type, owner_id, activity_id, files, notes, feedback, chat) {
+    constructor (room_id, room_name, room_type, owner_id, activity_id, notes, feedback, chat) {
         super(room_id, room_name, room_type, owner_id);
         this.activity_id = activity_id;
-        this.files = files;
         this.notes = notes        
         this.feedback = feedback;
         this.chat = chat;

@@ -15,7 +15,7 @@ function TabOutput({ outputRef, outputLabel }) {
   return (
     <div className='flex-column' id='output-div'>
       <div className='output-header'>
-          <label className='single-line'>{outputLabel}</label>
+          <label className='single-line'>{outputRef.current?.title ? outputRef.current?.title : 'Output'}</label>
           <div className='items-center'>
             <button 
               className='output-btn items-center' 
@@ -25,7 +25,7 @@ function TabOutput({ outputRef, outputLabel }) {
             </button>
           </div>
       </div>
-        <iframe title= 'Displays Output' id='output-iframe' ref={outputRef}>
+        <iframe title= 'Output' id='output-iframe' ref={outputRef}>
         </iframe>              
     </div>
   )

@@ -10,35 +10,35 @@ import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import { linter, lintGutter } from '@codemirror/lint' 
 import { javascript, esLint } from '@codemirror/lang-javascript'
-import * as eslint from 'eslint-linter-browserify'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import jsLint from './utils/JSesLint';
+import _ from 'lodash';
+import debounce from 'lodash.debounce';
 
-function Editor({ room, user, cursorColor, file, socket, setSaved, editorUsers, setEditorUsers, setWarning}) {
+function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEditorUsers, setWarning}) {
   const { room_id } = useParams();
+  const [state, setState] = useState(null);
   const [ view, setView ] = useState(null);
   const providerRef = useRef(null);
+  let storeInHistory = false;
   
   useEffect(() => {
     view ? view.destroy() : null;
     providerRef.current ? providerRef.current.destroy() : null;
-
-    setView(null);
     providerRef.current = null;
 
     async function init() {
       return new Promise((resolve) => {
         socket.emit('join_editor', {
-          room_id: room_id,
-          file_name: file.name,
+          file_id: file.file_id,
           user_id: user.uid,
         });
     
         socket.on('editor_users_updated', (users) => {
           setEditorUsers(users);
-          // console.log('editor users:', users);
+          console.log('editor users:', users);
           resolve(users);
         });
       });
@@ -47,9 +47,9 @@ function Editor({ room, user, cursorColor, file, socket, setSaved, editorUsers, 
       const ydoc = new Y.Doc();
       
       providerRef.current = new WebsocketProvider(import.meta.env.VITE_APP_WEBSOCKET, 
-        `${room_id}-${file.name}`, 
+        `${file.file_id}`, 
         ydoc
-      );  
+      );
       
       providerRef.current.awareness.setLocalStateField('user', {
         userId: user.uid,
@@ -85,10 +85,12 @@ function Editor({ room, user, cursorColor, file, socket, setSaved, editorUsers, 
             EditorView.updateListener.of(e => {
               if (e.docChanged) {
                 updateCode(e);
+
               }
             }),
             EditorView.theme({
               '.cm-ySelectionInfo': {
+                top: '-6px !important',
                 display: 'inline-block !important',
                 opacity: '1 !important',
                 padding: '2px !important',
@@ -97,102 +99,87 @@ function Editor({ room, user, cursorColor, file, socket, setSaved, editorUsers, 
             }),
           ]
         });
+
         setView(new EditorView({ state, parent: (document.querySelector(`#editor-div`)) }));
       });
     });
-                
+
+    socket.on('update_result', ({ status }) => {
+      if (status === 'ok') {
+        setSaved( <label className='items-center' id='saved'>
+                      <BsCheck2 size={14}/><span>Saved</span>
+                  </label>
+                );
+      } else {
+        setSaved( <label className='items-center' id='unsaved'>
+                    <BsExclamationTriangleFill size={13}/><span>Unsaved</span>
+                  </label>
+                );
+      }
+    });
+  
     return () => {
-      providerRef.current.destroy();
       socket.off('editor_users_updated');
+      socket.off('update_result');
+      socket.off('add_edit_count_result');
     }
   }, [file]);
 
-  // useEffect(() => {
-  //   if (view) {
-  //     console.log(view);
-  //   }
-  // }, [view])
+  useEffect(() => {
+    storeInHistory = true;
+
+    const interval = setInterval(() => {
+      storeInHistory = true;
+    }, 360000);
+
+    return () => {
+      clearInterval(interval);
+    }
+  }, [])
 
   const updateCode = (e) => {
-    let lineNumber = 1;
+    debounceEvent();
+
+    let line_number = 1;
+    if (e.state && e.state.selection) {
+      line_number = e.state.doc.lineAt(e.state.selection.main.head).number;
+    }
+
     let isEmpty = e.state.doc.toString() === '' && e.state.doc === null;
     let allSpaces = new RegExp('^\\s*$').test(e.state.doc.toString());
 
     if (e.state.doc && !isEmpty && !allSpaces) {
-      setSaved( <label id='saving'>
-                  Saving...
-                </label>
-              );
+      setSaved( <label id='saving'>Saving...</label>);
 
       socket.emit('update_code', {
-        room_id: room_id,
-        file_name: file.name,
-        code: e.state.doc.toString()
+        file_id: file.file_id,
+        user_id: user.uid,
+        code: e.state.doc.toString(),
+        line: line_number,
+        store_history: storeInHistory,
       });
+      console.log(storeInHistory);
+      storeInHistory = false;
+      console.log(line_number);
 
-      socket.on('update_result', ({ status }) => {
-        if (status === 'ok') {
-          setSaved( <label className='items-center' id='saved'>
-                        <BsCheck2 size={14}/><span>Saved</span>
-                    </label>
-                  );
-        } else {
-          setSaved( <label className='items-center' id='unsaved'>
-                      <BsExclamationTriangleFill size={13}/><span>Unsaved</span>
-                    </label>
-                  );
-        }
-      })
       setWarning(0);
     } else if ( isEmpty || allSpaces) {
       setWarning(1);
       console.log('empty');
     }
-
-    if (e.state && e.state.selection) {
-      lineNumber = e.state.doc.lineAt(e.state.selection.main.head).number;
-
-      socket.emit('send_line_number', {
-        room_id: room_id,
-        file_name: file.name,
-        user_id: user.uid,
-        line: lineNumber,  
-      });
-    }
-
-    socket.on('toggle_line_access', (users) => {
-      // console.log(users);
-    });  
-
-    return () => {
-      socket.off('update_result');
-      socket.off('toggle_line_access');
-    }
   }
 
-  // useEffect(() => {
-  //   if (savedCodeInserted) {
+  const debounceEvent = _.debounce(() => {
+    socket.emit('add_edit_count', {
+      file_id: file.file_id,
+      user_id: user.uid
+    });
+    console.log('debounced');
+  }, 500);
 
-  //     socket.emit('update_code', {
-  //       room_id: room_id,
-  //       file_name: file.name,
-  //       code: updates
-  //     });
-
-  //     socket.emit('find_line_number', {
-  //       line: view.state.doc.lineAt(state.selection.main.head).number,  
-  //       uid: user.uid,
-  //       room_id: room_id
-  //       // file: file
-  //     });
-  
-  //     //get where the use cursor is
-  //     // console.log(view.state.doc.lineAt(view.state.selection.main.head).number);
-  //   }
-  // }, [updates])
 
   return (
-      <div id='editor-div' className='editor-div'>
+      <div id='editor-div'>
       </div>
   )
 }

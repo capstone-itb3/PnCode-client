@@ -7,8 +7,18 @@ function FileDrawer({room, socket, room_files, setRoomFiles, activeFile, display
     const [warning, setWarning] = useState(false);
 
     useEffect(() => {
-      socket.on('file_added', ({ file }) => {
-        setRoomFiles(prevFiles => [...prevFiles, file]);
+      socket.on('file_added', ({ file, message }) => {
+        if (file) {
+            setWarning(false);
+            setAddNewFile(false);
+            setNewFileName('');
+
+            setRoomFiles(prevFiles => [...prevFiles, file]);
+        } else {
+            if (message === 'Duplicate') {
+                setWarning(true);
+            }
+        }
       });
     
       return () => {
@@ -18,24 +28,11 @@ function FileDrawer({room, socket, room_files, setRoomFiles, activeFile, display
     
     function addFile(e) {
         e.preventDefault();
-        if (room.files.includes(`${new_file_name}.${new_file_type}`)) {
-            setWarning(true);
-        } else {
-            setWarning(false);
-
-            socket.emit('add_file', {
-                room_id: room.room_id,
-                file_name: new_file_name,
-                file_type: new_file_type
-            });
-            
-            setAddNewFile(false);
-
-            return () => {
-                socket.off('add_file');
-
-            }
-        }
+        socket.emit('add_file', {
+            room_id: room.room_id,
+            file_name: new_file_name,
+            file_type: new_file_type
+        });        
     }
 
     return (
@@ -43,7 +40,7 @@ function FileDrawer({room, socket, room_files, setRoomFiles, activeFile, display
             <div id='file-drawer'>
                 {room_files.map((file, index) => {
                     return (
-                        <div className={`${file.name === activeFile.name ? 'active-file' : ''} flex-row item`} key={index} >
+                        <div className={`${file.file_id === activeFile?.file_id ? 'active-file' : ''} flex-row item`} key={index} >
                             <button 
                                 onClick={() => displayFile(file)}
                                 className={'items-center name-button'}>

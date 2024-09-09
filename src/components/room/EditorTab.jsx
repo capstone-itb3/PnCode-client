@@ -9,18 +9,14 @@ function EditorTab({room, user, cursorColor,socket, activeFile, editorUsers, set
 
   return (
         <div className='editor-container flex-column'>
-            {!activeFile &&
-                <div className='loading'>
-                    <div className='loading-spinner'/>
-                </div>              
-            }
-
-            {activeFile &&
             <>
                 <div className='file-name-container items-start'>
                     <div id='file-name'>
                         {activeFile &&
                             <label>{activeFile.name}</label>
+                        } 
+                        {!activeFile &&
+                            <label>No file selected</label>
                         }
                     </div>
                     {warning === 1 &&
@@ -37,6 +33,7 @@ function EditorTab({room, user, cursorColor,socket, activeFile, editorUsers, set
                     </div>
                     }
                 </div>
+                {activeFile &&
                 <Editor 
                     room={room}  
                     user={user} 
@@ -47,8 +44,8 @@ function EditorTab({room, user, cursorColor,socket, activeFile, editorUsers, set
                     editorUsers={editorUsers}
                     setEditorUsers={setEditorUsers}
                     setWarning={setWarning}/>
+                }
             </>
-            }
         </div>
   )
 }

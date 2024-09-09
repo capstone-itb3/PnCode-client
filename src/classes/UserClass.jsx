@@ -397,11 +397,11 @@ export class Student extends User {
                     info.room_type,
                     info.owner_id,
                     info.activity_id,
-                    info.files,
                     info.notes,
                     info.feedback,
                     info.chat
-                ), activity: data.activity, 
+                ), files: data.files,
+                   activity: data.activity, 
                    members: data.members, 
                    access: data.access };
             } else {
