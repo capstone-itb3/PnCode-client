@@ -22,7 +22,6 @@ function History({ file, socket }) {
 
     socket.on('add_edit_count_result', ({ contributions }) => {
       setContributions(contributions);
-      console.log(1);
     });
 
     return () => {

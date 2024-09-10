@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Avatar from 'react-avatar';
-import { IoIosArrowDropdown } from 'react-icons/io';
+import { RiArrowDropDownLine } from 'react-icons/ri';
 
 function Chats({room, socket, user}) {
     const [chats, setChats] = useState(null);
@@ -60,7 +60,9 @@ function Chats({room, socket, user}) {
         <div className='flex-column' id='chat-box-container'>
             <div className='flex-row items-center' id='chat-box-header'>
                 <label>Chat</label>
-                <button id='chat-box-btn' className='items-center' onClick={minimizeChat}><IoIosArrowDropdown size={22}/></button>
+                <button id='chat-box-btn' className='items-center' onClick={minimizeChat}>
+                    <RiArrowDropDownLine size={22}/>
+                </button>
             </div>
             <div id='chat-box-body'>
                 <div  className='flex-column' id='chat-box-scroll'>
@@ -90,7 +92,8 @@ function Chats({room, socket, user}) {
                         <input type='text' 
                         placeholder='Type a message...' 
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}/>
+                        onChange={(e) => setMessage(e.target.value)}
+                        required/>
                         <input type='submit' id='send-chat-btn' value='Send'/>
                     </>
                 }

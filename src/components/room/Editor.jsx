@@ -158,14 +158,11 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
         line: line_number,
         store_history: storeInHistory,
       });
-      console.log(storeInHistory);
       storeInHistory = false;
-      console.log(line_number);
 
       setWarning(0);
     } else if ( isEmpty || allSpaces) {
       setWarning(1);
-      console.log('empty');
     }
   }
 
