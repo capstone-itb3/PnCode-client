@@ -293,6 +293,7 @@ input:checked + .slider:before {
     border-bottom: 2px solid var(--gray-dark);
     color: var(--gray-dark);
     margin-right: 10px;
+    font-size: 16px;
 }
 
 #section-label {
@@ -314,6 +315,8 @@ input:checked + .slider:before {
     border-radius: 10px 0;
     border: 2px solid var(--gray);
 }
+
+
 
 .input-btn {
     margin-top: 20px;

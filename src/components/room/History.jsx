@@ -15,6 +15,10 @@ function History({ file, socket }) {
         setHistory(history);
         setContributions(contributions);
 
+        console.log('history')
+        console.log(history)
+        console.log('contributions')
+        console.log(contributions)
       } else {
         setRetrieved(false)
       }
@@ -22,6 +26,7 @@ function History({ file, socket }) {
 
     socket.on('add_edit_count_result', ({ contributions }) => {
       setContributions(contributions);
+      console.log('contributions')
     });
 
     return () => {
@@ -40,8 +45,9 @@ function History({ file, socket }) {
               <label>Current Edit Count:</label>
               {contributions.length !== 0 && contributions.map((cont, index) => {
                 return (
-                  <div className='contribution' key={index}>
-                    <label>{cont.uid}</label>
+                  <div className='contribution' key={cont.uid}>
+                    <label>{cont.first_name}</label>
+                    <label>{cont.last_name}</label>
                     <label>{cont.edit_count}</label>
                   </div>
                 )

@@ -85,7 +85,6 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
             EditorView.updateListener.of(e => {
               if (e.docChanged) {
                 updateCode(e);
-
               }
             }),
             EditorView.theme({
@@ -104,6 +103,20 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
       });
     });
 
+    const editorListener = (event) => {
+      const isModifierKey = event.altKey || event.ctrlKey || event.metaKey;
+      const isNavigationKey = event.key.startsWith('Arrow') || event.key === 'Home' || event.key === 'End' || event.key === 'PageUp' || event.key === 'PageDown';
+      const isFunctionKey = event.key.startsWith('F') && event.key.length > 1;
+      const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Enter' || event.key === 'Tab';
+      
+      if (!isModifierKey && !isNavigationKey && !isFunctionKey && (event.key.length === 1 || isEditingKey)) {
+        debounceEvent(user.uid);
+      }
+    };
+    
+    const editor_div = document.getElementById('editor-div');
+    editor_div.addEventListener('keydown', editorListener);
+
     socket.on('update_result', ({ status }) => {
       if (status === 'ok') {
         setSaved( <label className='items-center' id='saved'>
@@ -119,6 +132,7 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
     });
   
     return () => {
+      document.getElementById('editor-div').removeEventListener('keydown', editorListener);
       socket.off('editor_users_updated');
       socket.off('update_result');
       socket.off('add_edit_count_result');
@@ -138,7 +152,6 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
   }, [])
 
   const updateCode = (e) => {
-    debounceEvent();
 
     let line_number = 1;
     if (e.state && e.state.selection) {
@@ -166,10 +179,10 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
     }
   }
 
-  const debounceEvent = _.debounce(() => {
+  const debounceEvent = _.debounce((editing_user_id) => {
     socket.emit('add_edit_count', {
       file_id: file.file_id,
-      user_id: user.uid
+      user_id: editing_user_id,
     });
     console.log('debounced');
   }, 500);

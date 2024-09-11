@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { initSocket } from '../../socket';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsBoxArrowInRight } from 'react-icons/bs';
-import toast from 'react-hot-toast';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
 import Options from './Options';

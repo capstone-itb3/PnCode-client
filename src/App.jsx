@@ -18,8 +18,8 @@ function App() {
     <>
     <Toaster position='top-center'></Toaster>
     <Routes>
-      <Route path = '/' element={ <Signup/> }/>
       <Route path = '/signup' element={ <Signup/> }/>
+      <Route path = '/' element={ <Login/> }/>
       <Route path = '/login' element={ <Login/> }/>
       <Route path = '/login/professor' element={ <ProfLogin/> }/>
       <Route path = '/dashboard/' element={ <Dashboard/> }/>
