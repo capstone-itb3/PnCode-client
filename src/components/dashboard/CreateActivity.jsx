@@ -7,15 +7,11 @@ function CreateActivity({user, course, section, exit}) {
     const [instructions, setInstructions] = useState('');
     const [open_time, setOpenTime] = useState('07:00');
     const [close_time, setCloseTime] = useState('20:59');
-    const [deadline, setDeadline] = useState(() => {
-        const date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        return date.toLocaleString('sv-SE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(' ', 'T');
-    });
         
     async function submitActivity(e) {
         e.preventDefault();
 
-        user.createActivity(course, section, activity_name, instructions, open_time, close_time, deadline);
+        user.createActivity(course, section, activity_name, instructions, open_time, close_time);
     }
 
     return (
@@ -67,16 +63,6 @@ function CreateActivity({user, course, section, exit}) {
                                     required
                                 />
                             </div>
-                        </div>
-                        <div className='flex-column items-start'>
-                            <h3>Deadline</h3>
-                            <input 
-                                className='date-time'
-                                type='datetime-local'
-                                value={deadline}
-                                onChange={(e) => setDeadline(e.target.value)}
-                                required
-                            />
                         </div>
                         <div className='flex-row footer'>
                             <input 

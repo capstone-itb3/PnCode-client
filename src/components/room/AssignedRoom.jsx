@@ -158,6 +158,20 @@ function AssignedRoom() {
         return;
       }
 
+      if (event.altKey && event.key === 'a') {
+        setAddNewFile(true);
+        setDeleteFile(false);
+        setLeftDisplay('files');
+        return;
+      }
+
+      if (event.altKey && event.key === 'x') {
+        setDeleteFile(true);
+        setAddNewFile(false);
+        setLeftDisplay('files');
+        return;
+      }
+
       for (let i = 1; i <= room_files.length && i <= 10; i++) {
         if (event.altKey && event.key === i.toString()) {
           displayFile(room_files[i - 1]);
@@ -335,8 +349,10 @@ function AssignedRoom() {
                   }
                   <Feedback 
                     user={user}
+                    room={room}
+                    socket={socketRef.current}
                     rightDisplay={rightDisplay}
-                    />              
+                    setRightDisplay={setRightDisplay}/>
                 </div>
               </div>
             </div>

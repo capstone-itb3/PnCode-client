@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { FaHtml5, FaCss3, FaJs } from 'react-icons/fa';
 import { BsTrash } from 'react-icons/bs';
 function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile, deleteFile, setDeleteFile}) {
     const [new_file_name, setNewFileName] = useState('');
     const [new_file_type, setNewFileType] = useState('html');
     const [warning, setWarning] = useState(null);
+    const addFileRef = useRef(null);
+    const deleteFileRef = useRef(null);
 
     useEffect(() => {
       socket.on('file_added', ({ status, file, message }) => {
@@ -43,6 +45,38 @@ function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, d
       }
     }, [room_files, activeFile]);
     
+    useEffect(() => {
+        if (addNewFile && addFileRef.current) {
+          addFileRef.current.focus();
+        }
+
+        if (deleteFile && deleteFileRef.current) {
+          deleteFileRef.current.focus();
+        }
+    }, [addNewFile, deleteFile]);
+      
+    function useFile(file) {
+        if (!deleteFile) {
+            displayFile(file);
+        } else {
+            const result1 = confirm(`Do you want to delete ${file.name}?`);
+
+            if (result1) {
+                const result2 = confirm('Deleting a file cannot be undone. Are you sure you want to continue?');
+
+                if (result2) {
+                    socket.emit('delete_file', {
+                        file_id: file.file_id,
+                        user_id: user.uid,
+                        room_id: room.room_id,
+                        active: activeFile?.file_id
+                    });
+                }
+            }
+        }
+    }
+
+
     function addFile(e) {
         e.preventDefault();
 
@@ -53,45 +87,32 @@ function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, d
         });        
     }
 
-    function deleteSelectedFile(file_id) {
-        const result = confirm('Are you sure you want to delete this file?');
-
-        if (result) {
-            socket.emit('delete_file', {
-                file_id: file_id,
-                user_id: user.uid,
-                room_id: room.room_id,
-                active: activeFile?.file_id
-            });
-        }
-    }
-
     return (
         <div className='room-top-left'> 
             <div id='file-drawer'>
                 {room_files.map((file, index) => {
                     return (
                         <div className={`${activeFile && file.file_id === activeFile?.file_id ? 'active-file' : ''} flex-row item`} key={index} >
-                            <button 
-                                onClick={() => displayFile(file)}
-                                className={'items-center name-button'}>
-                                { file.type === 'html' && <FaHtml5 size={22}/> }
-                                { file.type === 'css' && <FaCss3 size={22}/> }
-                                { file.type === 'js' && <FaJs size={22}/> }
-                                <label className='single-line'>{file.name}</label>
+                            <button onClick={() => useFile(file)} className={'items-center name-button'}>
+                                <div className='items-center'>
+                                    { file.type === 'html' && <FaHtml5 size={22}/> }
+                                    { file.type === 'css' && <FaCss3 size={22}/> }
+                                    { file.type === 'js' && <FaJs size={22}/> }
+                                    <label className='single-line'>{file.name}</label>
+                                </div>
+                                {deleteFile &&
+                                    <label className='file-delete items-center'> 
+                                        <BsTrash size={18}/>
+                                    </label>
+                                }
                             </button>
-                            {deleteFile &&
-                                <button className='items-center file-delete' onClick={() => deleteSelectedFile(file.file_id)}> 
-                                    <BsTrash size={18}/>
-                                </button>
-                            }
                         </div>    
                     )})
                 }
                 {deleteFile &&
                     <>
                         <div className='flex-row file-form-btn'>
-                            <button className='file-cancel-btn' onClick={() => setDeleteFile(false)}>Cancel</button>
+                            <button className='file-cancel-btn' ref={deleteFileRef} onClick={() => setDeleteFile(false)}>Cancel</button>
                         </div>
                         {warning && <label className='label-warning'>{warning}</label>}
                     </>
@@ -102,11 +123,13 @@ function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, d
                             { new_file_type === 'html' && <FaHtml5 size={22}/> }
                             { new_file_type === 'css' && <FaCss3 size={22}/> }
                             { new_file_type === 'js' && <FaJs size={22}/> }
-                            <input  type='text' 
-                                    className='file-name-input'
-                                    value={new_file_name}
-                                    onChange={(e) => setNewFileName(e.target.value)}
-                                    required/>
+                            <input
+                                type='text'
+                                className='file-name-input'
+                                value={new_file_name}
+                                onChange={(e) => setNewFileName(e.target.value)}
+                                ref={addFileRef}
+                                required/>
                             <select value={new_file_type} onChange={(e) => setNewFileType(e.target.value)}>
                                 <option value='html'>. HTML</option>
                                 <option value='css'>. CSS</option>

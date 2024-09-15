@@ -54,4 +54,20 @@ export class AssignedRoom extends Room {
         this.feedback = feedback;
         this.chat = chat;
     }
+
+    async submitFeedback(socket, room_id, feedback, range, uid) {
+        try {
+            socket.emit('submit_feedback', {
+                room_id: room_id,
+                activity_id: this.activity_id,
+                user_id: uid,
+                new_feedback: feedback,
+                feedback_range: range,
+            });
+
+        } catch (e) {
+            console.error('Unable to connect to the server.');
+            toast.error('Unable to connect to the server.');
+        }
+    }
 }

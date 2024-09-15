@@ -2,16 +2,10 @@ import React, { useEffect, useState } from 'react';
 
 function ManageDates({activity, renderActivity}) {
     const [showAccessInputs, setShowAccessInputs] = useState(false);
-    const [showDeadlineInputs, setShowDeadlineInputs] = useState(false);
     const [open_time, setOpenTime] = useState();
     const [close_time, setCloseTime] = useState();
-    const [deadline, setDeadline] = useState();
     const [new_open_time, setNewOpenTime] = useState(activity.open_time);
     const [new_close_time, setNewCloseTime] = useState(activity.close_time);
-    const [new_deadline, setNewDeadline] = useState(() => {
-        const offset = new Date(activity.deadline).getTimezoneOffset();
-        return new Date(new Date(activity.deadline).getTime() - (offset * 60 * 1000)).toISOString().slice(0, 16);
-    });
     
     useEffect(() => {
         setOpenTime(() => {
@@ -30,20 +24,8 @@ function ManageDates({activity, renderActivity}) {
             const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
             return `${HH}:${mm} ${ampm}`;
         });
-        setDeadline(() => {
-            const dl = new Date(activity.deadline);
 
-            const day = dl.getDate() < 10 ? '0' + dl.getDate() : dl.getDate();
-            const month = dl.toLocaleString('default', { month: 'long' });
-            const year = dl.getFullYear();
-            const hours = dl.getHours() < 10 ? '0' + dl.getHours() : dl.getHours();
-            const minutes = dl.getMinutes() < 10 ? '0' + dl.getMinutes() : dl.getMinutes();
-            const ampm = dl.getHours() < 12 ? 'AM' : 'PM';
-        
-            return `${day}, ${month} ${year}. ${hours}:${minutes} ${ampm}`;    
-        });
-
-    }, [activity.open_time, activity.close_time, activity.deadline]);
+    }, [activity.open_time, activity.close_time]);
 
     function toggleAccess(show) {
         const edit = document.getElementById('edit-timeframe');
@@ -59,32 +41,13 @@ function ManageDates({activity, renderActivity}) {
         }
     }
 
-    function toggleDeadline(show) {
-        const edit = document.getElementById('edit-deadline');
-
-
-        if (show === false) {
-            setShowDeadlineInputs(true);
-            edit.textContent = 'Cancel';
-            edit.classList.value = 'cancel-btn'
-        } else {
-            setShowDeadlineInputs(false);
-            edit.textContent = 'Edit Deadline';
-            edit.classList.value = 'create-btn'
-        }
-    }
-
     async function updateDates() {
-        const updated = await activity.updateDates(new_open_time, new_close_time, new_deadline);
+        const updated = await activity.updateDates(new_open_time, new_close_time);
 
         if (updated) {        
             await renderActivity();    
-            // setOpenTime(new_open_time);
-            // setCloseTime(new_close_time);
-            // setDeadline(new_deadline);
 
             toggleAccess(true);
-            toggleDeadline(true);
         }
     }
 
@@ -121,19 +84,6 @@ function ManageDates({activity, renderActivity}) {
                 <button className='create-btn' onClick={updateDates}>Save</button>
             }
             <button id='edit-timeframe' className='create-btn' onClick={() => toggleAccess(showAccessInputs)}>Edit Timeframes</button>
-            <h3>Deadline</h3>
-            <div className='two-column-grid'>
-                {!showDeadlineInputs &&
-                   <label>{deadline}</label>
-                }
-                {showDeadlineInputs &&
-                    <input type='datetime-local' value={new_deadline} onChange={(e) => {setNewDeadline(e.target.value)}}/>
-                }
-            </div>
-            {showDeadlineInputs &&
-                <button className='create-btn' onClick={updateDates}>Save</button>
-            }
-            <button id='edit-deadline' className='create-btn' onClick={() => toggleDeadline(showDeadlineInputs)}>Edit Deadline</button>
         </div>
     )
 }

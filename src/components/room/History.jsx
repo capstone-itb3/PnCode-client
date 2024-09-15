@@ -4,6 +4,7 @@ import { EditorState } from '@codemirror/state'
 import { javascript } from '@codemirror/lang-javascript'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
+import convertToReadable from './utils/convertToReadable'
 
 function History({ user, file, socket, rightDisplay }) {
   const [history, setHistory] = useState(null);
@@ -35,7 +36,9 @@ function History({ user, file, socket, rightDisplay }) {
     });
 
     socket.on('add_edit_count_result', ({ contributions }) => {
-      setContributions(contributions);
+      if (user.position === 'Professor') {
+        setContributions(contributions);
+      }
     });
     
     socket.on('reupdate_history', ({ status }) => {
@@ -133,18 +136,7 @@ export default History
 
 
 function HistoryItem ({ item, file_type, contributions, options, index }) {
-  const [createdAt, setCreatedAt] = useState(() => {
-    const created = new Date(item.createdAt);
-
-    const day = created.getDate() < 10 ? '0' + created.getDate() : created.getDate();
-    const month = created.toLocaleString('default', { month: 'long' });
-    const year = created.getFullYear();
-    const hours = created.getHours() < 10 ? '0' + created.getHours() : created.getHours();
-    const minutes = created.getMinutes() < 10 ? '0' + created.getMinutes() : created.getMinutes();
-    const ampm = created.getHours() < 12 ? 'AM' : 'PM';
-
-    return `${day}, ${month} ${year} ${hours}:${minutes} ${ampm}`;    
-  });
+  const [createdAt, setCreatedAt] = useState(convertToReadable(new Date(item.createdAt), 'long'));
 
   useEffect(() => {
     const type = () => {

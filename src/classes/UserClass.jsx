@@ -432,7 +432,7 @@ export class Professor extends User {
         this.assigned_courses = assigned_courses;
     }
 
-    async createActivity(course, section, activity_name, instructions, open_time, close_time, deadline) {
+    async createActivity(course, section, activity_name, instructions, open_time, close_time) {
         try {
 
             const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/create-activity`, {
@@ -447,7 +447,6 @@ export class Professor extends User {
                     instructions,
                     open_time,
                     close_time,
-                    deadline,
                 })
             });
 
@@ -493,7 +492,6 @@ export class Professor extends User {
                     info.instructions,
                     info.open_time,
                     info.close_time,
-                    info.deadline,
                 ), rooms: data.rooms};
             } else {
                 window.location.href = '/dashboard';

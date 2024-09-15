@@ -58,17 +58,17 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
 
     return (
         <>
-            {type === 'assigned' &&
+            {type === 'assigned' && user.position === 'Student' &&
             <>
                 <button className='room-header-options' onClick={() => openMenu('files')}>
                     Files
                 </button>
                 <div id='files-menu' className='flex-column options-menu hidden'>
                     <div className='item items-center'  onClick={addFile}>
-                        <label>Add File</label>
+                        <label>Add File</label><span>Alt + A</span>
                     </div>
                     <div className='item items-center' onClick={deleteFile}>
-                        <label>Delete File</label>
+                        <label>Delete File</label><span>Alt + X</span>
                     </div>
                 </div>
             </>
@@ -78,7 +78,7 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
                 <button className='room-header-options' onClick={() => openMenu('view')}>
                     View
                 </button>
-                <div id='view-menu' className='flex-column options-menu hidden'>
+                <div id='view-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
                     <div className='item items-center' onClick={() => viewSection('files')}>
                         <label>Show Files</label><span>Alt + F</span>
                     </div>
@@ -101,7 +101,7 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
             <button className='room-header-options' onClick={() => openMenu('preferences')}>
                 Preferences
             </button>
-            <div id='preferences-menu' className='flex-column options-menu hidden'>
+            <div id='preferences-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
                 <div className='item items-center'>
                     <label>Editor Theme</label>
                     <div className='items-center'>
@@ -119,7 +119,7 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
             <button className='room-header-options' onClick={() => openMenu('run')}>
                 Run
             </button>
-            <div id='run-menu' className='flex-column options-menu hidden'>
+            <div id='run-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
                 <div className='item items-center' onClick={runCode}>
                     <label>Run</label> <span>Alt + R</span>
                 </div>

@@ -260,8 +260,6 @@ input:checked + .slider:before {
     border-radius: 20px;
     background-color: #fff;
     border: solid #444477 8px;
-    border-radius: 30px 0;
-
 }
 
 .form-account .head {
@@ -1283,7 +1281,6 @@ header a {
 
 #file-drawer .item {
     position: relative;
-    justify-content: space-between;
     border-radius: 10px;
     padding: 5px 0;
 }
@@ -1296,17 +1293,13 @@ header a {
     border: 0;
     background-color: transparent;
     font-size: 16px;
-    padding: 0 10px;
+    padding-left: 10px;
     color: var(--gray-dark);
-    cursor: pointer;
+    justify-content: space-between;
 }
 
 #file-drawer .item .file-delete {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 40px;
+    width: 25px;
     color: var(--error-color);
     background-color: white;
     border-radius: 10px;
@@ -1352,16 +1345,17 @@ header a {
     background-color: transparent;
 }
 
-.file-add-btn {
+.file-add-btn, .file-cancel-btn {
     border: 1px var(--gray-dark) solid;
-    margin: 0 10px;
+    margin: 4px 5px;
+    padding: 2px 12px;
+    font-size: 15px;
+    border-radius: 2px;
 }
 
 .file-cancel-btn {
-
-    border: 1px var(--gray-dark) solid;
     background-color: transparent;
-}
+ }
 
 .side-tab h5 {
     font-size: 18px;
@@ -1525,8 +1519,9 @@ header a {
 }
 
 #right-body {
+    border-left: 2px solid var(--gray-dark);
     width: 50%;
-    height: calc(100% - 4px);
+    height: 100%;
 }
 
 #right-section {
@@ -1546,7 +1541,6 @@ header a {
 #output-div.inactive, #history-div.inactive, #feedback-div.inactive {
     display: none;
 }
-
 
 .output-header {
     display: flex;
@@ -1579,9 +1573,99 @@ header a {
     border: 0;
 }
 
+#feedback-div {
+    overflow-y: auto;
+}
+
+#feedback-container {
+    position: relative;
+    margin: 8px 10px;
+}
+
+#feedback-form {
+    margin: 10px 0;
+}
+
+#feedback-container .name {
+    margin: 5px 10px;
+    font-size: 14px;
+    color: var(--gray)
+}
+
+#feedback-form .name {
+    padding-left: 7px;
+    border-left: var(--base) 3px solid;
+}
+
+.feedback-item {
+    border: 1px solid var(--gray);
+    border-left: var(--base) 4px solid;
+    margin-bottom: 10px;
+}
+
+.feedback-item .name {
+    font-weight: bold;
+}
+
+.feedback-item .name span{
+    font-weight: normal;
+    color: var(--error-color);
+    margin-left: 6px;
+}
+
+.feedback-item .name span span {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.feedback-item .date {
+    color: var(--gray);
+    font-size: 13px;
+    margin: 0 10px;
+}
+
+.feedback-item .feedback-body {
+    color: var(--gray-dark);
+    font-size: 15px;
+    white-space: pre-wrap;  
+    margin: 10px 4px; 
+    padding-left: 7px;
+}
+
+
+
+#feedback-form textarea {
+    width: 100%;
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid var(--gray-dark);
+    background-color: transparent;
+    color: var(--gray-dark);
+    border-radius: 8px;
+    margin-right: 10px;
+    border: var(--gray) 1px solid; 
+}
+#feedback-form select {
+    padding: 6px;
+    font-size: 14px;
+    border: var(--gray) 1px solid;
+    color: var(--gray-dark);
+    border-radius: 8px;
+    background-color: var(--gray-light);
+}
+
+#feedback-form input[type='submit'] {
+    border: 0;
+    margin: 10px;
+    padding: 8px 14px;
+    font-size: 15px;
+    border-radius: 10px;
+    background-color: var(--base);
+    color: var(--near-white);
+}
+
 #editor-container.light {
-    background-color: white;
-    border-right: 2px var(--gray-dark) solid;
+    background-color: rgb(58, 57, 57);
 }
 
 #editor-container.light .file-name-container {
@@ -1600,7 +1684,7 @@ header a {
 
 #editor-container.light #editor-div {
     background-color: white;
-    width: calc(100% - 2px);
+    width: 100%;
 }
 
 .loading-line {
@@ -1879,6 +1963,14 @@ header a {
 .history-item .contribution-div {
     padding: 5px;
 }
+
+.room-main .length-0{
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    color: var(--gray);
+    margin: 10px 15px;
+}
+
 
 @media (width < 800px) {
 

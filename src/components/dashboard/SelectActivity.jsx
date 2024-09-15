@@ -21,32 +21,17 @@ function SelectActivity({ activity, index, onClick }) {
         return 'just now';
     });
     
-    const [deadline, setDeadline] = useState(() => {
-        const date = new Date(activity.deadline);
-
-        const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
-        const month = date.toLocaleString('default', { month: 'long' }).slice(0, 3);
-        const year = date.getFullYear();
-        const hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
-        const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
-        const ampm = date.getHours() < 12 ? 'AM' : 'PM';
-    
-        return `${day} ${month} ${year} ${hours}:${minutes} ${ampm}`;
-    });
-
     return (
         <div className='activity-box flex-column' onClick={onClick}>
             <label className='name'>
                 <BsPencilSquare size={ 20 }/>
-                <span>{Date.now() > new Date(activity.deadline) ? ' Closed • ' :' '}</span>
                 {activity.activity_name}
             </label>
             <div className='instruc-div'>
                 <p className='instructions'>{activity.instructions}</p>
             </div>
             <div className='dates'>
-                <label  >Created: {createdAt}</label>
-                <label>Deadline: {deadline}</label>
+                <label>Created: {createdAt}</label>
             </div>
         </div>
     )

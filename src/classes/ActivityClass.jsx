@@ -1,7 +1,7 @@
 import toast from 'react-hot-toast';
 
 export default class Activity {
-    constructor (activity_id, activity_name, course_code, section, instructions, open_time, close_time, deadline) {
+    constructor (activity_id, activity_name, course_code, section, instructions, open_time, close_time) {
         this.activity_id = activity_id;
         this.activity_name = activity_name;
         this.course_code = course_code;
@@ -9,10 +9,9 @@ export default class Activity {
         this.instructions = instructions;
         this.open_time = open_time;
         this.close_time = close_time;
-        this.deadline = deadline;
     }
 
-    async updateDates(new_open_time, new_close_time, new_deadline) {
+    async updateDates(new_open_time, new_close_time) {
         try {
             const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/update-dates`, {
                 method: 'POST',

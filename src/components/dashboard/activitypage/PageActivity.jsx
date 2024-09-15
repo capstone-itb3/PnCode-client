@@ -76,7 +76,7 @@ function PageActivity() {
                         {showInstructionInputs &&
                             <button className='create-btn' onClick={updateDates}>Save</button>
                         }
-                        <button id='edit-deadline' className='create-btn' onClick={() => toggleDeadline(showDeadlineInputs)}>Edit Deadline</button>
+                        {/* <button id='edit-deadline' className='create-btn' onClick={() => toggleDeadline(showDeadlineInputs)}>Edit Instru</button> */}
                         </div>
                     </div>
                     <div id='activity-room-list'>
