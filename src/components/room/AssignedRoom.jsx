@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import Cookies from 'js-cookie';
 import { initSocket } from '../../socket';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BsBoxArrowInRight } from 'react-icons/bs';
+import { BsBoxArrowInRight, BsXLg } from 'react-icons/bs';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
 import Options from './Options';
@@ -13,11 +14,13 @@ import EditorTab from './EditorTab';
 import TabOutput from './TabOutput';
 import History from './History';
 import Chats from './Chats';
+import Feedback from './Feedback';
 
-function RoomStudent({auth}) {  
+function AssignedRoom() {  
   const { room_id } = useParams();
   const navigate = useNavigate();
-  const [student, setStudent] = useState(getClass(auth, 'Student'));
+  const [auth, setAuth] = useState(getToken(Cookies.get('token')));
+  const [user, setUser] = useState(getClass(auth, auth.position));
   const [room, setRoom] = useState(null);
   const [room_files,  setRoomFiles] = useState([]);
   const [activity, setActivity] = useState(null);
@@ -35,8 +38,9 @@ function RoomStudent({auth}) {
   const [leftDisplay, setLeftDisplay] = useState('files');
   const [rightDisplay, setRightDisplay] = useState('output');
   const [addNewFile, setAddNewFile] = useState(false);
-  const [outputLabel, setOutputLabel] = useState('Output');
-
+  const [deleteFile, setDeleteFile] = useState(false);
+  const [editorTheme, setEditorTheme] = useState(user?.preferences.theme);
+  
   useEffect(() => {    
     if (!window.location.pathname.endsWith('/')) {
       const added_slash = `${window.location.pathname}/`;
@@ -45,7 +49,7 @@ function RoomStudent({auth}) {
     disableCopyPaste();
 
     async function initRoom () {
-      const info = await student.getAssignedRoomDetails(room_id);
+      const info = await user.getAssignedRoomDetails(room_id);
       setRoom(info.room);
       setRoomFiles(info.files);
       setActivity(info.activity);
@@ -55,6 +59,7 @@ function RoomStudent({auth}) {
       document.title = info.activity.activity_name;
     }
     initRoom();
+
   }, []);
 
   useEffect(() => {
@@ -64,14 +69,24 @@ function RoomStudent({auth}) {
       
         socketRef.current.emit('join_room', { 
           room_id, 
-          user_id: student.uid,
+          user_id: user.uid,
+          position: user.position
         })
 
-        socketRef.current.on('room_users_updated', (users) => {
+        socketRef.current.on('room_users_updated', ({ users }) => {
           setRoomUsers(users);
-
-          setCursorColor(users.find((u) => u.user_id === student.uid)?.cursor);
+          setCursorColor(users.find((u) => u.user_id === user.uid)?.cursor);
         })
+
+        socketRef.current.on('found_file', ({ file }) => {
+          setActiveFile(file);
+        });
+
+        socketRef.current.on('update_token', ({ status, token }) => {
+          if (status === 'ok') {
+            Cookies.set('token', token);
+          }
+        });
 
         if (room_files.length > 0) {
           displayFile(room_files[0]);
@@ -79,14 +94,37 @@ function RoomStudent({auth}) {
       }
       init();
 
+    
       return () => {
         if (socketRef.current) {
+          socketRef.current.off('found_file');
           socketRef.current.off('room_users_updated');
           socketRef.current.off('editor_users_updated');  
+          socketRef.current.off('update_token');
+          socketRef.current.disconnect();
         }
       }
     }
-  }, [access, room])
+  }, [access, room]);
+
+  useEffect(() => {
+    const center = document.getElementById('center-body');
+    if (leftDisplay === '' && center) {
+      center.style.width = '100%';
+      
+    } else if (leftDisplay !== '' && center) {
+      center.style.width = 'calc(100% - 227px)';
+    }
+    
+    const editor_cont = document.getElementById('editor-container');
+    if (rightDisplay === '' && editor_cont) {
+      editor_cont.style.width = '100%';
+
+    } else if (rightDisplay !== '' && editor_cont) {
+      editor_cont.style.width = '50%';
+    }
+
+  }, [leftDisplay, rightDisplay]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -95,8 +133,28 @@ function RoomStudent({auth}) {
         return;
       }
 
+      if (event.altKey && event.key === 'f') {
+        setLeftDisplay('files');
+        return;
+      }
+
+      if (event.altKey && event.key === 'n') {
+        setLeftDisplay('notepad');
+        return;
+      }
+
+      if (event.altKey && event.key === 'o') {
+        setRightDisplay('output');
+        return;
+      }
+
       if (event.altKey && event.key === 'h') {
         setRightDisplay('history');
+        return;
+      }
+
+      if (event.altKey && event.key === 'b') {
+        setRightDisplay('feedback');
         return;
       }
 
@@ -115,38 +173,16 @@ function RoomStudent({auth}) {
     }  
   }, [room_files, activeFile]);
 
-  useEffect(() => {
-    const output = document.getElementById('output-div');
-    const history = document.getElementById('history-div');
-
-    if (output && history) {
-      if (rightDisplay === 'output') {
-        output.style.display = 'block';
-        history.style.display = 'none';
-  
-      } else if (rightDisplay === 'history') {
-        output.style.display = 'none';
-        history.style.display = 'block';
-      }
+  function displayFile(file) {
+    if (file === null) {
+      setActiveFile(null);
+      return;
     }
 
-  }, [rightDisplay])
-
-  function displayFile(file) {
-      
     socketRef.current.emit('find_file', {
       room_id,
       file_id: file.file_id
     });
-
-    socketRef.current.on('found_file', ({ file }) => {
-      setActiveFile(file);
-    });
-
-    return () => {
-      socketRef.current.off('find_file');
-      socketRef.current.off('found_file');
-    }      
   }
 
   function runOutput() {
@@ -154,7 +190,6 @@ function RoomStudent({auth}) {
 
     if (activeFile.type === 'html') {
       outputRef.current.src = `/view/${room_id}/${activeFile.name}`;
-      setOutputLabel(`Running from ${activeFile.name}.`);
 
     } else {
       if (activeFile.type !== 'html') {      
@@ -162,10 +197,8 @@ function RoomStudent({auth}) {
   
         if (active) {
           outputRef.current.src = `/view/${room_id}/${active.name}`;
-          setOutputLabel(`Running from ${active.name}.`);
         } else {
           outputRef.current.src = null;
-          setOutputLabel('No HTML file found.');
         }  
       }
     }
@@ -186,9 +219,15 @@ function RoomStudent({auth}) {
             <Options 
               type={'assigned'} 
               room={room} 
-              user={student}
+              user={user}
+              socket={socketRef.current}
+              setLeftDisplay={setLeftDisplay}
+              setRightDisplay={setRightDisplay}
+              reloadFile={() => displayFile(activeFile)}
+              setEditorTheme={setEditorTheme}
               outputRef={outputRef}
               setAddNewFile={setAddNewFile}
+              setDeleteFile={setDeleteFile}
               runOutput={runOutput}/>
           }
           </div>
@@ -210,9 +249,12 @@ function RoomStudent({auth}) {
       }
       {room && activity && members && access && socketRef.current &&
         <div id='editor-tab' className='flex-row'>
-          <aside className='flex-column' id='side-lists'>
+          <aside className={`flex-column ${leftDisplay === '' && 'none'}`} id='left-body'>
             <div className='flex-column side-tab top'>
-              <div className='side-tab-buttons'>
+              <div className='side-tab-buttons flex-row'>
+                <button className='remove-side-tab items-center' onClick={() => setLeftDisplay('')}>
+                  <BsXLg size={14}/>
+                </button>
                 <button className={`side-tab-button ${leftDisplay === 'files' && 'active'}`}
                         onClick={() => setLeftDisplay('files')}>
                         Files
@@ -225,40 +267,48 @@ function RoomStudent({auth}) {
               {leftDisplay === 'files' &&
                 <FileDrawer 
                   room={room} 
+                  user={user}
                   socket={socketRef.current}
                   room_files={room_files}
                   setRoomFiles={setRoomFiles}
                   activeFile={activeFile}
                   displayFile={displayFile}
                   addNewFile={addNewFile}
-                  setAddNewFile={setAddNewFile}/>
+                  setAddNewFile={setAddNewFile}
+                  deleteFile={deleteFile}
+                  setDeleteFile={setDeleteFile}/>
               }
-              {leftDisplay === 'notepad' &&
+              {editorUsers.length > 0 && leftDisplay === 'notepad' &&
                 <Notepad 
                   room={room} 
-                  user={student} 
-                  cursorColor={cursorColor}
-                  socket={socketRef.current}/>
+                  user={user} 
+                  editorUsers={editorUsers}
+                  socket={socketRef.current}
+                  cursorColor={cursorColor}/>
               }
               </div>
             <Members 
               members={members}
               roomUsers={roomUsers}/>
           </aside>
-          <div className='flex-column' id='room-body'>
+          <div className='flex-column' id='center-body'>
             <Instructions 
               instructions={activity.instructions} />
             <div className='flex-row' id='editor-section'>
               <EditorTab 
-                room={room} 
-                user={student} 
+                room={room}
+                user={user}
                 cursorColor={cursorColor}
-                socket={socketRef.current} 
+                socket={socketRef.current}
                 activeFile={activeFile}
                 editorUsers={editorUsers}
-                setEditorUsers={setEditorUsers}/>
-              <div className='flex-column' id='output-section'>
-                <div className='side-tab-buttons'>
+                setEditorUsers={setEditorUsers}
+                editorTheme={editorTheme}/>
+              <div className={`flex-column ${rightDisplay === '' && 'none'}`} id='right-body'>
+                <div className='side-tab-buttons flex-row'>
+                  <button className='remove-side-tab items-center' onClick={() => setRightDisplay('')}>
+                    <BsXLg size={14}/>
+                  </button>
                   <button className={`side-tab-button ${rightDisplay === 'output' && 'active'}`}
                           onClick={() => setRightDisplay('output')}>
                           Output
@@ -267,27 +317,37 @@ function RoomStudent({auth}) {
                           onClick={() => setRightDisplay('history')}>
                           History
                   </button>
+                  <button className={`side-tab-button ${rightDisplay === 'feedback' && 'active'}`}
+                          onClick={() => setRightDisplay('feedback')}>
+                          Feedback
+                  </button>
                 </div>
-                <div className='right-body'>
+                <div id='right-section'>
                   <TabOutput 
-                    outputRef={outputRef}
-                    outputLabel={outputLabel}/> 
-                  <div id='history-div'>
-                    {activeFile &&
-                      <History
-                      socket={socketRef.current}
-                      file={activeFile}/>                           
-                    }
-                  </div>
+                    rightDisplay={rightDisplay}
+                    outputRef={outputRef}/> 
+                  {activeFile &&
+                    <History
+                    user={user}
+                    rightDisplay={rightDisplay}
+                    socket={socketRef.current}
+                    file={activeFile}/>                         
+                  }
+                  <Feedback 
+                    user={user}
+                    rightDisplay={rightDisplay}
+                    />              
                 </div>
               </div>
             </div>
           </div>
-          <Chats room={room} user={student} socket={socketRef.current}/>
+          {user && user?.position === 'Student' &&
+            <Chats room={room} user={user} socket={socketRef.current}/>
+          }
         </div>
       }
     </main>  
   )
 }
 
-export default RoomStudent
+export default AssignedRoom

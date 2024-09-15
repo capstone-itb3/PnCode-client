@@ -24,9 +24,9 @@ function Members({ members, roomUsers}) {
   }, [roomUsers]);
 
   return (
-    <div className='side-tab'>
+    <div className='side-tab flex-column'>
       <h5>Members</h5>
-      <div className='flex-column'>
+      <div id='members-div' className='flex-column'>
         {displayMembers}
       </div>
     </div>

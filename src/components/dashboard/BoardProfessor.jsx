@@ -53,14 +53,17 @@ function BoardProfessor({ auth, checkParams }) {
             const info = professor.assigned_courses.find((val) => val.course_code === course);
 
             if (info) {
+                const data = await professor.getCourseDetails(info.course_code, info.section);
+
                 setCourseInfo({
-                    course_code: info.course_code,
-                    course_title: info.course_title,
-                })
-        
-                displayTeams(await professor.getTeams(course, section));
-                displayActivities(await professor.getActivities(course, section));    
+                    course_code: course,
+                    course_title: data.course_title,
+                    section: info.section,
+                })    
             }
+
+            displayTeams(await professor.getTeams(course, section));
+            displayActivities(await professor.getActivities(course, section));    
         }
         init();
     }, [course, section]);

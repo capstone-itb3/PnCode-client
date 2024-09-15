@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { BsExclamationTriangleFill } from 'react-icons/bs'
 import Editor from './Editor'
 
-function EditorTab({room, user, cursorColor,socket, activeFile, editorUsers, setEditorUsers}) {
+function EditorTab({room, user, cursorColor,socket, activeFile, editorUsers, setEditorUsers, editorTheme}) {
     const [warning, setWarning] = useState(0);
     const [saved, setSaved] = useState(null);
 
 
   return (
-        <div className='editor-container flex-column'>
+        <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'}`}>
             <>
                 <div className='file-name-container items-start'>
                     <div id='file-name'>
@@ -16,10 +16,10 @@ function EditorTab({room, user, cursorColor,socket, activeFile, editorUsers, set
                             <label>{activeFile.name}</label>
                         } 
                         {!activeFile &&
-                            <label>No file selected</label>
+                            <label>No file selected.</label>
                         }
                     </div>
-                    {warning === 1 &&
+                    {activeFile && warning === 1 &&
                     <div id='file-warning'>
                             <label className='single-line items-center'>
                                 <BsExclamationTriangleFill size={12}/>
@@ -27,7 +27,7 @@ function EditorTab({room, user, cursorColor,socket, activeFile, editorUsers, set
                             </label>
                     </div>
                     }
-                    {warning === 0 &&
+                    {activeFile && warning === 0 &&
                     <div id='save-status' className='items-center'>
                         {saved}
                     </div>
@@ -43,6 +43,7 @@ function EditorTab({room, user, cursorColor,socket, activeFile, editorUsers, set
                     setSaved={setSaved}
                     editorUsers={editorUsers}
                     setEditorUsers={setEditorUsers}
+                    editorTheme={editorTheme}
                     setWarning={setWarning}/>
                 }
             </>

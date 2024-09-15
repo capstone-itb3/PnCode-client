@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
-function Options({type, room, user, outputRef, setAddNewFile, runOutput}) {
-    const [isChecked, setIsChecked] = useState(true);
+function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, setEditorTheme, outputRef, setAddNewFile, setDeleteFile, runOutput}) {
+    const [isChecked, setIsChecked] = useState(user.preferences.theme === 'dark' ? true : false);
 
     function openMenu(clicked) {
         const option = document.getElementById(`${clicked}-menu`);
@@ -15,10 +15,38 @@ function Options({type, room, user, outputRef, setAddNewFile, runOutput}) {
     }
 
     function addFile() {
+        setDeleteFile(false);
         setAddNewFile(true);
+
         const option = document.getElementById(`files-menu`);
         option.classList.toggle('hidden');
     }
+
+    function deleteFile() {
+        setAddNewFile(false);
+        setDeleteFile(true);
+        
+        const option = document.getElementById(`files-menu`);
+        option.classList.toggle('hidden');
+    }
+
+    function viewSection (view) {
+        if (view === 'files' || view === 'notepad') {
+            setLeftDisplay(view);
+        } else if (view === 'output' || view === 'history' || view === 'feedback') {
+            setRightDisplay(view);
+        }
+        const option = document.getElementById(`view-menu`);
+        option.classList.toggle('hidden');
+    }
+
+    function changeTheme(checked) {
+        const theme = checked ? 'dark' : 'light';
+        user.changeTheme(socket, theme);
+        setIsChecked(checked);
+        setEditorTheme(theme);
+    }
+
 
     function runCode() {
         if (outputRef.current) {
@@ -39,7 +67,7 @@ function Options({type, room, user, outputRef, setAddNewFile, runOutput}) {
                     <div className='item items-center'  onClick={addFile}>
                         <label>Add File</label>
                     </div>
-                    <div className='item items-center'>
+                    <div className='item items-center' onClick={deleteFile}>
                         <label>Delete File</label>
                     </div>
                 </div>
@@ -51,15 +79,22 @@ function Options({type, room, user, outputRef, setAddNewFile, runOutput}) {
                     View
                 </button>
                 <div id='view-menu' className='flex-column options-menu hidden'>
-                    <div className='item items-center'>
-                        <label>Files/Notepad</label>
+                    <div className='item items-center' onClick={() => viewSection('files')}>
+                        <label>Show Files</label><span>Alt + F</span>
                     </div>
-                    <div className='item items-center'>
-                        <label>Members</label>
+                    <div className='item items-center' onClick={() => viewSection('notepad')}>
+                        <label>Show Notepad</label><span>Alt + N</span>
                     </div>
-                    <div className='item items-center'>
-                        <label>Output</label>
+                    <div className='item items-center' onClick={() => viewSection('output')}>
+                        <label>Show Output</label><span>Alt + O</span>
                     </div>
+                    <div className='item items-center' onClick={() => viewSection('history')}>
+                        <label>Show History</label><span>Alt + H</span>
+                    </div>
+                    <div className='item items-center' onClick={() => viewSection('feedback')}>
+                        <label>Show Feedback</label><span>Alt + B</span>
+                    </div>
+
                 </div>
             </>
             }
@@ -68,13 +103,13 @@ function Options({type, room, user, outputRef, setAddNewFile, runOutput}) {
             </button>
             <div id='preferences-menu' className='flex-column options-menu hidden'>
                 <div className='item items-center'>
-                    <label>Dark Theme</label>
+                    <label>Editor Theme</label>
                     <div className='items-center'>
                         <label className="switch">
                             <input 
                                 type="checkbox" 
                                 checked={isChecked}
-                                onChange={() => setIsChecked(!isChecked)}
+                                onChange={(e) => changeTheme(e.target.checked)}
                             />
                             <span className="slider"></span>
                         </label>
@@ -86,7 +121,7 @@ function Options({type, room, user, outputRef, setAddNewFile, runOutput}) {
             </button>
             <div id='run-menu' className='flex-column options-menu hidden'>
                 <div className='item items-center' onClick={runCode}>
-                    <label>Run</label>
+                    <label>Run</label> <span>Alt + R</span>
                 </div>
                 <div className='item items-center'>
                     <label>Run in Full View</label>

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ImArrowUpRight2 } from 'react-icons/im';
 import { FaRegWindowMinimize } from 'react-icons/fa';
 
-function TabOutput({ outputRef, outputLabel }) {
+function TabOutput({ outputRef, rightDisplay }) {
   const navigate = useNavigate();
 
   function fullView () {
@@ -13,7 +13,7 @@ function TabOutput({ outputRef, outputLabel }) {
   }
 
   return (
-    <div className='flex-column' id='output-div'>
+    <div className={`flex-column ${rightDisplay !== 'output' && 'inactive'}`} id='output-div'>
       <div className='output-header'>
           <label className='single-line'>{outputRef.current?.title ? outputRef.current?.title : 'Output'}</label>
           <div className='items-center'>

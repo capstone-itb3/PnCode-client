@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import Avatar from 'react-avatar';
-import { RiArrowDropDownLine } from 'react-icons/ri';
+import { RiArrowDropDownLine, RiArrowLeftSLine } from 'react-icons/ri';
 
 function Chats({room, socket, user}) {
     const [chats, setChats] = useState(null);
     const [message, setMessage] = useState('');
-    const [isMaximized, setIsMaximized] = useState(true);
 
     useEffect(() => {
         socket.emit('load_messages', {
@@ -36,10 +35,12 @@ function Chats({room, socket, user}) {
         }
     }, [room]);
 
+    function positionChat() {
+        const chatBox = document.getElementById('chat-box-container');
+        chatBox.classList.toggle('left');
+    } 
     function minimizeChat() {
         const chatBox = document.getElementById('chat-box-container');
-
-        setIsMaximized(!isMaximized);
         chatBox.classList.toggle('hidden');
     }
 
@@ -60,9 +61,14 @@ function Chats({room, socket, user}) {
         <div className='flex-column' id='chat-box-container'>
             <div className='flex-row items-center' id='chat-box-header'>
                 <label>Chat</label>
-                <button id='chat-box-btn' className='items-center' onClick={minimizeChat}>
-                    <RiArrowDropDownLine size={22}/>
-                </button>
+                <div className='flex-row items-center'>
+                    <button id='chat-pos-btn' className='items-center' onClick={positionChat}>
+                        <RiArrowLeftSLine size={18}/>
+                    </button>
+                    <button id='chat-min-btn' className='items-center' onClick={minimizeChat}>
+                        <RiArrowDropDownLine size={22}/>
+                    </button>
+                </div>
             </div>
             <div id='chat-box-body'>
                 <div  className='flex-column' id='chat-box-scroll'>

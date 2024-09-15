@@ -5,7 +5,7 @@ import * as Y from 'yjs'
 import { yCollab, yRemoteSelectionsTheme, yUndoManagerKeymap } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'
 import { EditorView, basicSetup } from 'codemirror'
-import { EditorState } from '@codemirror/state'
+import { EditorState, Compartment, StateEffect } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import { linter, lintGutter } from '@codemirror/lint' 
@@ -13,21 +13,45 @@ import { javascript, esLint } from '@codemirror/lang-javascript'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
-import jsLint from './utils/JSesLint';
-import _ from 'lodash';
-import debounce from 'lodash.debounce';
+import { clouds } from 'thememirror'
+import jsLint from './utils/JSesLint'
+import _ from 'lodash'
 
-function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEditorUsers, setWarning}) {
+function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEditorUsers, editorTheme, setWarning}) {
   const { room_id } = useParams();
-  const [state, setState] = useState(null);
-  const [ view, setView ] = useState(null);
+  const editorRef = useRef(null);
   const providerRef = useRef(null);
+  const compartmentRef = useRef(new Compartment());
   let storeInHistory = false;
-  
+
+  const editorListener = (event) => {
+    const isModifierKey = event.altKey || event.ctrlKey || event.metaKey;
+    const isNavigationKey = event.key.startsWith('Arrow') || event.key === 'Home' || event.key === 'End' || event.key === 'PageUp' || event.key === 'PageDown';
+    const isFunctionKey = event.key.startsWith('F') && event.key.length > 1;
+    const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
+    
+    if (!isModifierKey && !isNavigationKey && !isFunctionKey && (event.key.length === 1 || isEditingKey)) {
+      if (user?.position === 'Student') {
+        debounceUserType(user.uid);
+      }
+    }
+  };
+
+  const debounceUserType = _.debounce((editing_user_id) => {
+      socket.emit('add_edit_count', {
+        file_id: file.file_id,
+        user_id: editing_user_id,
+      });
+      console.log('debounced');
+  }, 500);
+
   useEffect(() => {
-    view ? view.destroy() : null;
+    editorRef.current ? editorRef.current.destroy() : null;
     providerRef.current ? providerRef.current.destroy() : null;
-    providerRef.current = null;
+    
+    if (file === null) {
+      return;
+    }
 
     async function init() {
       return new Promise((resolve) => {
@@ -36,9 +60,8 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
           user_id: user.uid,
         });
     
-        socket.on('editor_users_updated', (users) => {
+        socket.on('editor_users_updated', ({ users }) => {
           setEditorUsers(users);
-          console.log('editor users:', users);
           resolve(users);
         });
       });
@@ -62,7 +85,15 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
         else if (file.name.endsWith('.css'))  return css();
         else if (file.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
       }
-      
+      const theme = editorTheme === 'dark' ? oneDark : clouds;
+      const setup = () => {
+        if (user?.position === 'Student') {
+          return [basicSetup]
+        }else if (user?.position === 'Professor') {
+          return [basicSetup, EditorState.readOnly.of(true)];
+        }
+      }
+
       providerRef.current.on('synced', () => {
         const ytext = ydoc.getText('codemirror');
         let initialContent = ytext.toString();
@@ -72,15 +103,17 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
           });
           initialContent = file.content;
         }
-    
+        
+
+
         const state = EditorState.create({
           doc: initialContent,
           extensions: [
             keymap.of([...yUndoManagerKeymap, indentWithTab]),
-            basicSetup,
+            setup(),
             type(),
+            compartmentRef.current.of([theme]),
             yCollab(ytext, providerRef.current.awareness),
-            oneDark, 
             lintGutter(),
             EditorView.updateListener.of(e => {
               if (e.docChanged) {
@@ -98,24 +131,15 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
             }),
           ]
         });
-
-        setView(new EditorView({ state, parent: (document.querySelector(`#editor-div`)) }));
+        
+        const editor_div = document.getElementById('editor-div');
+        editor_div.innerHTML = '';
+        
+        editorRef.current = new EditorView({ state, parent: (editor_div) });
+        editor_div.addEventListener('keydown', editorListener);
       });
     });
-
-    const editorListener = (event) => {
-      const isModifierKey = event.altKey || event.ctrlKey || event.metaKey;
-      const isNavigationKey = event.key.startsWith('Arrow') || event.key === 'Home' || event.key === 'End' || event.key === 'PageUp' || event.key === 'PageDown';
-      const isFunctionKey = event.key.startsWith('F') && event.key.length > 1;
-      const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Enter' || event.key === 'Tab';
-      
-      if (!isModifierKey && !isNavigationKey && !isFunctionKey && (event.key.length === 1 || isEditingKey)) {
-        debounceEvent(user.uid);
-      }
-    };
     
-    const editor_div = document.getElementById('editor-div');
-    editor_div.addEventListener('keydown', editorListener);
 
     socket.on('update_result', ({ status }) => {
       if (status === 'ok') {
@@ -132,16 +156,32 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
     });
   
     return () => {
-      document.getElementById('editor-div').removeEventListener('keydown', editorListener);
+      document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
       socket.off('editor_users_updated');
       socket.off('update_result');
       socket.off('add_edit_count_result');
+
+      if (editorRef.current) {
+        editorRef.current.destroy();
+        editorRef.current = null;
+      }
+      if (providerRef.current) {
+        providerRef.current.destroy();
+        providerRef.current = null;
+      }
     }
   }, [file]);
 
   useEffect(() => {
-    storeInHistory = true;
-
+    if (editorRef.current) {
+      const theme = editorTheme === 'dark' ? oneDark : clouds;
+      editorRef.current.dispatch({
+        effects: compartmentRef.current.reconfigure([theme])
+      });
+    }
+  }, [editorTheme]);
+      
+  useEffect(() => {
     const interval = setInterval(() => {
       storeInHistory = true;
     }, 360000);
@@ -149,7 +189,7 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
     return () => {
       clearInterval(interval);
     }
-  }, [])
+  }, [file])
 
   const updateCode = (e) => {
 
@@ -179,19 +219,12 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
     }
   }
 
-  const debounceEvent = _.debounce((editing_user_id) => {
-    socket.emit('add_edit_count', {
-      file_id: file.file_id,
-      user_id: editing_user_id,
-    });
-    console.log('debounced');
-  }, 500);
-
-
   return (
+    <>
       <div id='editor-div'>
       </div>
+    </>
   )
 }
 
-export default Editor;
+export default React.memo(Editor);

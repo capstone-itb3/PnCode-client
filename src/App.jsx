@@ -2,7 +2,7 @@ import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
 import './App.css';
-import Room from './components/Room';
+import AssignedRoom from './components/room/AssignedRoom';
 import SoloRoom from './components/room/SoloRoom';
 import Signup from './components/Signup';
 import Login from './components/Login';
@@ -29,7 +29,7 @@ function App() {
       <Route path = '/dashboard/:course/:section/:select' element={ <Dashboard/> }/>
       <Route path = '/team/:team_id' element={ <PageTeam/> }/>
       <Route path = '/activity/:activity_id' element={ <PageActivity/> }/>
-      <Route path = '/room/:room_id/' element={ <Room/> }/>
+      <Route path = '/room/:room_id/' element={ <AssignedRoom/> }/>
       <Route path = '/solo/:room_id/' element={ <SoloRoom/> }/>
       <Route path = '/view/:room_id/:file_name' element={ <FullView/> }/>
     </Routes>

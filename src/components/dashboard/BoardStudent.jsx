@@ -49,11 +49,13 @@ function BoardStudent({auth, checkParams}) {
             const info = student.enrolled_courses.find((val) => val.course_code === course);
 
             if (info) {
+                const data = await student.getCourseDetails(info.course_code, info.section);
+
                 setCourseInfo({
                     course_code: course,
-                    course_title: info.course_title,
+                    course_title: data.course_title,
                     section: info.section,
-                    professor: await student.getCourseProfessor(info.course_code, info.section)
+                    professor: data.professor
                 })    
             }
     
