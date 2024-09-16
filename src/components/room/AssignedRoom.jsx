@@ -46,7 +46,10 @@ function AssignedRoom() {
       const added_slash = `${window.location.pathname}/`;
       navigate(added_slash);
     }
-    disableCopyPaste();
+
+    if (user?.position === 'Student') {
+      disableCopyPaste();
+    }   
 
     async function initRoom () {
       const info = await user.getAssignedRoomDetails(room_id);
@@ -158,14 +161,14 @@ function AssignedRoom() {
         return;
       }
 
-      if (event.altKey && event.key === 'a') {
+      if (user?.position === 'Student' && event.altKey && event.key === 'a') {
         setAddNewFile(true);
         setDeleteFile(false);
         setLeftDisplay('files');
         return;
       }
 
-      if (event.altKey && event.key === 'x') {
+      if (user?.position === 'Student' && event.altKey && event.key === 'x') {
         setDeleteFile(true);
         setAddNewFile(false);
         setLeftDisplay('files');

@@ -1,10 +1,10 @@
 import React, { useState, useEffect }  from 'react'
+import { BsTrash } from 'react-icons/bs';
 import converToReadable from './utils/convertToReadable';
 
 function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
   const [feedback, setFeedback] = useState(null);
   const [new_feedback, setNewFeedback] = useState('');
-  const [feedback_range, setFeedbackRange] = useState('This room');
 
   useEffect(() => {  
     function getFeedback() {
@@ -24,9 +24,12 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
       }
     });
 
-    socket.on('submit_feedback_result', ({ feedback }) => {
+    socket.on('submit_feedback_result', ({ status, action }) => {
       getFeedback();
-      setRightDisplay('feedback');
+
+      if (status === 'ok' && action === 'add') {
+        setRightDisplay('feedback');
+      }
     });
 
     return () => {
@@ -38,8 +41,15 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
   function submitFeedback(e) {
     e.preventDefault();
 
-    room.submitFeedback(socket, room.room_id, new_feedback, feedback_range, user.uid);
+    room.submitFeedback(socket, new_feedback, user.uid);
     setNewFeedback('');
+  }
+
+  function deleteFeedback(createdAt) {
+    const result = confirm('Are you sure you want to delete this feedback?');
+    if (result) {
+      room.deleteFeedback(socket, createdAt);
+    }
   }
 
   return (
@@ -55,12 +65,6 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
                 placeholder='Enter feedback here...' 
                 onChange={e => setNewFeedback(e.target.value)}
                 required/>
-              <div className='items-center'>
-                <select value={feedback_range} className='items-start' onChange={e => setFeedbackRange(e.target.value)}>
-                  <option value='This room'>This room</option>
-                  <option value='All rooms'>All rooms</option>
-                </select>
-              </div>  
             </div>
             <div>
               <input type='submit' value='Add Feedback'/>
@@ -83,6 +87,11 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
               </label>
               <label className='date'>{date}</label>
               <label className='feedback-body'>{feed.feedback_body}</label>
+              {user.position === 'Professor' &&
+                <button onClick={() => deleteFeedback(feed.createdAt)}>
+                  <BsTrash size={20} />
+                </button>
+              }
             </div>
           )
         })}

@@ -684,8 +684,7 @@ header a {
 }
 
 #create-popup h3 {
-    margin-top: 25px;
-    
+    margin: 25px 10px 0 0;
 }
 
 #create-popup .flex-row .flex-column {
@@ -700,7 +699,7 @@ header a {
 }
 
 #create-popup textarea {
-    width: 450px;
+    width: calc(100%- 25px);
     max-width: calc(100% - 25px);
     height: 80px;  
     overflow: auto;
@@ -716,12 +715,8 @@ header a {
     margin-right: 10px;
 }
 
-/* #chosen-timeframe input[type='time'] {
-} */
-
-#create-popup input[type=datetime-local] {
-    align-items: flex-start; 
-    font-size: 15px;;
+#chosen-timeframe input[type='time'] {
+    padding: 2px 7px;
 }
 
 #create-popup .footer {
@@ -842,7 +837,7 @@ header a {
 }
 
 .activity-box .name span {
-    color: #c9c9c9;
+    margin-right: 5px;
 }
 
 .activity-box .instruc-div {
@@ -1123,11 +1118,20 @@ header a {
 #view-menu {
     left: 65px;
 }
+#view-menu.prof {
+    left: 10px;
+}
 #preferences-menu {
     left: 130px;
 }
+#preferences-menu.prof {
+    left: 70px;
+}
 #run-menu {
     left: 240px;
+}
+#run-menu.prof {
+    left: 180px;
 }
 
 .options-menu.hidden {
@@ -1397,7 +1401,7 @@ header a {
 #instructions-container {
     padding: 5px 10px;
     height: auto;
-    width: 100%;
+    width: calc(100% - 50px);
     max-height: 134px;
     overflow: auto;
 }
@@ -1598,6 +1602,7 @@ header a {
 }
 
 .feedback-item {
+    position: relative;
     border: 1px solid var(--gray);
     border-left: var(--base) 4px solid;
     margin-bottom: 10px;
@@ -1629,10 +1634,10 @@ header a {
     font-size: 15px;
     white-space: pre-wrap;  
     margin: 10px 4px; 
-    padding-left: 7px;
+    padding: 0 7px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
-
-
 
 #feedback-form textarea {
     width: 100%;
@@ -1642,12 +1647,12 @@ header a {
     background-color: transparent;
     color: var(--gray-dark);
     border-radius: 8px;
-    margin-right: 10px;
     border: var(--gray) 1px solid; 
 }
 #feedback-form select {
     padding: 6px;
     font-size: 14px;
+    margin-right: 10px;
     border: var(--gray) 1px solid;
     color: var(--gray-dark);
     border-radius: 8px;
@@ -1662,6 +1667,17 @@ header a {
     border-radius: 10px;
     background-color: var(--base);
     color: var(--near-white);
+}
+
+.feedback-item button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    border: 0;
+    padding: 4px 6px;
+    border-radius: 10px;
+    color: var(--error-color);
+    background-color: white;
 }
 
 #editor-container.light {

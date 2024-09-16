@@ -120,6 +120,12 @@ function History({ user, file, socket, rightDisplay }) {
                   options={options}/>
               )
             })}
+            {history && history?.length === 0 && user?.position === 'Student' &&
+              <label className='length-0'>Code history will appear here as you progress.</label>
+            }
+            {history && history?.length === 0 && user?.position === 'Professor' &&
+              <label className='length-0'>Code history will appear here as they code.</label>
+            }
           </div>
         </>
         }

@@ -24,7 +24,7 @@ function SelectActivity({ activity, index, onClick }) {
     return (
         <div className='activity-box flex-column' onClick={onClick}>
             <label className='name'>
-                <BsPencilSquare size={ 20 }/>
+                <span><BsPencilSquare size={ 20 }/></span>
                 {activity.activity_name}
             </label>
             <div className='instruc-div'>
