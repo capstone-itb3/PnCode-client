@@ -258,18 +258,18 @@ export class User {
 
             const data = await response.json();
 
-            if (data.status === 'ok' && data.solo_room.owner_id === this.uid) {
-                const info = data.solo_room;
+            if (data.status === 'ok' && data.room.owner_id === this.uid) {
+                const info = data.room;
 
                 return new SoloRoom(
                     info.room_id,
                     info.room_name,
                     info.room_type,
                     info.owner_id,
-                    info.code
+                    info.files
                 );
             } else {
-                // window.location.href = '/dashboard';
+                window.location.href = '/dashboard';
                 return null;
             }
         } catch (error) {
@@ -304,8 +304,6 @@ export class User {
                     info.owner_id,
                     info.activity_id,
                     info.notes,
-                    info.feedback,
-                    info.chat
                 ), files: data.files,
                    activity: data.activity, 
                    members: data.members, 

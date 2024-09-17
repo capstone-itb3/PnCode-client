@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom';
-import { BsCheck2, BsXLg, BsExclamationTriangleFill } from 'react-icons/bs';
+import React, { useEffect, useRef } from 'react'
+import { useParams } from 'react-router-dom';
+import { BsCheck2, BsExclamationTriangleFill } from 'react-icons/bs';
 import * as Y from 'yjs'
-import { yCollab, yRemoteSelectionsTheme, yUndoManagerKeymap } from 'y-codemirror.next'
+import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'
 import { EditorView, basicSetup } from 'codemirror'
-import { EditorState, Compartment, StateEffect } from '@codemirror/state'
+import { EditorState, Compartment } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import { linter, lintGutter } from '@codemirror/lint' 
-import { javascript, esLint } from '@codemirror/lang-javascript'
+import { javascript  } from '@codemirror/lang-javascript'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'

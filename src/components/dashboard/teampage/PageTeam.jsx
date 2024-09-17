@@ -114,7 +114,9 @@ function PageTeam() {
                         <label className='single-line'>{member.last_name}, {member.first_name}</label>
                       </td>
                       <td className='col-3'>
-                        <button className='remove-member' onClick={() => {removeMember(member.uid)}}>Remove</button>
+                        {permitted &&
+                          <button className='remove-member' onClick={() => {removeMember(member.uid)}}>Remove</button>
+                        }
                       </td>
                     </tr>
                   )

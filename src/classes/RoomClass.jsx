@@ -11,12 +11,12 @@ export class Room {
 }
 
 export class SoloRoom extends Room {
-    constructor (room_id, room_name, room_type, owner_id, code) {
+    constructor (room_id, room_name, room_type, owner_id, files) {
         super(room_id, room_name, room_type, owner_id);
-        this.code = code;
+        this.files = files;
     }
 
-    async saveProgram(code) {
+    async saveProgram(files) {
         try {
             console.log(code);
             console.log(`${import.meta.env.VITE_APP_BACKEND_URL}/api/solo-update-code`);
@@ -47,12 +47,10 @@ export class SoloRoom extends Room {
 }
 
 export class AssignedRoom extends Room {
-    constructor (room_id, room_name, room_type, owner_id, activity_id, notes, feedback, chat) {
+    constructor (room_id, room_name, room_type, owner_id, activity_id, notes) {
         super(room_id, room_name, room_type, owner_id);
         this.activity_id = activity_id;
         this.notes = notes        
-        this.feedback = feedback;
-        this.chat = chat;
     }
 
     async submitFeedback(socket, feedback, uid) {

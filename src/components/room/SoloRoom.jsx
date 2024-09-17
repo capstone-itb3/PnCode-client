@@ -1,133 +1,366 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { io } from 'socket.io-client';
-import { ImArrowUpRight2 } from 'react-icons/im';
+import React, { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
-import { EditorView, basicSetup } from 'codemirror'
-import { EditorState } from '@codemirror/state'
-import { html } from '@codemirror/lang-html'
-import { oneDark } from '@codemirror/theme-one-dark'
+import { initSocket } from '../../socket';
+import { useNavigate, useParams } from 'react-router-dom';
+import { BsBoxArrowInRight, BsXLg } from 'react-icons/bs';
 import { getToken, getClass } from '../validator';
-import UserAvatar from '../UserAvatar';
+import disableCopyPaste from './utils/disableCopyPaste';
 import Options from './Options';
+import FileDrawer from './FileDrawer';
+import Members from './Members';
+import TabOutput from './TabOutput';
+import { EditorView, basicSetup } from 'codemirror'
+import { EditorState, Compartment } from '@codemirror/state'
+import { keymap } from '@codemirror/view'
+import { indentWithTab } from '@codemirror/commands'
+import { linter, lintGutter } from '@codemirror/lint' 
+import { javascript  } from '@codemirror/lang-javascript'
+import { html } from '@codemirror/lang-html'
+import { css } from '@codemirror/lang-css'
+import { oneDark } from '@codemirror/theme-one-dark'
+import { clouds } from 'thememirror'
+import jsLint from './utils/JSesLint'
+import _ from 'lodash'
 
-function SoloRoom() {
-  const [auth, getAuth] = useState(getToken(Cookies.get('token')));
-  const [user, setUser] = useState(getClass(auth, auth.position));
+function AssignedRoom() {  
   const { room_id } = useParams();
+  const navigate = useNavigate();
+  const [auth, setAuth] = useState(getToken(Cookies.get('token')));
+  const [user, setUser] = useState(getClass(auth, auth.position));
   const [room, setRoom] = useState(null);
-  const [socket, setSocket] = useState(null);
+  const [room_files,  setRoomFiles] = useState([]);
+  
+  const [activeFile, setActiveFile] = useState(null);
+
+  const socketRef = useRef(null);
+  const outputRef = useRef(null);
+  
+  const [leftDisplay, setLeftDisplay] = useState('files');
+  const [rightDisplay, setRightDisplay] = useState('output');
+  const [editorTheme, setEditorTheme] = useState(user?.preferences.theme);
+  
+  const [warning, setWarning] = useState(0);
+  const [saved, setSaved] = useState(null);
+  const editorRef = useRef(null);
+  const compartmentRef = useRef(new Compartment());
+
+  useEffect(() => {    
+    if (!window.location.pathname.endsWith('/')) {
+      const added_slash = `${window.location.pathname}/`;
+      navigate(added_slash);
+    }
+
+    if (user?.position === 'Student') {
+      disableCopyPaste();
+    }   
+
+    async function initRoom () {
+      const info = await user.getSoloRoomDetails(room_id);
+      setRoom(info);
+      setRoomFiles(info.files);
+
+      displayFile(info.files[0]);
+      document.title = info.room_name;
+    }
+    initRoom();
+
+    async function init() {
+      socketRef.current = await initSocket();
+    
+      socketRef.current.on('update_token', ({ status, token }) => {
+        if (status === 'ok') {
+          Cookies.set('token', token);
+        } else {
+          // toast.error();
+        }
+      });
+
+      socketRef.current.on('update_result_solo', ({ status }) => {
+        if (status === 'ok') {
+          setSaved( <label className='items-center' id='saved'>
+                        <BsCheck2 size={14}/><span>Saved</span>
+                    </label>
+                  );
+        } else {
+          setSaved( <label className='items-center' id='unsaved'>
+                      <BsExclamationTriangleFill size={13}/><span>Unsaved</span>
+                    </label>
+                  );
+        }
+      });  
+    }
+    init();
+
+    
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('update_token');
+        socketRef.current.off('update_result');
+        socketRef.current.disconnect();
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    const newSocket = io(import.meta.env.VITE_APP_BACKEND_URL);
-    setSocket(newSocket);
-  
-    newSocket.emit('join_room', room_id);
-  
-    return () => newSocket.close();
-  }, [room_id]);
-  
+    const center = document.getElementById('center-body');
+    if (leftDisplay === '' && center) {
+      center.style.width = '100%';
+      
+    } else if (leftDisplay !== '' && center) {
+      center.style.width = 'calc(100% - 227px)';
+    }
+    
+    const editor_cont = document.getElementById('editor-container');
+    if (rightDisplay === '' && editor_cont) {
+      editor_cont.style.width = '100%';
+
+    } else if (rightDisplay !== '' && editor_cont) {
+      editor_cont.style.width = '50%';
+    }
+
+  }, [leftDisplay, rightDisplay]);
+
   useEffect(() => {
-    if (!socket) return;
-  
-    async function initRoom() {
-      const new_room = await user.getSoloRoomDetails(room_id);
-      setRoom(new_room);
-  
+    const handleKeyDown = (event) => {
+      if (event.altKey && event.key === 'r') {
+        runOutput();
+        return;
+      }
+
+      if (event.altKey && event.key === 'f') {
+        setLeftDisplay('files');
+        return;
+      }
+
+      if (event.altKey && event.key === 'o') {
+        setRightDisplay('output');
+        return;
+      }
+
+      for (let i = 1; i <= room_files.length && i <= 10; i++) {
+        if (event.altKey && event.key === i.toString()) {
+          displayFile(room_files[i - 1]);
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [room_files, activeFile]);
+
+  useEffect(() => {
+    if (activeFile) {
+
+      const type = () => {
+        if      (activeFile.name.endsWith('.html')) return html(); 
+        else if (activeFile.name.endsWith('.css'))  return css();
+        else if (activeFile.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
+      }
+      const theme = editorTheme === 'dark' ? oneDark : clouds;
+
       const state = EditorState.create({
-        doc: new_room.code,
+        doc: activeFile.content,
         extensions: [
+          keymap.of([indentWithTab]),
           basicSetup,
-          html(),
-          oneDark,
-          EditorView.updateListener.of((e) => {
-            socket.emit('code_change', {room_id: room_id, code: e.state.doc.toString()});
-          })
+          type(),
+          compartmentRef.current.of([theme]),
+          lintGutter(),
+          EditorView.updateListener.of(e => {
+            if (e.docChanged) {
+              updateCode(e);
+            }
+          }),
         ]
       });
-      const view = new EditorView({ state, parent: document.querySelector('#editor-div') });
-  
-      socket.on('code_update', (new_code) => {
-        view.dispatch({
-          changes: { from: 0, to: view.state.doc.length, insert: new_code }
-        });
-      });
-      return () => view.destroy();
-    }
-  
-    initRoom();
-  }, [socket, room_id]);
-  
-  function disableCopyPaste() {
-    document.onkeydown = disableSelectCopy;
-    document.addEventListener('contextmenu', event => event.preventDefault());
 
-    function disableSelectCopy(e) {
-      var pressedKey = String.fromCharCode(e.keyCode).toLowerCase();
-      if ((e.ctrlKey && (pressedKey === "c" || pressedKey === "x" || pressedKey === "v" || pressedKey === "a" || pressedKey === "u")) ||  e.keyCode === 123) {
-          return false;
+      const editor_div = document.getElementById('editor-div');
+      editor_div.innerHTML = '';
+      
+      editorRef.current = new EditorView({ state, parent: (editor_div) });
+    }
+  }, [activeFile]);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      const theme = editorTheme === 'dark' ? oneDark : clouds;
+      editorRef.current.dispatch({
+        effects: compartmentRef.current.reconfigure([theme])
+      });
+    }
+  }, [editorTheme]);
+
+
+  function displayFile(file) {
+    if (file === null) {
+      setActiveFile(null);
+      return;
+    }
+    setActiveFile(file);
+  }
+
+  function updateCode(e) {
+    if (activeFile) {
+      const content = e.state.doc.toString();
+      const file_updated = { ...activeFile, content };
+
+      setRoomFiles(room_files.map(f => f.name === activeFile.name ? file_updated : f));
+
+      setSaved( <label id='saving'>Saving...</label>);
+
+      socketRef.current.emit('update_code_solo', {
+        room_id: room_id,
+        file_id: activeFile.file_id,
+        content: content,
+      });
+    }
+  }
+
+  function runOutput() {
+    setRightDisplay('output');
+
+    if (activeFile.type === 'html') {
+      outputRef.current.src = `/view/${room_id}/${activeFile.name}`;
+
+    } else {
+      if (activeFile.type !== 'html') {      
+        let active = room_files.find((f) => f.type = 'html');
+  
+        if (active) {
+          outputRef.current.src = `/view/${room_id}/${active.name}`;
+        } else {
+          outputRef.current.src = null;
+          toast.error('No html file found.');
+        }  
       }
     }
   }
-
-  let showtrigger = 0;
-  const hideView = () => {
-    let editor = document.getElementById('editor-div');
-    let output = document.getElementById('output-div');
-
-    if(showtrigger % 2 === 0) {
-      editor.style.width = '100%';
-      output.style.width = 0;  
-    } else {
-      editor.style.width = '50%';
-      output.style.width = '50%';  
+  
+  function leaveRoom () {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
     }
-    showtrigger++;
-  }
-
-  const fullView = () => {
-  }
-
-  function setTheme () {
-    
+    window.location.href = '/dashboard';
   }
 
   return (
     <main className='room-main'>
-      <Options type='solo' room={room} user={user} setTheme={setTheme}/>        
-      <aside id='side-lists'>
-        <div className='member-list'>
-          <h5>Members</h5>
-          <div className='flex-column'>
-            <section className='items-center user-section'>
-              <UserAvatar name={`${user.last_name}, ${user.first_name.charAt(0)}.`} size={22}/>
-              <span> { `${user.last_name}, ${user.first_name.charAt(0)}.` }</span>
-            </section>
+      <div className='flex-row items-center' id='room-header'>
+          <div className='items-center'>
+          {room && socketRef.current &&
+            <Options 
+              type={'solo'}
+              room={room}
+              user={user}
+              socket={socketRef.current}
+              setLeftDisplay={setLeftDisplay}
+              setRightDisplay={setRightDisplay}
+              setEditorTheme={setEditorTheme}
+              outputRef={outputRef}
+              runOutput={runOutput}/>
+          }
           </div>
-        </div>
-      </aside>
-        <section id='editor-section'>
-          <div id='output-div'>
-            <div className='output-header'>
-              <label>Output</label>
-              <div className='items-center'>
-                <button className='output-btn items-center' id='hide-btn' onClick={ hideView } >—</button>
-                <button className='output-btn items-center' id='full-btn' onClick={ fullView } >
-                  <ImArrowUpRight2 color={'#505050'}size={17}/>
+          {room &&
+            <div className='items-center room-logo single-line'>
+              {room.room_name}
+            </div>
+          }
+          <div className='items-center'>
+            <button className='room-header-options' onClick={ leaveRoom }>
+                    <BsBoxArrowInRight size={23} color={ '#f8f8f8' } />
+            </button>
+          </div>
+      </div>
+      {!(room && socketRef.current) &&
+          <div className='loading'>
+            <div className='loading-spinner'/>
+          </div>
+      }
+      {room && socketRef.current &&
+        <div id='editor-tab' className='flex-row'>
+          <aside className={`flex-column ${leftDisplay === '' && 'none'}`} id='left-body'>
+            <div className='flex-column side-tab top'>
+              <div className='side-tab-buttons flex-row'>
+                <button className='remove-side-tab items-center' onClick={() => setLeftDisplay('')}>
+                  <BsXLg size={14}/>
+                </button>
+                <button className={`side-tab-button ${leftDisplay === 'files' && 'active'}`}
+                        onClick={() => setLeftDisplay('files')}>
+                        Files
                 </button>
               </div>
+              {leftDisplay === 'files' &&
+                <FileDrawer 
+                  room={room} 
+                  user={user}
+                  socket={socketRef.current}
+                  room_files={room_files}
+                  setRoomFiles={setRoomFiles}
+                  activeFile={activeFile}
+                  displayFile={displayFile}/>
+              }
+              </div>
+              <Members 
+                members={[user]}
+                roomUsers={[{ user_id: user.uid, cursor: { color: 'red' } }]}/>
+          </aside>
+          <div className='flex-column' id='center-body'>
+            <div className='flex-row' id='editor-section'>
+              <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'}`}>
+                <div className='file-name-container items-start'>
+                  <div id='file-name'>
+                      {activeFile &&
+                          <label>{activeFile.name}</label>
+                      } 
+                      {!activeFile &&
+                          <label>No file selected.</label>
+                      }
+                  </div>
+                  {activeFile && warning === 1 &&
+                  <div id='file-warning'>
+                          <label className='single-line items-center'>
+                              <BsExclamationTriangleFill size={12}/>
+                              <span>Empty documents will not be saved to prevent loss of progress.</span>
+                          </label>
+                  </div>
+                  }
+                  {activeFile && warning === 0 &&
+                  <div id='save-status' className='items-center'>
+                      {saved}
+                  </div>
+                  }
+                </div>
+                {activeFile &&
+                  <div id='editor-div'>
+                  </div>
+                }
+              </div>
+              <div className={`flex-column ${rightDisplay === '' && 'none'}`} id='right-body'>
+                <div className='side-tab-buttons flex-row'>
+                  <button className='remove-side-tab items-center' onClick={() => setRightDisplay('')}>
+                    <BsXLg size={14}/>
+                  </button>
+                  <button className={`side-tab-button ${rightDisplay === 'output' && 'active'}`}
+                          onClick={() => setRightDisplay('output')}>
+                          Output
+                  </button>
+                </div>
+                <div id='right-section'>
+                  <TabOutput 
+                    rightDisplay={rightDisplay}
+                    outputRef={outputRef}/> 
+                </div>
+              </div>
             </div>
-            <iframe title= 'Displays Output' id='output-iframe' /**onKeyUp={ escapeFullView }*/>
-            </iframe>
           </div>
-          <div id='editor-div'>
-          </div>
-        </section>
-        {/* <button className='hide-btn'>
-          <FiArrowLeft size={19} color={ '#fff' }/>
-        </button> */}
+        </div>
+      }
     </main>
   )
 }
 
-export default SoloRoom
+export default AssignedRoom
