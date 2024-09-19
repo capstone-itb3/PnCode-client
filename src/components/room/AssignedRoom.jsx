@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BsBoxArrowInRight, BsXLg } from 'react-icons/bs';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
+import manageResizes from './utils/manageResizes';
 import Options from './Options';
 import FileDrawer from './FileDrawer';
 import Notepad from './Notepad';
@@ -42,6 +43,18 @@ function AssignedRoom() {
   const [editorTheme, setEditorTheme] = useState(user?.preferences.theme);
   
   useEffect(() => {    
+    // setRoom(null);
+    // setRoomFiles([]);
+    // setActivity(null);
+    // setMembers([]);
+    // setAccess(null);
+    // setActiveFile(null);
+    // setCursorColor(null);
+    // setRoomUsers([]);
+    // setEditorUsers([]);
+    // setEditorTheme(user?.preferences.theme);
+    // socketRef.current = null;
+
     if (!window.location.pathname.endsWith('/')) {
       const added_slash = `${window.location.pathname}/`;
       navigate(added_slash);
@@ -63,7 +76,7 @@ function AssignedRoom() {
     }
     initRoom();
 
-  }, []);
+  }, [room_id]);
 
   useEffect(() => {
     if (room && access) {
@@ -111,22 +124,7 @@ function AssignedRoom() {
   }, [access, room]);
 
   useEffect(() => {
-    const center = document.getElementById('center-body');
-    if (leftDisplay === '' && center) {
-      center.style.width = '100%';
-      
-    } else if (leftDisplay !== '' && center) {
-      center.style.width = 'calc(100% - 227px)';
-    }
-    
-    const editor_cont = document.getElementById('editor-container');
-    if (rightDisplay === '' && editor_cont) {
-      editor_cont.style.width = '100%';
-
-    } else if (rightDisplay !== '' && editor_cont) {
-      editor_cont.style.width = '50%';
-    }
-
+    manageResizes(leftDisplay, rightDisplay);
   }, [leftDisplay, rightDisplay]);
 
   useEffect(() => {
@@ -254,8 +252,8 @@ function AssignedRoom() {
             </div>
           }
           <div className='items-center'>
-            <button className='room-header-options' onClick={ leaveRoom }>
-                    <BsBoxArrowInRight size={23} color={ '#f8f8f8' } />
+            <button className='room-header-options items-center' onClick={ leaveRoom }>
+              <BsBoxArrowInRight size={23} color={ '#f8f8f8' } /><span>Leave</span> 
             </button>
           </div>
       </div>

@@ -1461,7 +1461,7 @@ header a {
 
 #editor-container {
     position: relative;
-    width: 50%;
+    width: 55%;
     background-color: rgb(40, 44, 52);
     height: 100%;
 }
@@ -1496,7 +1496,7 @@ header a {
 .file-name-container #save-status {
     font-size: 12px;
 }
-.file-name-container #save-status span, .file-name-container #file-warning span{
+.file-name-container #save-status span, .file-name-container #file-warning span, .room-header-options span{
     margin-left: 5px;
 }
 
@@ -1524,7 +1524,7 @@ header a {
 
 #right-body {
     border-left: 2px solid var(--gray-dark);
-    width: 50%;
+    width: 45%;
     height: 100%;
 }
 
@@ -1547,8 +1547,6 @@ header a {
 }
 
 .output-header {
-    display: flex;
-    align-items: center;
     padding: 0 10px;
     justify-content: space-between;
     height: 20px;

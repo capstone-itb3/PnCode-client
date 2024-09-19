@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import { initSocket } from '../../socket';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BsBoxArrowInRight, BsXLg } from 'react-icons/bs';
+import { BsBoxArrowInRight, BsXLg, BsCheck2, BsExclamationTriangleFill } from 'react-icons/bs';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
+import manageResizes from './utils/manageResizes';
 import Options from './Options';
 import FileDrawer from './FileDrawer';
 import Members from './Members';
@@ -102,22 +103,7 @@ function AssignedRoom() {
   }, []);
 
   useEffect(() => {
-    const center = document.getElementById('center-body');
-    if (leftDisplay === '' && center) {
-      center.style.width = '100%';
-      
-    } else if (leftDisplay !== '' && center) {
-      center.style.width = 'calc(100% - 227px)';
-    }
-    
-    const editor_cont = document.getElementById('editor-container');
-    if (rightDisplay === '' && editor_cont) {
-      editor_cont.style.width = '100%';
-
-    } else if (rightDisplay !== '' && editor_cont) {
-      editor_cont.style.width = '50%';
-    }
-
+    manageResizes(leftDisplay, rightDisplay);
   }, [leftDisplay, rightDisplay]);
 
   useEffect(() => {
@@ -270,8 +256,8 @@ function AssignedRoom() {
             </div>
           }
           <div className='items-center'>
-            <button className='room-header-options' onClick={ leaveRoom }>
-                    <BsBoxArrowInRight size={23} color={ '#f8f8f8' } />
+            <button className='room-header-options items-center' onClick={ leaveRoom }>
+              <BsBoxArrowInRight size={23} color={ '#f8f8f8' } /><span>Leave</span> 
             </button>
           </div>
       </div>

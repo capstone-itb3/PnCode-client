@@ -3,6 +3,8 @@ import Cookies from 'js-cookie';
 import Team from './TeamClass';
 import Activity from './ActivityClass';
 import { SoloRoom, AssignedRoom } from './RoomClass';
+import api from '../api';
+import errorHandler from '../error';
 
 export class User {
     constructor(uid, email, first_name, last_name, position, notifications, preferences) {
@@ -17,212 +19,140 @@ export class User {
 
     async getCourseDetails(course_code, section) {
         try {
-            const getUrl = `${import.meta.env.VITE_APP_BACKEND_URL}/api/get-course-details/?course_code=${course_code}&section=${section}`;
-
-            const response = await fetch(getUrl, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+            const response = await api.get('/api/get-course-details/', {
+                params: {
+                    course_code,
+                    section
+                }
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
                 return data;
-            } else {
-                alert(data.message);
-                console.error('Internal server error. Please try again later.');
             }
         } catch (e) {
-            console.error(e);
-            toast.error('Connection error. Please try again later.');
+            errorHandler(e);
         }
     }
 
     async getCourseStudents(course, section) {
-        const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/get-included-students/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                uid: this.uid,
-                course,
-                section
-            })
-        });
-        const data = await response.json();
-
-        if (data.status === 'ok') {
-            return data.students;
-        } else {
-            alert(data.message);
-            console.error(data.message);
+        try {
+            const response = await api.post('/api/get-included-students/', {
+                    uid: this.uid,
+                    course,
+                    section
+            });
+            const data = response.data;
+    
+            if (data.status === 'ok') {
+                return data.students;
+            } 
+        } catch (e) {
+            errorHandler(e);
         }
     }
 
     async getTeams(course, section) {
         try {
-            const getUrl = `${import.meta.env.VITE_APP_BACKEND_URL}/api/get-teams/?course=${course}&section=${section}`;
-            
-            const response = await fetch(getUrl, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+            const response = await api.get('/api/get-teams/', {
+                params: {
+                    course,
+                    section
+                }
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
                 return data.teams;
-            } else {
-                toast.error('Error. Retrieving teams failed.');
-                return null;
             }
-        } catch (error) {
-            toast.error('Error. Retrieving teams failed.');
-            console.error(error);
+        } catch (e) {
+            errorHandler(e);
             return null;
         }
     }
 
     async getActivities(course, section) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/get-activities`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+            const response = await api.get('/api/get-activities', {
+                params: {
                     course,
                     section
-                })
+                }
             });
 
-            const data = await response.json();
+            const data = response.data;
             
             if (data.status === 'ok') {
                 return data.activities;
-            } else {
-                toast.error('Error. Retrieving activities failed.');
-                return null;
             }
             
         } catch (e) {
-            alert('Error. Retrieving activities failed.');
-            console.error(e);
+            errorHandler(e);
         }
     }
 
     async getSoloRooms() { 
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/get-solo-rooms`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    uid: this.uid,
-                    email: this.email,
+            const response = await api.get('/api/get-solo-rooms', {
+                params: {
                     timezone_diff: new Date().getTimezoneOffset()
-                })
+                }
             });
         
-            const data = await response.json();
+            const data = response.data;
         
             if (data.status === 'ok') {
                 return data.solo_rooms;
-            } else {
-                toast.error('Error. Retrieving rooms failed.');
-                return null;
             }
-        } catch (error) {
-            toast.error('Error. Retrieving rooms failed.');
-            console.error(error);
+        } catch (e) {
+            errorHandler(e);
             return null;
         }
     }
 
     async createTeam(team_name, course, section) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/create-team`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
-                body: JSON.stringify({
-                    position: this.position,
-                    uid: this.uid,
-                    name: team_name,
-                    course,
-                    section,
-                })
+            const response = await api.post('/api/create-team', {
+                name: team_name,
+                course,
+                section,
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
                 toast.success('Team created successfully.');
                 window.location.reload();
-            } else {
-                toast.error(data.message ? data.message : 'Server connection error.');
-                if (data.reload) {
-                    windoes.location.reload();
-                }
             }
         } catch (e) {
-            console.log(e);
+            errorHandler(e);
         }
     }
 
-    async createSoloRoom() {
-        toast.success('Redirecting you to a new Room...');
-    
+    async createSoloRoom() {        
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/create-room-solo`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    uid: this.uid,
-                    email: this.email,
-                    position: this.position
-                })
-            });
-        
-            const data = await response.json();
+            const response = await api.post('/api/create-room-solo');
+            
+            const data = response.data;
 
             if (data.status === 'ok') {
-                window.location.href = `/solo/${data.room_id}`;
-
-            } else {
-                toast.error('Internal server error. Please try again later.');
-                console.error(data.message);
+                return data.room_id;
             }
         } catch (e) {
-            toast.error('Internal server error. Please try again later.');
-            console.error(e);
+            errorHandler(e);
+            return null;
         }
     }
 
-    async getTeamDetails(auth, team_id) {
+    async getTeamDetails(team_id) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/get-team-details/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    auth: auth,
+            const response = await api.post('/api/get-team-details', {
                     team_id: team_id
-                })
             });
         
-            const data = await response.json();
+            const data = response.data;
             
             if (data.status === 'ok' && data.access) {
                 const info = data.team;
@@ -235,30 +165,27 @@ export class User {
                             info.members ), 
                             access : data.access 
                         };
+
             } else {
                 window.location.href = '/dashboard';
-                return null;
-            }    
+            }
         } catch (e) {
-            console.error(e);
+            errorHandler(e);
             window.location.href = '/dashboard';
         }
     }
 
     async getSoloRoomDetails(room_id) {
         try {
-            const getUrl = `${import.meta.env.VITE_APP_BACKEND_URL}/api/get-solo-room-details/?room_id=${room_id}`;
-
-            const response = await fetch(getUrl, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+            const response = await api.get('/api/get-solo-room-details/', {
+                params: {
+                    room_id
+                }
             });
 
-            const data = await response.json();
+            const data = response.data;
 
-            if (data.status === 'ok' && data.room.owner_id === this.uid) {
+            if (data.status === 'ok') {
                 const info = data.room;
 
                 return new SoloRoom(
@@ -268,82 +195,67 @@ export class User {
                     info.owner_id,
                     info.files
                 );
-            } else {
-                window.location.href = '/dashboard';
-                return null;
             }
-        } catch (error) {
-            toast.error('Error. Retrieving room details failed.');
-            console.error(error);
+        } catch (e) {
+            errorHandler(e);
+            window.location.href = '/dashboard';
             return null;
         }
     }
     
     async getAssignedRoomDetails (room_id) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/get-assigned-room-details/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    user: this,
-                    room_id
-                })
+            const response = await api.post('/api/get-assigned-room-details/', {
+                room_id
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok' && data.access) {
                 const info = data.room;
 
-                return { room: new AssignedRoom(
-                    info.room_id,
-                    info.room_name,
-                    info.room_type,
-                    info.owner_id,
-                    info.activity_id,
-                    info.notes,
-                ), files: data.files,
-                   activity: data.activity, 
-                   members: data.members, 
-                   access: data.access };
+                return { 
+                    room: new AssignedRoom(
+                        info.room_id,
+                        info.room_name,
+                        info.room_type,
+                        info.owner_id,
+                        info.activity_id,
+                        info.notes,
+                    ), 
+                    files: data.files, 
+                    activity: data.activity, 
+                    members: data.members, 
+                    access: data.access 
+                };
             } else {
-                // window.location.href = '/dashboard';
-                // return null;
+                window.location.href = '/dashboard';
+                return null;
             }
-        } catch(e) {
-            console.error(e);
-            // window.location.href = '/dashboard';
-            // return null;
+        } catch (e) {
+            errorHandler(e);
+            window.location.href = '/dashboard';
+            return null;
         }
     }    
 
     async viewOutput(room_id, file_name) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/view-output`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+            const response = await api.get('/api/view-output', {
+                params: {
                     room_id,
                     file_name,
-                    uid: this.uid,
-                    position: this.position
-                })
+                }
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
                 return { files: data.files, active: data.active };
-            } else {
-                console.error(data.message);
-                return null;
             }
-        } catch (error) {
-            console.error(error);
+        } catch (e) {
+            errorHandler(e);
+            return null;
         }
     }
 
@@ -393,33 +305,22 @@ export class Student extends User {
 
     async visitActivity(activity_id, course, section) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/visit-activity`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    uid: this.uid,
+            const response = await api.get('/api/visit-activity', {
+                params: {
                     activity_id,
                     course,
                     section
-                })
+                }
             });
 
-            const data = await response.json();
+            const data = response.data;
             
             if (data.status === 'ok') {
                 toast.success('Redirecting you to your team\'s assigned room...');
                 window.location.href = `/room/${data.room_id}`;
-
-            } else {
-                alert(data.message);
-                console.log(data.message);
             }
-            
         } catch (e) {
-            toast.error('Error. Accessing activity failed. Please reload the page');
-            console.error(e);
+            errorHandler(e);
         }
     }    
 }
@@ -432,71 +333,57 @@ export class Professor extends User {
 
     async createActivity(course, section, activity_name, instructions, open_time, close_time) {
         try {
-
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/create-activity`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    course,
-                    section,
-                    activity_name,
-                    instructions,
-                    open_time,
-                    close_time,
-                })
+            const response = await api.post('/api/create-activity', {
+                course,
+                section,
+                activity_name,
+                instructions,
+                open_time,
+                close_time,
             });
 
-
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
                 toast.success('Activity created successfully.');
                 window.location.reload();
-
-            } else {
-                toast.error(data.error || 'Error. Activity creation failed.');
-                return null;
             }
         } catch (e) {
-            console.log(e);
+            errorHandler(e);
         }
     }
 
-    async getActivityDetails(auth, activity_id) {
+    async getActivityDetails(activity_id) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/get-activity-details`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    auth: auth,
+            const response = await api.get('/api/get-activity-details', {
+                params: {
                     activity_id: activity_id
-                })
+                }
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok' && data.access) {
                 const info = data.activity;
 
-                return {activity_class: new Activity(
-                    info.activity_id,
-                    info.activity_name,
-                    info.course_code,
-                    info.section,
-                    info.instructions,
-                    info.open_time,
-                    info.close_time,
-                ), rooms: data.rooms};
+                return {
+                    activity_class: new Activity(
+                        info.activity_id,
+                        info.activity_name,
+                        info.course_code,
+                        info.section,
+                        info.instructions,
+                        info.open_time,
+                        info.close_time,
+                    ),
+                    rooms: data.rooms
+                };
             } else {
                 window.location.href = '/dashboard';
                 return null;
             }
         } catch (e) {
-            console.error(e);
+            errorHandler(e);
             window.location.href = '/dashboard';
         }
     }

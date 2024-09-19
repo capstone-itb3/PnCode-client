@@ -26,7 +26,7 @@ function PageActivity() {
 
     async function renderActivity () {
         try {
-            const act_info = await professor.getActivityDetails(auth, activity_id);
+            const act_info = await professor.getActivityDetails(activity_id);
             setActivity(act_info.activity_class);
             setRoomList(act_info.rooms);
             

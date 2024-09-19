@@ -11,11 +11,10 @@ function FullView() {
     const [isLoaded, setIsLoaded] = useState(false);
     const [fileExists, setFileExists] = useState(true);
     const outputRef = useRef(null);
-    const initialContent = `<!DOCTYPE html><html><head>
-                                <base target="_parent">
-                            </head><body></body></html>`;
+    const initialContent = `<!DOCTYPE html><html><head><base target="_parent"></head><body></body></html>`;
 
     useEffect(() => {
+        document.title = 'Loading...';
         async function init () {
             const info = await user.viewOutput(room_id, file_name);
 

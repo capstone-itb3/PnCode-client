@@ -12,7 +12,7 @@ function getToken(token) {
         return user;
     } catch (error) {
         console.error('Invalid token: ', error);
-        Cookies.remove('token');
+        // Cookies.remove('token');
         window.location.href = '/login';
         return null;
     }    

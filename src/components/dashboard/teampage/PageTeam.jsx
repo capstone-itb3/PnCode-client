@@ -24,7 +24,7 @@ function PageTeam() {
 
   async function renderTeam () {
     try {
-      const team_info = await user.getTeamDetails(auth, team_id)
+      const team_info = await user.getTeamDetails(team_id)
       
       if (team_info.access === 'write') {
         setPermitted(true);

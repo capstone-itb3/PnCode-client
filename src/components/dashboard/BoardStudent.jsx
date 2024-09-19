@@ -77,8 +77,13 @@ function BoardStudent({auth, checkParams}) {
         setActivityCount(activities.length);
     }
 
-    function createSoloRoom() {
-        student.createSoloRoom();
+    async function createSoloRoom() {
+        const room = await student.createSoloRoom();
+
+        if (room) {
+            navigate(`/solo/${room}`);
+            toast.success('New solo room has been created.');
+        }
     }
     
     function openTeamPopup () {
