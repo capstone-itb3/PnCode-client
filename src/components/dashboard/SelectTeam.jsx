@@ -1,37 +1,26 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom';
+import img from '../../../profile.png'
 
 function SelectTeam({uid, team}) {
     const navigate = useNavigate();
-    
-    const imageDisplay = () => {
-        return team.members.slice(0, 5).map((member, index) => {
-            const image = member.image || '/profile.png';
-            return (
-                <img 
-                    key={index}
-                    className='team-image' 
-                    src={image} 
-                    alt={member.first_name} 
-                />
-            );
-        });
-    };
-    
-    const isIncluded = (() => {
-        return team.members.some(member => member.uid === uid);
-    });
-
-
-    function goToTeamPage () {
-        navigate(`/team/${team.team_id}`);
-    }
-
+        
     return (
-        <div className='team-box flex-column' onClick={goToTeamPage}>
-            {isIncluded() && <div className='your-team'>Your Team</div>}
+        <div className='team-box flex-column' onClick={() => navigate(`/team/${team.team_id}`)}>
+            {team.members.some(member => member.uid === uid) && 
+                <div className='my-team'>My Team</div>
+            }
             <div className='team-box-images'>
-                {imageDisplay()}
+            {team.members.slice(0, 5).map((member, index) => {
+                return (
+                    <img 
+                        key={index}
+                        className='team-image' 
+                        src={img} 
+                        alt={member.first_name} 
+                    />
+                );
+            })}
             </div>
             <label className='name'>{team.team_name}</label>
             <label className='members'>Members: {team.members.length}</label>

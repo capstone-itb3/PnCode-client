@@ -1,88 +1,95 @@
 import React, { useEffect, useRef } from 'react'
 import * as Y from 'yjs'
-import './utils/prosemirror.css'
+import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next'
 import { WebsocketProvider } from 'y-websocket'
-import { ySyncPlugin, yCursorPlugin, yUndoPlugin, undo, redo } from 'y-prosemirror'
-import { exampleSetup } from 'prosemirror-example-setup'
-import { keymap } from 'prosemirror-keymap'
-import { EditorState } from 'prosemirror-state'
-import { EditorView } from 'prosemirror-view'
-import { schema } from 'prosemirror-schema-basic'
-import { DOMParser as ProsemirrorDOMParser } from 'prosemirror-model'
+import { EditorView } from 'codemirror'
+import { EditorState } from '@codemirror/state'
+import { keymap } from '@codemirror/view'
+import _ from 'lodash'
 
 function Notepad({room, user, socket, editorUsers, cursorColor}) {
-    const ydocRef = useRef(new Y.Doc());
-    const viewRef = useRef(null);
-    const typeRef = useRef(null);
-
+    const notepadRef = useRef(null);
+    const providerRef = useRef(null);
+  
     useEffect(() => {
-        const ydoc = ydocRef.current;
-        const provider = new WebsocketProvider(import.meta.env.VITE_APP_WEBSOCKET, 
-            `${room.room_id.toString()}-notepad`, ydoc
-        );
-        typeRef.current = ydoc.getXmlFragment('prosemirror');
-
+        notepadRef.current ? notepadRef.current.destroy() : null;
+        providerRef.current ? providerRef.current.destroy() : null;
+    
         async function init() {
             return new Promise((resolve) => {
-                socket.emit('load_notepad', { room_id: room.room_id });
+                socket.emit('load_notepad', {
+                    room_id: room.room_id,
+                });
+            
                 socket.on('notepad_loaded', ({ notes }) => {
-                    console.log(notes);
                     resolve(notes);
                 });
             });
         }
-
         init().then((notes) => {
-            provider.awareness.setLocalStateField('user', { 
-                name: user.last_name + ', ' + user.first_name[0] + '.',
+            const ydoc = new Y.Doc();
+      
+            providerRef.current = new WebsocketProvider(import.meta.env.VITE_APP_WEBSOCKET, 
+                `${room.room_id}-notepad`, 
+                ydoc
+            );
+            
+            providerRef.current.awareness.setLocalStateField('user', {
+                userId: user.uid,
+                name: user.last_name + ', ' + user.first_name,
                 color: cursorColor.color,
             });
-
-            const state = EditorState.create({
-                schema,
-                plugins: [
-                    ySyncPlugin(typeRef.current),
-                    yCursorPlugin(provider.awareness),
-                    yUndoPlugin(),
-                    keymap({
-                        'Mod-z': undo,
-                        'Mod-y': redo,
-                        'Mod-Shift-z': redo
-                    })
-                ].concat(exampleSetup({ schema }))
-            });
-
-            viewRef.current = new EditorView(document.querySelector('#notepad'), { state });
-
-            function parseContent(content) {
-                const parser = new DOMParser()
-                const doc = parser.parseFromString(`<root>${content}</root>`, 'text/xml')
-                return ProsemirrorDOMParser.fromSchema(schema).parse(doc.documentElement)
+      
+            const setup = () => {
+                if (user?.position === 'Student') {
+                    return EditorState.readOnly.of(false);
+                } else if (user?.position === 'Professor') {
+                    return EditorState.readOnly.of(true);
+                }
             }
-            
-            if (notes && notes.length > 0) {
-                const parsedContent = parseContent(notes)
-                const transaction = viewRef.current.state.tr.replace(
-                    0,
-                    viewRef.current.state.doc.content.size,
-                    parsedContent.content
-                )
-                viewRef.current.dispatch(transaction)
-            }
-                                    
-            typeRef.current.observe(() => {
-                const content = typeRef.current.toString();
-                socket.emit('save_notepad', {
-                    room_id: room.room_id, 
-                    content: content
+
+            providerRef.current.on('synced', () => {
+                const ytext = ydoc.getText('codemirror');
+                let initialContent = ytext.toString();
+                if (((initialContent === '' || initialContent === null) && editorUsers.length === 1)) {
+                    ydoc.transact(() => {
+                        ytext.insert(0, notes);
+                    });
+                    initialContent = notes;
+                }
+
+                const state = EditorState.create({
+                    doc: initialContent,
+                    extensions: [
+                        keymap.of([...yUndoManagerKeymap, { key: 'Enter', run: (view) => {
+                            view.dispatch(view.state.replaceSelection('\n'))
+                            return true
+                            }}
+                        ]),
+                        setup(),
+                        EditorView.lineWrapping,
+                        EditorView.updateListener.of(e => {
+                            if (e.docChanged) {
+                                socket.emit('save_notepad', {
+                                    room_id: room.room_id,
+                                    content: e.state.doc.toString(),
+                                });
+                            }
+                        }),
+                    ]
                 });
+
+                const notepad = document.getElementById('notepad');
+                notepad.innerHTML = '';
+
+                notepadRef.current = new EditorView({ state, parent: (notepad) });
+                notepadRef.current.focus();
             });
-        });
+        })
+      
 
         return () => {
-            if (viewRef.current) viewRef.current.destroy();
-            provider.destroy();
-            socket.off('notepad_loaded');
+
         };
     }, [room, user, socket, cursorColor]);
 

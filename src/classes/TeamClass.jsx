@@ -1,4 +1,6 @@
 import toast from 'react-hot-toast';
+import api from '../api';
+import errorHandler from '../error';
 
 export default class Team {
     constructor (team_id, team_name, course, section, members) {
@@ -11,51 +13,35 @@ export default class Team {
 
     async addMember(student) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/add-member`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    team_id: this.team_id,
-                    student_uid: student.uid,
-                    course: this.course,
-                    section: this.section,
-                })
+            const response = await api.post('/api/add-member', {
+                team_id: this.team_id,
+                student_uid: student.uid,
+                course: this.course,
+                section: this.section,
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
                 toast.success(`Student successfully added to ${this.team_name}.`);
                 return true;
-            } else {
-                toast.error(data.message);
-                return false;
             }
         } catch (e) {
-            toast.error('Error. Adding student to team failed.');
-            console.error(e);
-            return false;            
+            errorHandler(e);
+            return null;            
         }
     }
 
     async removeMember(uid) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/remove-member`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    team_id: this.team_id,
-                    student_uid: uid,
-                    course: this.course,
-                    section: this.section,
-                })
+            const response = await api.post('/api/remove-member', {
+                team_id: this.team_id,
+                student_uid: uid,
+                course: this.course,
+                section: this.section,
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
                 toast.success(data.message);
@@ -73,19 +59,13 @@ export default class Team {
 
     async deleteTeam() {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/delete-team`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    team_id: this.team_id,
-                    course: this.course,
-                    section: this.section,
-                })
+            const response = await api.post('/api/delete-team', {
+                team_id: this.team_id,
+                course: this.course,
+                section: this.section,
             });
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
                 toast.success(data.message);

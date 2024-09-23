@@ -38,13 +38,13 @@ function CreateActivity({user, course, section, exit}) {
                         <BsXLg size={ 18 }/>
                     </div>
                     <form autoComplete='off' onSubmit={(e) => submitActivity(e)}>
-                        <h2 className='head'>Create A Group Activity</h2>
+                        <h3 className='head'>Create A Group Activity</h3>
                         <div className='two-column-grid'>
                             <label>Course: <b>{course}</b></label>
                             <label>Section: <b>{section}</b></label>
                         </div>
                         <div className='flex-column width-100'>
-                            <h3>Activity Name</h3>
+                            <h4>Activity Name</h4>
                             <input 
                                 className='input-data'
                                 type='text'
@@ -55,7 +55,7 @@ function CreateActivity({user, course, section, exit}) {
                             />
                         </div>
                         <div className='flex-column'>
-                            <h3>Instructions</h3>
+                            <h4>Instructions</h4>
                             <textarea 
                                 value={instructions}
                                 placeholder='Enter the instructions'
@@ -65,17 +65,20 @@ function CreateActivity({user, course, section, exit}) {
                         </div>
                         <div className='flex-column'>
                             <div className='flex-row'>
-                                <h3>Access Timeframe</h3>
+                                <h4>Access Timeframe</h4>
                             </div>
-                            <div className='flex-row' id='chosen-timeframe'>
-                                <label>Time Open:</label>
-                                <input 
-                                    className='date-time'
-                                    type='time'
-                                    value={open_time}
-                                    onChange={(e) => setOpenTime(e.target.value)}
-                                    required
-                                />
+                            <div className='two-column-grid' id='chosen-timeframe'>
+                                <div className='flex-row items-center'>
+                                    <label>Time Open:</label>
+                                    <input 
+                                        className='date-time'
+                                        type='time'
+                                        value={open_time}
+                                        onChange={(e) => setOpenTime(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className='flex-row items-center'>
                                 <label>Time Close:</label>
                                 <input 
                                     className='date-time'
@@ -84,6 +87,7 @@ function CreateActivity({user, course, section, exit}) {
                                     onChange={(e) => setCloseTime(e.target.value)}
                                     required
                                 />
+                                </div>
                             </div>
                         </div>
                         <div className='flex-row footer'>

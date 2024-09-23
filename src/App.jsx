@@ -11,6 +11,7 @@ import Dashboard from './components/Dashboard';
 import PageTeam from './components/dashboard/teampage/PageTeam';
 import PageActivity from './components/dashboard/activitypage/PageActivity';
 import FullView from './components/room/FullView';
+import NotFound from './components/NotFound';
 
 function App() {
 
@@ -23,8 +24,6 @@ function App() {
       <Route path = '/login' element={ <Login/> }/>
       <Route path = '/login/professor' element={ <ProfLogin/> }/>
       <Route path = '/dashboard/' element={ <Dashboard/> }/>
-      <Route path = '/dashboard/:course' element={ <Dashboard/> }/>
-      <Route path = '/dashboard/:course/:select' element={ <Dashboard/> }/>
       <Route path = '/dashboard/:course/:section' element={ <Dashboard/> }/>
       <Route path = '/dashboard/:course/:section/:select' element={ <Dashboard/> }/>
       <Route path = '/team/:team_id' element={ <PageTeam/> }/>
@@ -32,6 +31,7 @@ function App() {
       <Route path = '/room/:room_id/' element={ <AssignedRoom/> }/>
       <Route path = '/solo/:room_id/' element={ <SoloRoom/> }/>
       <Route path = '/view/:room_id/:file_name' element={ <FullView/> }/>
+      <Route path = '/error/404' element={ <NotFound/> }/>
     </Routes>
     </>
   )

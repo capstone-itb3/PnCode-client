@@ -25,15 +25,11 @@ function PageActivity() {
     }, [])
 
     async function renderActivity () {
-        try {
-            const act_info = await professor.getActivityDetails(activity_id);
-            setActivity(act_info.activity_class);
-            setRoomList(act_info.rooms);
-            
-        } catch(e) {
-            console.log(e);
-            window.location.href = '/dashboard';
-        }
+        const act_info = await professor.getActivityDetails(activity_id);
+        setActivity(act_info.activity_class);
+        setRoomList(act_info.rooms);
+
+        document.title = `Activity · ${act_info.activity_class.activity_name}`;
     }
     
     async function spectateRoom (room_id) {
@@ -59,7 +55,7 @@ function PageActivity() {
         {activity && room_list &&
         (
         <>
-            <Header auth={auth}/>
+            <Header auth={auth} base={'Activity'} name={activity.activity_name}/>
             <div id='activity-main'> 
                 <div id='activity-container' className='flex-column'>
                     <div id='activity-header'>
@@ -85,7 +81,7 @@ function PageActivity() {
                             <tbody>
                             {room_list.length === 0 &&
                                 (
-                                    <tr className='assigned-item'>
+                                    <tr className='assigned-item empty'>
                                         <td className='col-1'>
                                             <label>Rooms will fill in as student teams join the activity.</label>
                                         </td>

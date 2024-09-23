@@ -23,25 +23,17 @@ function PageTeam() {
   }, [])
 
   async function renderTeam () {
-    try {
-      const team_info = await user.getTeamDetails(team_id)
-      
-      if (team_info.access === 'write') {
-        setPermitted(true);
+    const team_info = await user.getTeamDetails(team_id)
+    
+    if (team_info.access === 'write') {
+      setPermitted(true);
 
-      } else if (team_info.access === 'read') {
-        setPermitted(false);
-      
-      } else if (!team_info.access) {
-        window.location.href = '/dashboard';
-      }
-
-      setTeam(team_info.team_class);
-
-    } catch(e) {
-      console.log(e);
-      window.location.href = '/dashboard';
+    } else if (team_info.access === 'read') {
+      setPermitted(false);
     }
+    setTeam(team_info.team_class);
+
+    document.title = `Team · ${team_info.team_class.team_name}`;
   }
 
 
@@ -90,7 +82,7 @@ function PageTeam() {
     {team &&
     (
       <>
-        <Header auth={auth}/>
+        <Header auth={auth} base={'Team'} name={team.team_name} />
         <div id='team-main'> 
           <div id='team-container' className='flex-column'>
             <div id='team-header'>
@@ -114,8 +106,8 @@ function PageTeam() {
                         <label className='single-line'>{member.last_name}, {member.first_name}</label>
                       </td>
                       <td className='col-3'>
-                        {permitted &&
-                          <button className='remove-member' onClick={() => {removeMember(member.uid)}}>Remove</button>
+                        {permitted && user.position === 'Professor' &&
+                          <button className='remove-btn' onClick={() => {removeMember(member.uid)}}>Remove</button>
                         }
                       </td>
                     </tr>
@@ -131,8 +123,9 @@ function PageTeam() {
               }
             </div>
             <div id='team-footer'>
-              <a href='/dashboard'>&lt; BACK</a>
-              {permitted &&
+              
+              <a href={`/dashboard/${team.course}/${team.section}/all`}>&lt; BACK</a>
+              {permitted && user.position === 'Professor' &&
                 <button id='delete-btn' onClick={deleteTeam}><BsTrash size={20}/><label>Delete Team</label></button>
               }
             </div>

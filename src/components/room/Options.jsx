@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react'
+import Cookies from 'js-cookie';
 
 function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, setEditorTheme, outputRef, setAddNewFile, setDeleteFile, runOutput}) {
-    const [isChecked, setIsChecked] = useState(user.preferences.theme === 'dark' ? true : false);
+    const [isChecked, setIsChecked] = useState(() => {
+        if (Cookies.get('theme') === 'dark' || !Cookies.get('theme')) {
+            return true;
+        } else {
+            return false;
+        }
+    });
 
     function openMenu(clicked) {
+        console.log(isChecked);
         const option = document.getElementById(`${clicked}-menu`);
         option.classList.toggle('hidden');
 
@@ -42,7 +50,7 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
 
     function changeTheme(checked) {
         const theme = checked ? 'dark' : 'light';
-        user.changeTheme(socket, theme);
+        user.changeTheme(theme);
         setIsChecked(checked);
         setEditorTheme(theme);
     }

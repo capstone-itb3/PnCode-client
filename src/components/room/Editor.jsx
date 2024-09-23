@@ -78,6 +78,7 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
         userId: user.uid,
         name: user.last_name + ', ' + user.first_name,
         color: cursorColor.color,
+        light: cursorColor.light,
       });
     
       const type = () => {
@@ -86,6 +87,7 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
         else if (file.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
       }
       const theme = editorTheme === 'dark' ? oneDark : clouds;
+      
       const setup = () => {
         if (user?.position === 'Student') {
           return [basicSetup]

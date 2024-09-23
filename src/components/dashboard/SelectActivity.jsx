@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { BsPencilSquare } from 'react-icons/bs';
 
 function SelectActivity({ activity, index, onClick }) {
-    const [createdAt, setCreatedAt] = useState(() => {
+    const createdAt = () => {
         const diff = new Date() - new Date(activity.createdAt);
         const timeUnits = [
             { value: Math.floor(diff / (1000 * 60 * 60 * 24 * 365)), unit: 'year' },
@@ -19,19 +19,39 @@ function SelectActivity({ activity, index, onClick }) {
             }
         }
         return 'just now';
-    });
+    };
+
+    const open_time = () => {
+        const [hours, minutes] = activity.open_time.split(':');
+        
+        const HH = (parseInt(hours) % 12 || 12) < 10 ? `0${parseInt(hours) % 12 || 12}` : parseInt(hours) % 12 || 12;
+        const mm = parseInt(minutes) < 10 ? `0${parseInt(minutes)}` : minutes;
+        const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+        return `${HH}:${mm} ${ampm}`;    
+    }
+
+    const close_time = () => {
+        const [hours, minutes] = activity.close_time.split(':');
+        
+        const HH = (parseInt(hours) % 12 || 12) < 10 ? `0${parseInt(hours) % 12 || 12}` : parseInt(hours) % 12 || 12;
+        const mm = parseInt(minutes) < 10 ? `0${parseInt(minutes)}` : minutes;
+        const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+        return `${HH}:${mm} ${ampm}`;    
+    }
+
     
     return (
         <div className='activity-box flex-column' onClick={onClick}>
             <label className='name'>
-                <span><BsPencilSquare size={ 20 }/></span>
-                {activity.activity_name}
+                <label>{activity.activity_name}</label>
+                <span className='items-center'><BsPencilSquare size={ 20 }/></span>
             </label>
             <div className='instruc-div'>
                 <p className='instructions'>{activity.instructions}</p>
             </div>
             <div className='dates'>
-                <label>Created: {createdAt}</label>
+                <label>Created: {createdAt()}</label>
+                <label>Access: {open_time()} - {close_time()}</label>
             </div>
         </div>
     )

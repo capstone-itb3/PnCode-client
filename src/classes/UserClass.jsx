@@ -1,20 +1,17 @@
 import toast from'react-hot-toast';
-import Cookies from 'js-cookie';
 import Team from './TeamClass';
 import Activity from './ActivityClass';
 import { SoloRoom, AssignedRoom } from './RoomClass';
 import api from '../api';
+import Cookies from 'js-cookie';
 import errorHandler from '../error';
 
 export class User {
-    constructor(uid, email, first_name, last_name, position, notifications, preferences) {
+    constructor(uid, first_name, last_name, position) {
         this.uid = uid;
-        this.email = email;
         this.first_name = first_name;
         this.last_name = last_name;
         this.position = position;
-        this.notifications = notifications;
-        this.preferences = preferences;
     }
 
     async getCourseDetails(course_code, section) {
@@ -36,20 +33,23 @@ export class User {
         }
     }
 
-    async getCourseStudents(course, section) {
+    async getCourseStudents(course_code, section, list) {
         try {
             const response = await api.post('/api/get-included-students/', {
-                    uid: this.uid,
-                    course,
-                    section
+                    course_code,
+                    section,
+                    list
             });
             const data = response.data;
     
-            if (data.status === 'ok') {
+            if (data.status === 'ok' && list === 'students') {
                 return data.students;
-            } 
+            } else if (data.status === 'ok' && list === 'all') {
+                return { students: data.students, requests: data.requests };
+            }
         } catch (e) {
             errorHandler(e);
+            return null;
         }
     }
 
@@ -125,6 +125,9 @@ export class User {
             if (data.status === 'ok') {
                 toast.success('Team created successfully.');
                 window.location.reload();
+            } else if (data.reload) {
+                toast.error('You have already been on a team.');
+                window.location.reload();
             }
         } catch (e) {
             errorHandler(e);
@@ -167,11 +170,10 @@ export class User {
                         };
 
             } else {
-                window.location.href = '/dashboard';
+                window.location.href = '/error/404';
             }
         } catch (e) {
             errorHandler(e);
-            window.location.href = '/dashboard';
         }
     }
 
@@ -191,14 +193,12 @@ export class User {
                 return new SoloRoom(
                     info.room_id,
                     info.room_name,
-                    info.room_type,
                     info.owner_id,
                     info.files
                 );
             }
         } catch (e) {
             errorHandler(e);
-            window.location.href = '/dashboard';
             return null;
         }
     }
@@ -218,7 +218,6 @@ export class User {
                     room: new AssignedRoom(
                         info.room_id,
                         info.room_name,
-                        info.room_type,
                         info.owner_id,
                         info.activity_id,
                         info.notes,
@@ -229,12 +228,11 @@ export class User {
                     access: data.access 
                 };
             } else {
-                window.location.href = '/dashboard';
+                window.location.href = '/error/404';
                 return null;
             }
         } catch (e) {
             errorHandler(e);
-            window.location.href = '/dashboard';
             return null;
         }
     }    
@@ -259,47 +257,28 @@ export class User {
         }
     }
 
-    changeTheme(socket, theme) {
-        socket.emit('preferred_theme', {
-            theme,
-            user: this
-        });
-        
-        this.preferences = { theme: theme };
-        console.log(this.preferences)
+    changeTheme(theme) {
+        Cookies.set('theme', theme);
     }
 }
 
 export class Student extends User {
-    constructor(uid, email, first_name, last_name, position, notifications, preferences, section, enrolled_courses) {
-        super(uid, email, first_name, last_name, position, notifications, preferences);
-        this.section = section;
-        this.enrolled_courses = enrolled_courses;
+    constructor(uid, first_name, last_name, position) {
+        super(uid, first_name, last_name, position);
     }
 
-    async reloadStudentData() {
+    async getEnrolledCourses() {
         try {
-            const response = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/reload-student-data`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: this.email,
-                    position: this.position
-                })
-            });
+            const response = await api.post('/api/get-enrolled-courses');
 
-            const data = await response.json();
+            const data = response.data;
 
             if (data.status === 'ok') {
-                Cookies.set('token', data.token, { expires : 90 });
-            } else {
-                alert('There\' is a problem in reloading your data. Please log in again');
+                return data.courses;
             }
         } catch (e) {
-            alert('There\' is a problem in reloading your data. Please log in again');
-            console.error(e);
+            errorHandler(e);
+            return null;
         }
     }
 
@@ -323,12 +302,104 @@ export class Student extends User {
             errorHandler(e);
         }
     }    
+
+    async requestCourse(course_code, section) {
+        try {
+            const response = await api.post('/api/request-course', {
+                course_code,
+                section
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch(e) {
+            errorHandler(e);
+            return null
+        }
+    }
 }
 
 export class Professor extends User {
-    constructor(uid, email, first_name, last_name, position, notifications, preferences, assigned_courses) {
-        super(uid, email, first_name, last_name, position, notifications, preferences);
-        this.assigned_courses = assigned_courses;
+    constructor(uid, first_name, last_name, position) {
+        super(uid, first_name, last_name, position);
+    }
+
+    async getAssignedCourses() {
+        try {
+            const response = await api.post('/api/get-assigned-courses');
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                console.log(data.courses);
+                return data.courses;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async acceptRequest(course_code, section, uid) {
+        try {
+            const response = await api.post('/api/accept-request', {
+                course_code,
+                section,
+                uid
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                toast.success('Student accepted successfully.');
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async rejectRequest(course_code, section, uid) {
+        try {
+            const response = await api.post('/api/reject-request', {
+                course_code,
+                section,
+                uid
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                toast.success('Student is rejected from the class.');
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async removeStudent(course_code, section, uid) {
+        try {
+            const response = await api.post('/api/remove-student', {
+                course_code,
+                section,
+                uid
+            });
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                toast.success('Student is removed from the class.');
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
     }
 
     async createActivity(course, section, activity_name, instructions, open_time, close_time) {
@@ -363,7 +434,7 @@ export class Professor extends User {
 
             const data = response.data;
 
-            if (data.status === 'ok' && data.access) {
+            if (data.status === 'ok') {
                 const info = data.activity;
 
                 return {
@@ -378,13 +449,9 @@ export class Professor extends User {
                     ),
                     rooms: data.rooms
                 };
-            } else {
-                window.location.href = '/dashboard';
-                return null;
             }
         } catch (e) {
             errorHandler(e);
-            window.location.href = '/dashboard';
         }
     }
 }

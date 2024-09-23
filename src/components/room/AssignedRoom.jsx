@@ -40,7 +40,7 @@ function AssignedRoom() {
   const [rightDisplay, setRightDisplay] = useState('output');
   const [addNewFile, setAddNewFile] = useState(false);
   const [deleteFile, setDeleteFile] = useState(false);
-  const [editorTheme, setEditorTheme] = useState(user?.preferences.theme);
+  const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') ? Cookies.get('theme') : 'dark');
   
   useEffect(() => {    
     // setRoom(null);
@@ -130,36 +130,43 @@ function AssignedRoom() {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.altKey && event.key === 'r') {
+        event.preventDefault();
         runOutput();
         return;
       }
 
       if (event.altKey && event.key === 'f') {
+        event.preventDefault();
         setLeftDisplay('files');
         return;
       }
 
       if (event.altKey && event.key === 'n') {
+        event.preventDefault();
         setLeftDisplay('notepad');
         return;
       }
 
       if (event.altKey && event.key === 'o') {
+        event.preventDefault();
         setRightDisplay('output');
         return;
       }
 
       if (event.altKey && event.key === 'h') {
+        event.preventDefault();
         setRightDisplay('history');
         return;
       }
 
       if (event.altKey && event.key === 'b') {
+        event.preventDefault();
         setRightDisplay('feedback');
         return;
       }
 
       if (user?.position === 'Student' && event.altKey && event.key === 'a') {
+        event.preventDefault();
         setAddNewFile(true);
         setDeleteFile(false);
         setLeftDisplay('files');
@@ -167,6 +174,7 @@ function AssignedRoom() {
       }
 
       if (user?.position === 'Student' && event.altKey && event.key === 'x') {
+        event.preventDefault();
         setDeleteFile(true);
         setAddNewFile(false);
         setLeftDisplay('files');
@@ -175,6 +183,7 @@ function AssignedRoom() {
 
       for (let i = 1; i <= room_files.length && i <= 10; i++) {
         if (event.altKey && event.key === i.toString()) {
+          event.preventDefault();
           displayFile(room_files[i - 1]);
           break;
         }

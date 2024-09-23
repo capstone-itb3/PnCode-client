@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import pnc from '../../pamantasan.jpg'
+import full_logo from '../../full_logo.jpg'
+import pnc_logo from '../../pnc_logo.png'
 
 function Login() {
     const [ email, setEmail ] = useState('');
@@ -26,7 +29,7 @@ function Login() {
 
         if (data.status === 'ok' && data.token) {
             Cookies.set('token', data.token, { expires : 90 });
-            navigate(`/dashboard/${data.starting_course}/all`);
+            navigate(`/dashboard/`);
 
         } else {
             console.log(data.message);
@@ -34,13 +37,20 @@ function Login() {
     };
 
     return (
-        <main className='centering' style={{ marginTop: '50px' }} >
-            <form className='form-account' style={{ padding: '30px 50px'  }} onSubmit={ loginAccount }>
-                <section className='head'>
-                    <label>Log-in to <span style={{ color: '#0000ff' }} >PnCode</span></label>
-                </section>
-                <section className='body'>
-                    <div className='input-form'   style={{ gridTemplateColumns: 'auto' }}>
+        <div id='login-signup'>
+            <main className='photo-container'>
+                <img src={pnc} alt='pnc' />
+                <div id='orange-hue'/>
+            </main>
+            <main className='form-container items-center login'>
+                <form className='form-account login' onSubmit={ loginAccount }>
+                    <div className='items-center pnc-logo'>
+                        <img src={pnc_logo} alt='pnc-logo'/>
+                    </div>
+                    <section className='head items-center login'>
+                        <label>Log-in to </label><img src={full_logo} alt='full-logo'/>
+                    </section>
+                    <div className='input-form login'>
                         <div className='input-div'>
                             <label>Email</label>
                             <input 
@@ -65,14 +75,12 @@ function Login() {
                         </div>
                     </div>
                     <div className='input-btn'>
-                        <input style={{ padding : '8px 60px' }} type='submit' value='Login'/>
-                        
-                        <br></br><br></br>
+                        <input type='submit' value='Log In'/>
                         <label>New to PnCode? <a href='/signup'>Sign up</a></label>
-                    </div>                
-                </section>
-            </form>
-        </main>
+                    </div>
+                </form>
+            </main>
+        </div>
     )
 }
 

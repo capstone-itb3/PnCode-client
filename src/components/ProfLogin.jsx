@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import pnc from '../../pamantasan.jpg'
 
 function ProfLogin() {
     const [ email, setEmail ] = useState('');
@@ -26,7 +27,7 @@ function ProfLogin() {
 
         if (data.status === 'ok' && data.token) {
             Cookies.set('token', data.token, { expires : 90 });
-            navigate(`/dashboard/${data.starting_course}/${data.starting_section}/all`);
+            navigate(`/dashboard/`);
 
         } else {
             console.log(data.message);
@@ -34,14 +35,13 @@ function ProfLogin() {
     };
 
     return (
-        <main className='centering' style={{ marginTop: '50px' }} >
-            <form className='form-account' style={{ padding: '30px 50px'  }} onSubmit={ loginAccount }>
-                <section className='head flex-column'>
-                    <label><span style={{ color: '#0000ff' }} >PnCode</span></label>
-                    <label>Professor Log-in</label>
-                </section>
-                <section className='body'>
-                    <div className='input-form'   style={{ gridTemplateColumns: 'auto' }}>
+        <div id='login-signup'>
+            <main className='form-container items-center login'>
+                <form className='form-account login' onSubmit={ loginAccount }>
+                    <section className='head login'>
+                        <label>Professor Log-in</label>
+                    </section>
+                    <div className='input-form login'>
                         <div className='input-div'>
                             <label>Email</label>
                             <input 
@@ -66,12 +66,17 @@ function ProfLogin() {
                         </div>
                     </div>
                     <div className='input-btn'>
-                        <input style={{ padding : '8px 60px' }} type='submit' value='Login'/>                        
-                    </div>                
-                </section>
-            </form>
-        </main>
-    )
+                        <input type='submit' value='Log In'/>
+                    </div>
+                </form>
+            </main>
+            <main className='photo-container'>
+                <img src={pnc} alt='pnc' />
+                <div id='orange-hue'/>
+            </main>
+        </div>
+
+    )    
 }
 
 export default ProfLogin
