@@ -123,8 +123,7 @@ export class User {
             const data = response.data;
 
             if (data.status === 'ok') {
-                toast.success('Team created successfully.');
-                window.location.reload();
+                return data.team_id;
             } else if (data.reload) {
                 toast.error('You have already been on a team.');
                 window.location.reload();
@@ -140,7 +139,7 @@ export class User {
             
             const data = response.data;
 
-            if (data.status === 'ok') {
+            if (data.status === 'ok') {                
                 return data.room_id;
             }
         } catch (e) {
@@ -220,7 +219,6 @@ export class User {
                         info.room_name,
                         info.owner_id,
                         info.activity_id,
-                        info.notes,
                     ), 
                     files: data.files, 
                     activity: data.activity, 
@@ -416,8 +414,7 @@ export class Professor extends User {
             const data = response.data;
 
             if (data.status === 'ok') {
-                toast.success('Activity created successfully.');
-                window.location.reload();
+                return data.activity_id;
             }
         } catch (e) {
             errorHandler(e);

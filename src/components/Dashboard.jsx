@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Cookies from 'js-cookie';
 import Header from './dashboard/Header';
 import BoardStudent from './dashboard/BoardStudent';
@@ -7,6 +7,8 @@ import { getToken } from './validator';
 
 function Dashboard() {
     const [auth, getAuth] = useState(getToken(Cookies.get('token')));
+    const headerNameRef = useRef(null)
+
 
     useEffect(() => {
         document.title = 'Dashboard · PnCode';
@@ -14,13 +16,13 @@ function Dashboard() {
    
     return (
         <>
-            <Header auth={auth} base={'Dashboard'} name={null}/>
+            <Header auth={auth} base={'Dashboard'} name={headerNameRef.current} />
             {
                 ( auth.position === 'Student' &&
-                <BoardStudent auth={auth} /> ) 
+                <BoardStudent auth={auth} header_name={headerNameRef.current}/> ) 
                 ||
                 ( auth.position === 'Professor' &&
-                <BoardProfessor auth={auth} /> )
+                <BoardProfessor auth={auth} header_name={headerNameRef.current}/> )
             }
         </>
     );

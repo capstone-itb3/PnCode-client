@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 function SelectRoom({ room, index, type }) {
   const [display, setDisplay] = useState(() => {
@@ -7,10 +7,13 @@ function SelectRoom({ room, index, type }) {
     const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
     const month = date.toLocaleString('default', { month: 'long' }).slice(0, 3);
     const year = date.getFullYear();
-    const hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
+    const hours = date.getHours();
     const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+    const paddedHours = formattedHours < 10 ? '0' + formattedHours : formattedHours;
 
-    room.updatedAt = `${day} ${month} ${year} ${hours}:${minutes}`;
+    room.updatedAt = `${day} ${month} ${year} ${paddedHours}:${minutes} ${ampm}`;
     return room;
   });
   
@@ -22,19 +25,8 @@ function SelectRoom({ room, index, type }) {
         <td className='td-3'>{display.updatedAt}</td>
       </tr>
     );
-
-  //TODO grouped sorting
-  // } else if (type === 'grouped') {
-  //   return (
-  //     <tr className='list-item' onClick={() => { window.location.href = `/room/${display.room_id}` }}>
-  //       <td className='td-1'>{index}</td>
-  //       <td className='td-2'>{display.room_name}</td>
-  //       <td className='td-3'>{display.updatedAt}</td>
-  //     </tr>
-  //   );
-  // }
   } else {
-    return null;
+    return null
   }
 }
 

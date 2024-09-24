@@ -12,8 +12,8 @@ function Notepad({room, user, socket, editorUsers, cursorColor}) {
     const providerRef = useRef(null);
   
     useEffect(() => {
-        notepadRef.current ? notepadRef.current.destroy() : null;
-        providerRef.current ? providerRef.current.destroy() : null;
+        notepadRef.current ? notepadRef.current?.destroy() : null;
+        providerRef.current ? providerRef.current?.destroy() : null;
     
         async function init() {
             return new Promise((resolve) => {
@@ -67,6 +67,7 @@ function Notepad({room, user, socket, editorUsers, cursorColor}) {
                             }}
                         ]),
                         setup(),
+                        yCollab(ytext, providerRef.current.awareness),
                         EditorView.lineWrapping,
                         EditorView.updateListener.of(e => {
                             if (e.docChanged) {
@@ -89,7 +90,9 @@ function Notepad({room, user, socket, editorUsers, cursorColor}) {
       
 
         return () => {
-
+            providerRef.current ? providerRef.current?.destroy() : null;
+            notepadRef.current ? notepadRef.current?.destroy() : null;
+            socket.off('notepad_loaded');
         };
     }, [room, user, socket, cursorColor]);
 

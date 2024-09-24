@@ -180,7 +180,7 @@ function HistoryItem ({ item, file_type, contributions, options, index }) {
 
   return (
     <div className='history-item flex-column'>
-      <h4 className='single-line'>{createdAt}</h4>
+      <h4>{createdAt}</h4>
       <div className='body'>
           <div className={`history-content ${options === 'contributions' ? 'hidden' : ''}`}>
             <div id={`history-item-${index}`}  className='history-editor'>

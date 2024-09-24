@@ -13,13 +13,30 @@ export default class Activity {
         this.close_time = close_time;
     }
 
+    async updateInstructions(new_instructions) {
+        try {
+            const response = await api.post('/api/update-instructions', {
+                activity_id: this.activity_id,
+                instructions: new_instructions
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
     async updateDates(new_open_time, new_close_time) {
         try {
             const response = await api.post('/api/update-dates', {
                     activity_id: this.activity_id,
                     open_time: new_open_time,
                     close_time: new_close_time,
-                    // deadline: new Date(new_deadline)
             });
 
             const data = response.data;
@@ -44,7 +61,6 @@ export default class Activity {
             const data = response.data;
 
             if (data.status === 'ok') {
-                toast.success(data.message);
                 return true;
             }
         } catch (e) {

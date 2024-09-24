@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import pnc from '../../pamantasan.jpg'
-import full_logo from '../../full_logo.jpg'
-import pnc_logo from '../../pnc_logo.png'
+import pnc from '../../public/pamantasan.jpg'
+import full_logo from '../../public/full_logo.jpg'
+import ccs_logo from '../../public/ccs_logo.jfif'
 
 function Login() {
     const [ email, setEmail ] = useState('');
@@ -44,8 +44,8 @@ function Login() {
             </main>
             <main className='form-container items-center login'>
                 <form className='form-account login' onSubmit={ loginAccount }>
-                    <div className='items-center pnc-logo'>
-                        <img src={pnc_logo} alt='pnc-logo'/>
+                    <div className='items-center ccs-logo'>
+                        <img src={ccs_logo} alt='ccs_logo' />
                     </div>
                     <section className='head items-center login'>
                         <label>Log-in to </label><img src={full_logo} alt='full-logo'/>

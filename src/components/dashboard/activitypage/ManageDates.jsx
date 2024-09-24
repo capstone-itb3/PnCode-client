@@ -46,7 +46,6 @@ function ManageDates({activity, renderActivity}) {
 
         if (updated) {        
             await renderActivity();    
-
             toggleAccess(true);
         }
     }

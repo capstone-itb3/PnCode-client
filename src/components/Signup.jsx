@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import pnc from '../../pamantasan.jpg'
+import pnc from '../../public/pamantasan.jpg'
+import ccs_logo from '../../public/ccs_logo.jfif'
+import logo from '../../public/logo.jpg'
+
 
 function Signup() {
     const [ email, setEmail ] = useState('');
@@ -48,8 +51,14 @@ function Signup() {
             </main>
             <main className='form-container signup'>
                 <form className='form-account signup' onSubmit={ signupAccount }>
-                    <section className='head signup'>
-                        <label>Create an account</label>
+                    <section className='head items-center signup'>
+                        <div className='items-center'> 
+                            <img src={ccs_logo} alt='ccs-logo'/>
+                            <img src={logo} alt='logo'/>
+                        </div>
+                        <div className='items-center'>
+                            <span>Create</span> an account
+                        </div>
                     </section>
                     <div className='input-form'>
                         <div className='input-div'>                        

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BsXLg } from 'react-icons/bs';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { BsExclamationCircleFill } from 'react-icons/bs';
 
@@ -8,6 +9,7 @@ function CreateActivity({user, course, section, exit}) {
     const [instructions, setInstructions] = useState('');
     const [open_time, setOpenTime] = useState('07:00');
     const [close_time, setCloseTime] = useState('20:59');
+    const navigate = useNavigate();
         
     async function submitActivity(e) {
         e.preventDefault();
@@ -25,7 +27,11 @@ function CreateActivity({user, course, section, exit}) {
             return;
         } 
 
-        user.createActivity(course, section, activity_name, instructions, open_time, close_time);
+        const created = await user.createActivity(course, section, activity_name, instructions, open_time, close_time);
+
+        if (created) {
+            navigate(`/activity/${created}`);
+        }
     }
 
 

@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { BsXLg, BsExclamationCircleFill } from 'react-icons/bs';
+import { useNavigate } from 'react-router-dom';
 
 function CreateTeam({ teams, user, course, section, exit }) {
   const [team_name, setTeamName] = useState('');
+  const navigate = useNavigate();
   
   async function submitTeam(e) {
     e.preventDefault();
-    await user.createTeam(team_name, course, section);
+    const created = await user.createTeam(team_name, course, section);
+
+    if (created) {
+      navigate(`/team/${created}`);
+    }
   }
 
   return (

@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import pnc from '../../pamantasan.jpg'
+import pnc from '../../public/pamantasan.jpg'
+import full_logo from '../../public/full_logo.jpg'
+import ccs_logo from '../../public/ccs_logo.jfif'
+
 
 function ProfLogin() {
     const [ email, setEmail ] = useState('');
@@ -38,8 +41,12 @@ function ProfLogin() {
         <div id='login-signup'>
             <main className='form-container items-center login'>
                 <form className='form-account login' onSubmit={ loginAccount }>
-                    <section className='head login'>
-                        <label>Professor Log-in</label>
+                    <div className='items-center ccs-logo prof'>
+                        <img src={ccs_logo} alt='ccs_logo'/>
+                        <img src={full_logo} alt='full_logo'/>
+                    </div>
+                    <section className='head items-center login'>
+                        <label><span>Professor</span>Log-in</label>
                     </section>
                     <div className='input-form login'>
                         <div className='input-div'>

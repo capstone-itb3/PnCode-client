@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import { initSocket } from '../../socket';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BsBoxArrowInRight, BsXLg, BsCheck2, BsExclamationTriangleFill } from 'react-icons/bs';
+import { BsXLg, BsCheck2, BsExclamationTriangleFill } from 'react-icons/bs';
+import { VscDebugDisconnect } from 'react-icons/vsc';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
 import manageResizes from './utils/manageResizes';
@@ -38,7 +39,7 @@ function AssignedRoom() {
   
   const [leftDisplay, setLeftDisplay] = useState('files');
   const [rightDisplay, setRightDisplay] = useState('output');
-  const [editorTheme, setEditorTheme] = useState(user?.preferences.theme);
+  const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
   
   const [warning, setWarning] = useState(0);
   const [saved, setSaved] = useState(null);
@@ -257,7 +258,7 @@ function AssignedRoom() {
           }
           <div className='items-center'>
             <button className='room-header-options items-center' onClick={ leaveRoom }>
-              <BsBoxArrowInRight size={23} color={ '#f8f8f8' } /><span>Leave</span> 
+              <VscDebugDisconnect size={23} color={ '#f8f8f8' } /><span>Leave</span> 
             </button>
           </div>
       </div>

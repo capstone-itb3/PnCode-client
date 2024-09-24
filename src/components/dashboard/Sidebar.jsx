@@ -13,7 +13,7 @@ function Sidebar({ user, courses, setAddCourse, setSwitchView }) {
   }
 
   function showSelectedSection(course, section) {
-    navigate(`/dashboard/${course}/${section}/${select}`);
+    navigate(`/dashboard/${course}/${section}/${select ? select : 'all'}`);
   }
 
 
@@ -53,7 +53,7 @@ function Sidebar({ user, courses, setAddCourse, setSwitchView }) {
         })}
         {user.position === 'Student' &&
           <button className='sb-ops add-course items-center' onClick={() => setAddCourse(true)}>
-            <FiPlus size={18}/>ADD COURSE
+            <FiPlus size={18}/> JOIN COURSE
           </button>
         }
       </div>

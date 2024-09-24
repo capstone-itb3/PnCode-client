@@ -13,9 +13,6 @@ function StudentList({user, course_code, section}) {
     }, [course_code, section]);
 
     async function getStudents() {
-        setStudents([]);
-        setRequests([]);
-
         const info = await user.getCourseStudents(course_code, section, 'all');
         if (info) {
             setStudents(info.students);
@@ -24,9 +21,13 @@ function StudentList({user, course_code, section}) {
     }
 
     async function removeStudent(uid) {
-        const info = await user.removeStudent(course_code, section, uid);
-        if (info) {
-            getStudents();
+        const result = confirm('Are you sure you want to remove this student from this class?');
+
+        if (result) {
+            const info = await user.removeStudent(course_code, section, uid);
+            if (info) {
+                getStudents();
+            }
         }
     }
     async function acceptRequest(uid) {
@@ -58,9 +59,11 @@ function StudentList({user, course_code, section}) {
             {students && !switchView &&
                 <table className='student-list'>
                     <thead>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Action</th>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Action</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {students.map((student, index) => {
@@ -82,9 +85,11 @@ function StudentList({user, course_code, section}) {
             {requests && switchView &&
                 <table className='student-list'>
                     <thead>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Actions</th>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {requests.map((student, index) => {

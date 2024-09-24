@@ -1,4 +1,6 @@
 import toast from 'react-hot-toast'
+import api from '../api'
+import errorHandler from '../error'
 
 export class Room {
     constructor (room_id, room_name, owner_id) {
@@ -14,13 +16,28 @@ export class SoloRoom extends Room {
         super(room_id, room_name, owner_id);
         this.files = files;
     }
+
+    async deleteRoom() {
+        try {
+            const response = await api.post('/api/delete-room-solo/', {
+                room_id: this.room_id,
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                window.location.href = '/dashboard';
+            }
+        } catch (e) {
+            errorHandler(e);
+        }
+    }
 }
 
 export class AssignedRoom extends Room {
-    constructor (room_id, room_name, owner_id, activity_id, notes) {
+    constructor (room_id, room_name, owner_id, activity_id) {
         super(room_id, room_name, owner_id);
         this.activity_id = activity_id;
-        this.notes = notes        
     }
 
     async submitFeedback(socket, feedback, uid) {

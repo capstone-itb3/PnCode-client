@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import { initSocket } from '../../socket';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BsBoxArrowInRight, BsXLg } from 'react-icons/bs';
+import { BsXLg } from 'react-icons/bs';
+import { VscDebugDisconnect } from 'react-icons/vsc';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
 import manageResizes from './utils/manageResizes';
@@ -73,55 +74,50 @@ function AssignedRoom() {
       setAccess(info.access);
 
       document.title = info.activity.activity_name;
-    }
-    initRoom();
 
-  }, [room_id]);
-
-  useEffect(() => {
-    if (room && access) {
-      async function init() {
+      if (info.access) {
         socketRef.current = await initSocket();
-      
+        
         socketRef.current.emit('join_room', { 
           room_id, 
           user_id: user.uid,
           position: user.position
         })
-
+  
         socketRef.current.on('room_users_updated', ({ users }) => {
           setRoomUsers(users);
           setCursorColor(users.find((u) => u.user_id === user.uid)?.cursor);
         })
-
+  
         socketRef.current.on('found_file', ({ file }) => {
           setActiveFile(file);
         });
-
+  
         socketRef.current.on('update_token', ({ status, token }) => {
           if (status === 'ok') {
             Cookies.set('token', token);
           }
         });
-
-        if (room_files.length > 0) {
-          displayFile(room_files[0]);
+  
+        if (info.files.length > 0) {
+          displayFile(info.files[0]);
         }
-      }
-      init();
-
-    
-      return () => {
-        if (socketRef.current) {
-          socketRef.current.off('found_file');
-          socketRef.current.off('room_users_updated');
-          socketRef.current.off('editor_users_updated');  
-          socketRef.current.off('update_token');
-          socketRef.current.disconnect();
-        }
+      } else {
+        windows.location.href = '/error/404';
       }
     }
-  }, [access, room]);
+    initRoom();
+    
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('found_file');
+        socketRef.current.off('room_users_updated');
+        socketRef.current.off('editor_users_updated');  
+        socketRef.current.off('update_token');
+        socketRef.current.disconnect();
+      }
+    }
+  }, [room_id]);
 
   useEffect(() => {
     manageResizes(leftDisplay, rightDisplay);
@@ -262,7 +258,7 @@ function AssignedRoom() {
           }
           <div className='items-center'>
             <button className='room-header-options items-center' onClick={ leaveRoom }>
-              <BsBoxArrowInRight size={23} color={ '#f8f8f8' } /><span>Leave</span> 
+              <VscDebugDisconnect size={23} color={ '#f8f8f8' } /><span>Leave</span> 
             </button>
           </div>
       </div>

@@ -9,8 +9,10 @@ body {
     /*Color*/
     --base-dark: rgb(158, 63, 0);
     --base: rgb(255, 102, 0);
+    --base-light: rgb(255, 189, 68);
     --base-blue: rgb(26, 122, 247);
-    --base-light: rgba(250, 190, 79, 0.8);
+    --base-blue-light: rgb(128, 189, 255) ;
+    /* rgb(194, 241, 253) */
     --dark: rgb(25, 25, 25);
 
     /*Text*/
@@ -333,19 +335,34 @@ input:checked + .slider:before {
     border-bottom: 1px var(--gray) solid;
 }
 
-.form-account .pnc-logo {
+.form-account .head span{
+    margin-right: 5px;
+    color: var(--base);
+}
+
+.form-account .ccs-logo {
     justify-content: center;
     width: 100%;
 }
 
-.form-account .pnc-logo img {
+.form-account .ccs-logo img {
     height: 60px;
+}
+.form-account .ccs-logo.prof img {
+    height: 35px;
+    margin: 0 0 30px 5px;
 }
 
 .form-account .head img {
     height: 40px; 
-    margin-left: 8px;
     width: auto
+}
+
+.form-account .head.login img {
+    margin-left: 8px;
+}
+.form-account .head.signup img {
+    margin-right: 8px;
 }
 
 .form-account .head.signup{
@@ -423,14 +440,19 @@ header {
     height: 60px;
     min-width: 300px;
     border-bottom: 1px var(--gray) solid;
+    padding: 0px 20px;
 }
 
 #header-url label{
-    padding: 0px 50px 0px 40px;
     font-family: 'Arial';
     color: var(--gray);
     font-size: 25px;
     font-weight: bold;
+}
+
+#header-url img {
+    height: 40px;
+    margin-right: 8px;
 }
 
 #header-url a {
@@ -441,31 +463,32 @@ header {
     color: var(--base);
 }
 
-.left-nav {
-    display: flex;
-    align-items: center;
-}
-
 .top-profile {
-    padding: 0px 24px;
     font-weight: bold;
     color: var(--gray);
     align-items: center;
     font-size: 16px;
 }
 
-.right-nav {
-    display: flex;
-    padding-right: 30px;
-    align-items: center;
-}
-
 .right-nav button {
     background-color: transparent;
     border: 0;
     color: var(--gray);
+    padding-left: 30px;
 }
 
+#signout-btn {
+    position: absolute;
+    top: 50px;
+    right: 15px;
+    padding: 8px 20px 8px 30px;
+    font-size: 16px;
+    background-color: white;
+    box-shadow: 0 0 2px var(--gray-dark);
+}
+#signout-btn:hover {
+    background-color: var(--near-white);
+}
 
 /*?  SIDEBAR  ?*/
 
@@ -591,7 +614,7 @@ header {
 .content-header button {
     background-color: transparent;
     border: 0;
-    color: var(--gray);
+    color: var(--gray-dark);
     font-weight: bold;
     font-size: 17px;
     padding: 6px 24px;
@@ -717,7 +740,7 @@ header {
 
 .solo-table {
     border-collapse: collapse;
-    width: 70%;
+    width: calc(90% - 10px);
     margin: 20px 0 0 25px;  
     font-size: 15px;
 }
@@ -779,7 +802,7 @@ header {
     border-radius: 0 10px 10px 0;
 }
 
-.student-list-button .reload-btn {
+.reload-btn {
     border: 0;
     border-radius: 50%;
     height: 35px;
@@ -790,11 +813,11 @@ header {
     justify-content: center;
     margin-left: 10px;
 }
-.student-list-button .reload-btn * {
+.reload-btn * {
     cursor: pointer
 }
 
-.student-list-button .reload-btn:hover {
+.reload-btn:hover {
     background-color: var(--gray-light);
 }
 
@@ -820,7 +843,7 @@ header {
     border: var(--gray-light) 2px solid;
 }
 
-.student-list tr {
+.student-list tbody tr {
     border-top: 0;
     color: var(--gray-dark);
 }
@@ -829,13 +852,14 @@ header {
     padding: 15px 5px 15px 20px;
 }
 
-.student-list tr:nth-child(odd) {
+.student-list tbody tr:nth-child(odd) {
     background-color: var(--base-light);
 }
 
 .tbl-btn {
     width: 15%;
     min-width: 70px;
+    padding-left: 20px;
 }
 
 /* CREATE TEAM AND ACTIVITY POP UP */
@@ -1027,14 +1051,13 @@ header {
 
 
 .activity-box {
+    width: 100%;
+    margin: 0 0 15px 10px;
     position: relative;
-    width: calc(90% - 10px);
-    max-width: 800px;
-    margin: 0 0 15px 25px;
     color: var(--gray-dark);
-    border-radius: 15px;
     cursor: pointer;
-    box-shadow: 0 0 10px 0 var(--gray);
+    border: 2px var(--gray-light) solid;
+    box-shadow: 0 0 3px var(--gray-dark);
     transition: .2s ease;
 }
 .activity-box:hover {
@@ -1046,14 +1069,13 @@ header {
     display: flex;
     justify-content: space-between;
     background-color: var(--base);
-    padding: 5px 15px;
+    padding: 8px 15px;
     color: #fff;
     top: 0;
     left: 0;
     right: 0;
     font-size: 25px;
     font-weight: bold;
-    border-radius: 15px 15px 0 0;
     padding-bottom: 10px;
     margin-bottom: 15px; 
 }
@@ -1164,6 +1186,7 @@ header {
     background-color: rgba(224, 224, 224, 0.2);
     text-align: left;
     transition: .2s ease;    
+    color: var(--gray-dark);
 }
 .assigned-item:not(.empty) * {
     cursor: pointer;
@@ -1175,12 +1198,7 @@ header {
 
 .assigned-item .col-1{
     padding: 15px 0 15px 20px;
-    color: var(--gray);
     min-width: 40px;
-}
-
-.assigned-item .col-2 {
-    color: var(--gray);
 }
 
 .assigned-item .col-2 label {
@@ -1190,7 +1208,6 @@ header {
 
 .assigned-item .col-2 span {
     font-weight: normal;
-    color: var(--gray);
 }
 
 .add-member-search {
@@ -1265,7 +1282,16 @@ header {
     box-shadow:  0 0 5px var(--gray-light);
     border-radius: 10px;
     background-color: var(--gray-light);
-    
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+#activity-container textarea.instructions {
+    margin-top: 5px;
+    max-height: unset;
+    max-width: 100%;
+    height: 150px;
+    background-color: var(--near-white);
 }
 
 
@@ -2150,7 +2176,7 @@ header {
 .history-item .body {
     border: 2px solid var(--gray-dark);
     border-top: 0;
-    background-color:  rgb(194, 241, 253);
+    background-color:  var(--base-blue-light);
 }
 
 .history-item .hidden {
@@ -2281,7 +2307,7 @@ header {
         min-width: unset !important;
     }
 
-    .form-container .head.login {
+    .form-container .head {
         flex-direction: column;
     }
 

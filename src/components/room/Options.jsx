@@ -64,6 +64,13 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
         option.classList.toggle('hidden');
     }
 
+    async function deleteSoloRoom() {
+        const result = confirm('Are you sure you want to delete this room?');
+        if (result) {
+            await room?.deleteRoom();
+        }
+    }
+
     return (
         <>
             {type === 'assigned' && user.position === 'Student' &&
@@ -136,7 +143,7 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
                 </div>
             </div>
             {type === 'solo' &&
-                <button className='room-header-options'>
+                <button className='room-header-options' onClick={() => deleteSoloRoom()}>
                     Delete Room
                 </button>
             }

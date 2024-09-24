@@ -6,6 +6,7 @@ import Cookies from 'js-cookie';
 import Header from '../Header';
 import { getToken, getClass } from '../../validator';
 import ManageDates from './ManageDates';
+import { MdLoop } from 'react-icons/md';
 
 function PageActivity() {
     const { activity_id } = useParams();
@@ -26,7 +27,9 @@ function PageActivity() {
 
     async function renderActivity () {
         const act_info = await professor.getActivityDetails(activity_id);
+
         setActivity(act_info.activity_class);
+        setInstructions(act_info.activity_class.instructions);
         setRoomList(act_info.rooms);
 
         document.title = `Activity · ${act_info.activity_class.activity_name}`;
@@ -35,6 +38,32 @@ function PageActivity() {
     async function spectateRoom (room_id) {
         navigate(`/room/${room_id}`);
     }
+
+    function toggleInstructions() {
+        setShowInstructionInputs(!showInstructionInputs);
+
+        const edit = document.getElementById('edit-instructions');
+
+        if (showInstructionInputs === false) {
+            edit.textContent = 'Cancel';
+            edit.classList.value = 'cancel-btn'
+        } else {
+            edit.textContent = 'Edit Instructions';
+            edit.classList.value = 'create-btn'
+        }
+
+    }
+
+    async function updateInstructions () {
+        const result = await activity.updateInstructions(instructions);
+        if (result) {
+            toast.success('Instructions saved.');
+            toggleInstructions();
+            await renderActivity();
+        }
+    }
+
+
 
     async function deleteActivity () {
         const result1 = confirm('Are you sure you want to delete this activity?');
@@ -59,7 +88,12 @@ function PageActivity() {
             <div id='activity-main'> 
                 <div id='activity-container' className='flex-column'>
                     <div id='activity-header'>
-                        <h2>{activity.activity_name}</h2>
+                        <div className='flex-row items-center'>
+                            <h2>{activity.activity_name}</h2>
+                            <button className='reload-btn items-center' onClick={renderActivity}>
+                                <MdLoop size={24} />
+                            </button>
+                        </div>
                         <div className='two-column-grid'>
                             <label>Course: <b>{activity.course_code}</b></label>
                             <label>Section: <b>{activity.section}</b></label>
@@ -67,12 +101,25 @@ function PageActivity() {
                     </div>
                     <div className='flex-column'>
                     <h3>Instructions</h3>
+                    {!showInstructionInputs &&
                         <p className='instructions'>{activity.instructions}</p>
+                    }
+                    {showInstructionInputs &&
+                        <textarea   
+                            className='instructions'
+                            value={instructions} 
+                            onChange={(e) => setInstructions(e.target.value)}/>
+                    }
                         <div>
-                        {showInstructionInputs &&
-                            <button className='create-btn' onClick={updateDates}>Save</button>
-                        }
-                        {/* <button id='edit-deadline' className='create-btn' onClick={() => toggleDeadline(showDeadlineInputs)}>Edit Instru</button> */}
+                            {showInstructionInputs &&
+                                <button className='create-btn' onClick={updateInstructions}>Save</button>
+                            }
+                            <button 
+                                id='edit-instructions' 
+                                className='create-btn' 
+                                onClick={() => toggleInstructions()}>
+                                Edit Instructions
+                            </button>
                         </div>
                     </div>
                     <div id='activity-room-list'>

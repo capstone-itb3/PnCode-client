@@ -45,15 +45,10 @@ export default class Team {
 
             if (data.status === 'ok') {
                 toast.success(data.message);
-            } else {
-                toast.error(data.message);
-                console.log(data.message);
             }
 
-        } catch(e) {
-            toast.error('Error. Removing student from team failed.');
-            console.log(e);
-
+        } catch (e) {
+            errorHandler(e);
         }
     }
 
@@ -68,17 +63,11 @@ export default class Team {
             const data = response.data;
 
             if (data.status === 'ok') {
-                toast.success(data.message);
                 return true;
-            } else {
-                toast.error(data.message);
-                console.log(data.message);
-                return false;
             }
         } catch (e) {
-            toast.error('Error. Deleting team failed.');
-            console.log(e);
-            return false;
+            errorHandler(e);
+            return null;
         }
     }
 }

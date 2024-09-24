@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsListUl } from 'react-icons/bs';
+import toast from 'react-hot-toast';
 import Sidebar from './Sidebar';
 import SelectRoom from './SelectRoom';
 import SelectTeam from './SelectTeam';
 import SelectActivity from './SelectActivity';
 import CreateTeam from './CreateTeam';
 import AddCourse from './AddCourse';
-import { getToken, getClass } from '../validator';
+import { getClass } from '../validator';
 
-function BoardStudent({ auth }) {
+function BoardStudent({ auth, header_name }) {
     const [student, setStudent ] = useState(getClass(auth, 'Student'));
     const { course, section, select } = useParams();
     const [course_info, setCourseInfo] = useState({ 
@@ -18,6 +19,7 @@ function BoardStudent({ auth }) {
         section: null,
         professor: null
     });
+    const [course_list, setCourseList] = useState([]);
     const [list_teams, setListTeams] = useState([]);
     const [list_activities, setListActivities] = useState([]);
     const [list_solo, setListSolo] = useState([]);
@@ -29,8 +31,8 @@ function BoardStudent({ auth }) {
     const [solo_count, setSoloCount] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [addCourse, setAddCourse] = useState(false);
+    const [noCourse, setNoCourse] = useState(false);
     const navigate = useNavigate();
-    const [courses, setCourses] = useState([]);
 
     useEffect(() => {
         async function init() {
@@ -40,7 +42,8 @@ function BoardStudent({ auth }) {
             if (course_data[0] && !course_data.some(c => c.course_code === course && c.section === section)) {
                 navigate(`/dashboard/${course_data[0].course_code}/${course_data[0].section}/${select ? select : 'all'}`);
             }
-            setCourses(course_data);
+            setCourseList(course_data);
+            displayInformation(course_data);
           
             setListSolo(rooms);
             setLoadingSolo(false);
@@ -50,33 +53,37 @@ function BoardStudent({ auth }) {
     }, []);
 
     useEffect(() => {
+        if (course_list.length  > 0) {
+            displayInformation(course_list);
+        }
+    }, [course, section])
+
+    async function displayInformation(courses = []) {
         setLoadingTeams(true);
         setLoadingActivities(true);
 
-        if (courses) {
-            async function init() {
-                const info = courses.find((c) => c?.course_code === course && c?.section === section);
-    
-                if (info) {    
-                    setCourseInfo({
-                        course_code: course,
-                        course_title: info.course_title,
-                        section: info.section,
-                    })    
+        if (courses.length > 0) {
+            const info = courses.find((c) => c?.course_code === course && c?.section === section);
+            if (info) {    
+                setCourseInfo({
+                    course_code: course,
+                    course_title: info.course_title,
+                    section: info.section,
+                    professor: info.professor
+                })    
 
-                    displayTeams(await student.getTeams(course, section));
-                    displayActivities(await student.getActivities(course, section));    
+                displayTeams(await student.getTeams(course, section));
+                displayActivities(await student.getActivities(course, section));    
                 
-                } else if (!info && courses.length > 0) {
-                    navigate(`/dashboard/${courses[0].course_code}/${courses[0].section}/${select ? select : 'all'}`);   
-                
-                } else if (!info && courses.length === 0) {
-                    navigate(`/dashboard`)
-                }
+                header_name = `${course} / ${section}`;
+            } else {
+                navigate(`/dashboard/${courses[0].course_code}/${courses[0].section}/${select ? select : 'all'}`);   
             }
-            init();
+        } else {
+            setNoCourse(true);
+            navigate('/dashboard');
         }
-    }, [course, courses]);
+    };
     
     function displayTeams (teams = []) {
         setListTeams(teams);
@@ -109,7 +116,7 @@ function BoardStudent({ auth }) {
 
     return (
         <main id='dashboard-main'>
-                <Sidebar user={student} courses={courses} setAddCourse={setAddCourse} />
+                <Sidebar user={student} courses={course_list} setAddCourse={setAddCourse} />
             <section className='dash-section flex-column'>
                 <button id='dash-burger' className='items-center' onClick={ showSidebar }><BsListUl size={ 30 }/></button>
                 <div className='display-content flex-column'>
@@ -147,9 +154,9 @@ function BoardStudent({ auth }) {
                             </div>
                         </>
                     } 
-                    {!(course && section) &&
+                    {noCourse &&
                         <div className='no-course'>
-                            <label>No course yet? Click 'Add Course' on the sidebar.</label>
+                            <label>No course yet? Click '+ Join Course' on the sidebar.</label>
                         </div>
                     }
 
@@ -232,7 +239,7 @@ function ActivityBoard({activities, student, course, section}) {
                 </div> 
         );
     } else {
-        return (<div id='activity-selection' className='flex-column'>
+        return (<div id='activity-selection' className='flex-column items-center'>
                     {activities.map((activity, index) => (
                         <SelectActivity 
                             key={activity.activity_id}  

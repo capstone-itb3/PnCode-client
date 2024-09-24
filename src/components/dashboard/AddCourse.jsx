@@ -26,7 +26,7 @@ function AddCourse({user, exit}) {
             <BsXLg size={ 18 }/>
           </div>
           <form autoComplete='off' onSubmit={(e) => requestCourse(e)}>
-            <h3 className='head'>Add Your Course</h3>
+            <h3 className='head'>Join A Course</h3>
             <div className='flex-row two-column-grid'>
               <div className='flex-column'>
                 <h4>Course Code</h4>
@@ -41,24 +41,21 @@ function AddCourse({user, exit}) {
               </div>
               <div className='flex-column'>
               <h4>Section</h4>
-              <input 
-                className='input-data'
-                type='text'
-                value={section}
-                placeholder='Section'
-                onChange={(e) => setSection(e.target.value)}
-                required
-              />
-            </div>
-            </div>
-            <div className='flex-column'>
-              <label>You can add your members after team creation.</label>
+                <input 
+                  className='input-data'
+                  type='text'
+                  value={section}
+                  placeholder='Section'
+                  onChange={(e) => setSection(e.target.value)}
+                  required
+                />
+              </div>
             </div>
             <div className='flex-row footer'>
               <input 
                 type='submit' 
                 id='popup-submit' 
-                value='Create Team' 
+                value='Join Course' 
               />
               <input type='button' id='popup-cancel' value='Cancel' onClick={exit}/>
             </div>
