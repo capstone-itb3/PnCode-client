@@ -11,6 +11,24 @@ export default class Team {
         this.members = members;
     }
 
+    async updateTeamName(team_name) {
+        try {
+            const response = await api.post('/api/update-team-name', {
+                team_id: this.team_id,
+                team_name: team_name,
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
     async addMember(student) {
         try {
             const response = await api.post('/api/add-member', {

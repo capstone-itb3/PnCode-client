@@ -25,10 +25,14 @@ function AssignedRoom() {
   const [user, setUser] = useState(getClass(auth, auth.position));
   const [room, setRoom] = useState(null);
   const [room_files,  setRoomFiles] = useState([]);
-  const [activity, setActivity] = useState(null);
   const [members, setMembers] = useState ([]);
   const [access, setAccess] = useState(null);
   
+  const [activity, setActivity] = useState(null);
+  const [instructions, setInstructions] = useState(null);
+  const [open_time, setOpenTime] = useState(null);
+  const [close_time, setCloseTime] = useState(null);
+
   const [activeFile, setActiveFile] = useState(null);
   const [cursorColor, setCursorColor] = useState(null);
 
@@ -41,7 +45,7 @@ function AssignedRoom() {
   const [rightDisplay, setRightDisplay] = useState('output');
   const [addNewFile, setAddNewFile] = useState(false);
   const [deleteFile, setDeleteFile] = useState(false);
-  const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') ? Cookies.get('theme') : 'dark');
+  const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
   
   useEffect(() => {    
     // setRoom(null);
@@ -69,9 +73,13 @@ function AssignedRoom() {
       const info = await user.getAssignedRoomDetails(room_id);
       setRoom(info.room);
       setRoomFiles(info.files);
-      setActivity(info.activity);
       setMembers(info.members);
       setAccess(info.access);
+
+      setActivity(info.activity);
+      setInstructions(info.activity.instructions);
+      setOpenTime(info.activity.open_time);
+      setCloseTime(info.activity.close_time);
 
       document.title = info.activity.activity_name;
 
@@ -92,13 +100,7 @@ function AssignedRoom() {
         socketRef.current.on('found_file', ({ file }) => {
           setActiveFile(file);
         });
-  
-        socketRef.current.on('update_token', ({ status, token }) => {
-          if (status === 'ok') {
-            Cookies.set('token', token);
-          }
-        });
-  
+    
         if (info.files.length > 0) {
           displayFile(info.files[0]);
         }
@@ -313,13 +315,17 @@ function AssignedRoom() {
           </aside>
           <div className='flex-column' id='center-body'>
             <Instructions 
-              instructions={activity.instructions} />
+              instructions={instructions} 
+              setInstructions={setInstructions}
+              socket={socketRef.current}/>
             <div className='flex-row' id='editor-section'>
               <EditorTab 
                 room={room}
                 user={user}
                 cursorColor={cursorColor}
                 socket={socketRef.current}
+                open_time={open_time}
+                close_time={close_time}
                 activeFile={activeFile}
                 editorUsers={editorUsers}
                 setEditorUsers={setEditorUsers}

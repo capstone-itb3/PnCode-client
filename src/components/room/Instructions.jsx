@@ -1,8 +1,21 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { BsFillTriangleFill } from "react-icons/bs";
+import toast from 'react-hot-toast';
 
-function Instructions({instructions}) {
-    
+function Instructions({instructions, setInstructions, socket}) {
+    useEffect(() => {
+        socket.on('instructions_updated', ({ new_instructions }) => {
+            setInstructions(new_instructions);
+            toast.success('Instructions has been updated.');
+        });
+
+        return () => {
+            socket.off('update_instructions');
+        }
+    }, []);
+
+
+
     function toggleInstructions() {
         const instruc = document.getElementById('instructions-container');
         instruc.classList.toggle('opened');

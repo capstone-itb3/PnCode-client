@@ -14,19 +14,6 @@ function CreateActivity({user, course, section, exit}) {
     async function submitActivity(e) {
         e.preventDefault();
 
-        const timeToMinutes = (timeString) => {
-            const [hours, minutes] = timeString.split(':').map(Number);
-            return hours * 60 + minutes;
-        };
-
-        const openMinutes = timeToMinutes(open_time);
-        const closeMinutes = timeToMinutes(close_time);
-    
-        if (closeMinutes <= openMinutes) {
-            toast.error('Close time must be later than open time.');
-            return;
-        } 
-
         const created = await user.createActivity(course, section, activity_name, instructions, open_time, close_time);
 
         if (created) {

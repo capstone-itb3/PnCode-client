@@ -69,14 +69,6 @@ function AssignedRoom() {
     async function init() {
       socketRef.current = await initSocket();
     
-      socketRef.current.on('update_token', ({ status, token }) => {
-        if (status === 'ok') {
-          Cookies.set('token', token);
-        } else {
-          // toast.error();
-        }
-      });
-
       socketRef.current.on('update_result_solo', ({ status }) => {
         if (status === 'ok') {
           setSaved( <label className='items-center' id='saved'>

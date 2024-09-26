@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom';
 import { BsCheck2, BsExclamationTriangleFill } from 'react-icons/bs';
 import * as Y from 'yjs'
@@ -17,14 +17,20 @@ import { clouds } from 'thememirror'
 import jsLint from './utils/JSesLint'
 import _ from 'lodash'
 
-function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEditorUsers, editorTheme, setWarning}) {
+function Editor({ user, cursorColor, file, socket, open_time, close_time, setSaved, editorUsers, setEditorUsers, editorTheme, setWarning}) {
   const { room_id } = useParams();
   const editorRef = useRef(null);
   const providerRef = useRef(null);
-  const compartmentRef = useRef(new Compartment());
+  const openTimeRef = useRef(open_time);
+  const closeTimeRef = useRef(close_time);
+  const themeCompartmentRef = useRef(new Compartment());
+  const readOnlyCompartmentRef = useRef(new Compartment());
+  const inSameLineRef = useRef(false);
+
   let storeInHistory = false;
 
   const editorListener = (event) => {
+
     const isModifierKey = event.altKey || event.ctrlKey || event.metaKey;
     const isNavigationKey = event.key.startsWith('Arrow') || event.key === 'Home' || event.key === 'End' || event.key === 'PageUp' || event.key === 'PageDown';
     const isFunctionKey = event.key.startsWith('F') && event.key.length > 1;
@@ -32,17 +38,46 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
     
     if (!isModifierKey && !isNavigationKey && !isFunctionKey && (event.key.length === 1 || isEditingKey)) {
       if (user?.position === 'Student') {
-        debounceUserType(user.uid);
+        const timeframe = checkAccessDates(openTimeRef.current, closeTimeRef.current);
+        // console.log(checkAccessDates(openTimeRef.current, closeTimeRef.current));
+        // console.log(openTimeRef.current, closeTimeRef.current);
+        // console.log(new Date().toTimeString());
+
+        if (!inSameLineRef.current) {
+          editorRef.current?.dispatch({
+            effects: readOnlyCompartmentRef.current.reconfigure([
+              EditorState.readOnly.of(!timeframe)
+            ])
+          });
+        } else {
+          editorRef.current?.dispatch({
+            effects: readOnlyCompartmentRef.current.reconfigure([
+              EditorState.readOnly.of(true)
+            ])
+          });          
+        }
+        if (timeframe === false) {
+          setWarning(2);
+          return;
+
+        } else {
+          setWarning(0);
+          debounceUserType(user.uid);
+        }
       }
     }
   };
 
   const debounceUserType = _.debounce((editing_user_id) => {
+    if (editorRef.current) {
       socket.emit('add_edit_count', {
         file_id: file.file_id,
         user_id: editing_user_id,
       });
-      console.log('debounced');
+
+      // console.log(editorRef.current.state.doc.toString());
+      updateCode(editorRef.current);
+    }
   }, 500);
 
   useEffect(() => {
@@ -79,6 +114,8 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
         name: user.last_name + ', ' + user.first_name,
         color: cursorColor.color,
         light: cursorColor.light,
+        line: 0,
+        position: user.position,
       });
     
       const type = () => {
@@ -88,14 +125,18 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
       }
       const theme = editorTheme === 'dark' ? oneDark : clouds;
       
-      const setup = () => {
+      const access = () => {
         if (user?.position === 'Student') {
-          return [basicSetup]
-        }else if (user?.position === 'Professor') {
-          return [basicSetup, EditorState.readOnly.of(true)];
-        }
+          return EditorState.readOnly.of(!checkAccessDates(openTimeRef.current, closeTimeRef.current));
+        } else if (user?.position === 'Professor') {
+          return EditorState.readOnly.of(true);
+        }          
       }
 
+      if (checkAccessDates(openTimeRef.current, closeTimeRef.current) === false) {
+        setWarning(2);
+      }
+      
       providerRef.current.on('synced', () => {
         const ytext = ydoc.getText('codemirror');
         let initialContent = ytext.toString();
@@ -106,22 +147,16 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
           initialContent = file.content;
         }
         
-
-
         const state = EditorState.create({
           doc: initialContent,
           extensions: [
             keymap.of([...yUndoManagerKeymap, indentWithTab]),
-            setup(),
             type(),
-            compartmentRef.current.of([theme]),
+            basicSetup,
+            readOnlyCompartmentRef.current.of([access()]),
+            themeCompartmentRef.current.of([theme]),
             yCollab(ytext, providerRef.current.awareness),
             lintGutter(),
-            EditorView.updateListener.of(e => {
-              if (e.docChanged) {
-                updateCode(e);
-              }
-            }),
             EditorView.theme({
               '.cm-ySelectionInfo': {
                 top: '-6px !important',
@@ -129,6 +164,9 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
                 opacity: '1 !important',
                 padding: '2px !important',
                 transition: 'none !important'
+              },
+              '.cm-line': {
+                position: 'relative'
               }
             }),
           ]
@@ -139,10 +177,51 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
         
         editorRef.current = new EditorView({ state, parent: (editor_div) });
         editor_div.addEventListener('keydown', editorListener);
+
+        providerRef.current.awareness.on('change', ({ added, removed, updated }) => {  
+          const local_line = editorRef.current?.state?.doc.lineAt(editorRef.current?.state?.selection?.main?.head)?.number;
+
+          let allOtherUsers = Array.from(providerRef.current.awareness.getStates().values())
+                                    .map(state => state.user)
+
+          allOtherUsers = allOtherUsers.filter((u) => {
+            const notUndefined = u !== undefined;
+            const notMe = u?.userId !== user.uid;
+            const notLineOne = Number(u?.line) > 1;
+            const isStudent = u?.position === 'Student';
+
+            return notUndefined && notMe && notLineOne && isStudent;
+          });
+          
+          let hasSameLine = false;
+
+          for (let i = 0; i < allOtherUsers.length; i++) {
+            if (allOtherUsers[i].line.toString() === local_line.toString()) {
+              hasSameLine = true;
+              break;
+            }
+          }
+
+          if (hasSameLine) {
+            providerRef.current.awareness.setLocalStateField('user', {
+              ...providerRef.current.awareness.getLocalState().user,
+              line: 0,
+            });  
+            
+            inSameLineRef.current = true;
+            
+          } else {
+            providerRef.current.awareness.setLocalStateField('user', {
+              ...providerRef.current.awareness.getLocalState().user,
+              line: local_line,
+            });  
+
+            inSameLineRef.current = false;
+          }
+        });
       });
     });
     
-
     socket.on('update_result', ({ status }) => {
       if (status === 'ok') {
         setSaved( <label className='items-center' id='saved'>
@@ -156,7 +235,24 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
                 );
       }
     });
-  
+
+    socket.on('dates_updated', ({ new_open_time, new_close_time }) => {
+      openTimeRef.current = new_open_time;
+      closeTimeRef.current = new_close_time;
+
+      if (editorRef.current && user.position === 'Student') {
+        editorRef.current.dispatch({
+          effects: readOnlyCompartmentRef.current.reconfigure([
+              EditorState.readOnly.of(!checkAccessDates(new_open_time, new_close_time))
+            ])
+        });
+      }
+
+      console.log('dates_updated', new_open_time, new_close_time);
+      
+    });
+
+
     return () => {
       document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
       socket.off('editor_users_updated');
@@ -178,26 +274,30 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
     if (editorRef.current) {
       const theme = editorTheme === 'dark' ? oneDark : clouds;
       editorRef.current.dispatch({
-        effects: compartmentRef.current.reconfigure([theme])
+        effects: themeCompartmentRef.current.reconfigure([theme])
       });
     }
   }, [editorTheme]);
       
   useEffect(() => {
+    if (editorRef.current) {
+      storeInHistory = true;
+    }
+    
     const interval = setInterval(() => {
       storeInHistory = true;
-    }, 360000);
+    }, 30000);
 
     return () => {
       clearInterval(interval);
     }
-  }, [file])
+  }, [file, editorRef.current]);
 
-  const updateCode = (e) => {
-
+  function updateCode (e) {
     let line_number = 1;
     if (e.state && e.state.selection) {
       line_number = e.state.doc.lineAt(e.state.selection.main.head).number;
+      console.log(line_number);
     }
 
     let isEmpty = e.state.doc.toString() === '' && e.state.doc === null;
@@ -221,6 +321,19 @@ function Editor({ user, cursorColor, file, socket, setSaved, editorUsers, setEdi
     }
   }
 
+  function checkAccessDates(open_time, close_time) {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+  
+    const [openHours, openMinutes] = open_time.split(':').map(Number);
+    const [closeHours, closeMinutes] = close_time.split(':').map(Number);
+  
+    const openTimeMinutes = openHours * 60 + openMinutes;
+    const closeTimeMinutes = closeHours * 60 + closeMinutes;
+  
+    return currentTime >= openTimeMinutes && currentTime <= closeTimeMinutes;
+  }
+  
   return (
     <>
       <div id='editor-div'>

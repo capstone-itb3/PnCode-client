@@ -961,7 +961,6 @@ header {
 
 .team-box, .team-plus {
     position:relative;
-    height: 190px;
     width: 150px;
     overflow: hidden;
     padding: 15px;
@@ -971,6 +970,14 @@ header {
     cursor: pointer;
     flex: 0 0 auto;
     transition: all 0.2s;
+}
+
+.team-box {
+    height: auto;
+}
+
+.team-plus {
+    height: 190px;
 }
 
 .team-box:hover, .team-plus:hover {
@@ -1029,6 +1036,8 @@ header {
     padding-top: 5px;
     color: var(--gray-dark);
     cursor: pointer;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .team-box .members {
@@ -1134,6 +1143,14 @@ header {
     padding-bottom: 5px;
     font-weight: normal;
 }
+
+.page-name-input {
+    font-size: 20px !important;
+    padding: 5px;
+    border: 0;
+    border-bottom: var(--gray) 1px solid;
+}
+
 
 .two-column-grid {
     display: grid;
@@ -1723,12 +1740,12 @@ header {
 }
 
 .file-name-container #file-warning {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--warn-color);
 }
 
 .file-name-container #save-status {
-    font-size: 12px;
+    font-size: 13px;
 }
 .file-name-container #save-status span, .file-name-container #file-warning span, .room-header-options span{
     margin-left: 5px;
@@ -1754,6 +1771,14 @@ header {
 }
 #editor-div::-webkit-scrollbar-thumb {
     background: var(--base); 
+}
+
+.no-pointer *{
+    pointer-events: none !important;
+}
+.no-pointer {
+    pointer-events: none !important;
+    background-color: green !important;
 }
 
 #right-body {
