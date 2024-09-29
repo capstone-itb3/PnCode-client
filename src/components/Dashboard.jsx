@@ -7,7 +7,7 @@ import { getToken } from './validator';
 
 function Dashboard() {
     const [auth, getAuth] = useState(getToken(Cookies.get('token')));
-    const headerNameRef = useRef(null)
+    const [headerName, setHeaderName] = useState(null);
 
 
     useEffect(() => {
@@ -16,13 +16,13 @@ function Dashboard() {
    
     return (
         <>
-            <Header auth={auth} base={'Dashboard'} name={headerNameRef.current} />
+            <Header auth={auth} base={'Dashboard'} name={headerName} />
             {
                 ( auth.position === 'Student' &&
-                <BoardStudent auth={auth} header_name={headerNameRef.current}/> ) 
+                <BoardStudent auth={auth} setHeaderName={setHeaderName}/> ) 
                 ||
                 ( auth.position === 'Professor' &&
-                <BoardProfessor auth={auth} header_name={headerNameRef.current}/> )
+                <BoardProfessor auth={auth} setHeaderName={setHeaderName}/> )
             }
         </>
     );

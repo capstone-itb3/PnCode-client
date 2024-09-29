@@ -11,7 +11,7 @@ import CreateActivity from './CreateActivity';
 import StudentList from './StudentList';
 import { getClass } from '../validator'
 
-function BoardProfessor({ auth, header_name }) {
+function BoardProfessor({ auth, setHeaderName }) {
     const [professor, setProfessor] = useState(getClass(auth, 'Professor'));
     const { course, section, select } = useParams();
     const [course_info, setCourseInfo] = useState({ 
@@ -79,7 +79,7 @@ function BoardProfessor({ auth, header_name }) {
                 displayTeams(await professor.getTeams(course, section));
                 displayActivities(await professor.getActivities(course, section));    
 
-                header_name = `${course} / ${section}`;
+                setHeaderName(<>{course}<label> / </label>{section}</>);
             } else {
                 navigate(`/dashboard/${courses[0].course_code}/${courses[0].section}/${select ? select : 'all'}`);   
             }
@@ -124,7 +124,7 @@ function BoardProfessor({ auth, header_name }) {
 
     return (
         <main id='dashboard-main'>
-            <Sidebar user={professor} courses={course_list}/>
+            <Sidebar user={professor} courses={course_list} setShowStudents={setShowStudents}/>
             <section className='dash-section flex-column'>
                 <button id='dash-burger' className='items-center' onClick={ showSidebar }><BsListUl size={ 30 }/></button>
                 <div className='display-content flex-column'>
@@ -138,9 +138,7 @@ function BoardProfessor({ auth, header_name }) {
                             </button>
                         </div>
                     }
-
-                    {!showStudents &&
-                        <>
+                        <div className={`flex-column ${showStudents && 'none'}`}>
                         {course_info.course_title &&
                             <div id='course-info' className='flex-column'>
                                 <label className='full-title'>{course_info.course_code} {course_info.course_title}</label>
@@ -193,10 +191,13 @@ function BoardProfessor({ auth, header_name }) {
                             {!loading_solo && 
                                 <button className='create-btn' onClick={ createSoloRoom }>Create Solo Room</button>}
                         </div>
-                    </>
-                    }
-                    {showStudents && course_info.course_title &&
-                        <StudentList course_code={course} section={section} user={professor}/>
+                    </div>
+                    {course_info.course_title &&
+                        <StudentList 
+                            course_code={course} 
+                            section={section} 
+                            user={professor} 
+                            showStudents={showStudents}/>
                     }
                 </div>
                 {

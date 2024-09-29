@@ -1,9 +1,8 @@
 export class Editor {
-    constructor (editor_id, editor_name, room_id, code, history) {
+    constructor (file_id, type, name, room_id, history, contributions) {
         this.editor_id = editor_id;
         this.editor_name = editor_name;
         this.room_id = room_id;
-        this.code = code;
         this.history = history;
     }
 }

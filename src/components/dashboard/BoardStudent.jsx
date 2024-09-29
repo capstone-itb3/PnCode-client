@@ -10,7 +10,7 @@ import CreateTeam from './CreateTeam';
 import AddCourse from './AddCourse';
 import { getClass } from '../validator';
 
-function BoardStudent({ auth, header_name }) {
+function BoardStudent({ auth, setHeaderName }) {
     const [student, setStudent ] = useState(getClass(auth, 'Student'));
     const { course, section, select } = useParams();
     const [course_info, setCourseInfo] = useState({ 
@@ -75,7 +75,7 @@ function BoardStudent({ auth, header_name }) {
                 displayTeams(await student.getTeams(course, section));
                 displayActivities(await student.getActivities(course, section));    
                 
-                header_name = `${course} / ${section}`;
+                setHeaderName(`${course}`);
             } else {
                 navigate(`/dashboard/${courses[0].course_code}/${courses[0].section}/${select ? select : 'all'}`);   
             }

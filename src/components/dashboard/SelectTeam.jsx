@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom';
-import img from '../../../public/profile.png'
+import img from '../../../assets/profile.png'
 
 function SelectTeam({uid, team}) {
     const navigate = useNavigate();

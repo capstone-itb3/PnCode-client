@@ -5,7 +5,8 @@ import pnc from '../../assets/pamantasan.jpg'
 import full_logo from '../../assets/full_logo.jpg'
 import ccs_logo from '../../assets/ccs_logo.jfif'
 
-function Login() {
+
+function AdminLogin() {
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
     const navigate = useNavigate();
@@ -13,7 +14,7 @@ function Login() {
     async function loginAccount(event) {
         event.preventDefault();
 
-        const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/login', {
+        const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/login/admin', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'   
@@ -29,7 +30,7 @@ function Login() {
 
         if (data.status === 'ok' && data.token) {
             Cookies.set('token', data.token, { expires : 90 });
-            navigate(`/dashboard/`);
+            navigate(`/admin/dashboard/`);
 
         } else {
             console.log(data.message);
@@ -38,17 +39,13 @@ function Login() {
 
     return (
         <div id='login-signup'>
-            <main className='photo-container'>
-                <img src={pnc} alt='pnc' />
-                <div id='orange-hue'/>
-            </main>
             <main className='form-container items-center login'>
                 <form className='form-account login' onSubmit={ loginAccount }>
                     <div className='items-center ccs-logo'>
-                        <img src={ccs_logo} alt='ccs_logo' />
+                        <img src={ccs_logo} alt='ccs_logo'/>
                     </div>
-                    <section className='head items-center login'>
-                        <label>Log-in to </label><img src={full_logo} alt='full-logo'/>
+                    <section className='head items-center admin'>
+                        <img src={full_logo} alt='full-logo'/><label>Admin</label>
                     </section>
                     <div className='input-form login'>
                         <div className='input-div'>
@@ -76,12 +73,16 @@ function Login() {
                     </div>
                     <div className='input-btn'>
                         <input type='submit' value='Log In'/>
-                        <label>New to PnCode? <a href='/signup'>Sign up</a></label>
                     </div>
                 </form>
             </main>
+            <main className='photo-container'>
+                <img src={pnc} alt='pnc' />
+                <div id='orange-hue'/>
+            </main>
         </div>
-    )
+
+    )    
 }
 
-export default Login
+export default AdminLogin

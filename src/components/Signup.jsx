@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import pnc from '../../public/pamantasan.jpg'
-import ccs_logo from '../../public/ccs_logo.jfif'
-import logo from '../../public/logo.jpg'
+import pnc from '../../assets/pamantasan.jpg'
+import ccs_logo from '../../assets/ccs_logo.jfif'
+import logo from '../../assets/logo.jpg'
 
 
 function Signup() {

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import pnc from '../../public/pamantasan.jpg'
-import full_logo from '../../public/full_logo.jpg'
-import ccs_logo from '../../public/ccs_logo.jfif'
+import pnc from '../../assets/pamantasan.jpg'
+import full_logo from '../../assets/full_logo.jpg'
+import ccs_logo from '../../assets/ccs_logo.jfif'
 
 
 function ProfLogin() {

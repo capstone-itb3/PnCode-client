@@ -3,19 +3,19 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BsChevronLeft } from 'react-icons/bs';
 import { FiPlus } from 'react-icons/fi';
 
-function Sidebar({ user, courses, setAddCourse, setSwitchView }) {
+function Sidebar({ user, courses, setAddCourse, setShowStudents }) {
   const {course, section, select} = useParams();
   const navigate = useNavigate();
 
   function showSelected(selected) {
     navigate(`/dashboard/${course}/${section}/${selected}`);
-    setSwitchView(false);
+    setShowStudents ? setShowStudents(false) : null;
   }
 
   function showSelectedSection(course, section) {
     navigate(`/dashboard/${course}/${section}/${select ? select : 'all'}`);
+    setShowStudents ? setShowStudents(false) : null;
   }
-
 
   useEffect(() => {
     const handleResize = () => {

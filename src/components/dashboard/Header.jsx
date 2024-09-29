@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { FiBell, FiLogOut } from 'react-icons/fi';
 import UserAvatar from '../UserAvatar';
 import Cookies from 'js-cookie';
-import logo from '../../../public/logo.jpg'
+import logo from '../../../assets/logo.jpg'
 
 function Header({ auth, base, name }) {
   const [signOut, setSignOut] = useState(false);

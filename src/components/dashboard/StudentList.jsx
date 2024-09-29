@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { BsXLg } from 'react-icons/bs';
 import { MdLoop } from 'react-icons/md';
 
-function StudentList({user, course_code, section}) {
+function StudentList({user, course_code, section, showStudents}) {
     const [students, setStudents] = useState([]);
     const [requests, setRequests] = useState([]);
     const [switchView, setSwitchView] = useState(false);
@@ -44,7 +44,7 @@ function StudentList({user, course_code, section}) {
     }
 
     return (
-        <div id='course-table' className='flex-column items-center'>   
+        <div id='course-table' className={`flex-column items-center ${!showStudents && 'none'}`}>   
             <div className='student-list-button items-center'>
                 <button className={`stud-btn ${switchView === false && 'active'}`} onClick={() => setSwitchView(false)}>
                     Students ({students.length})
