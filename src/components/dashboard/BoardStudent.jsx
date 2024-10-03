@@ -7,19 +7,16 @@ import SelectRoom from './SelectRoom';
 import SelectTeam from './SelectTeam';
 import SelectActivity from './SelectActivity';
 import CreateTeam from './CreateTeam';
-import AddCourse from './AddCourse';
+import AddClass from './AddClass';
 import { getClass } from '../validator';
 
 function BoardStudent({ auth, setHeaderName }) {
     const [student, setStudent ] = useState(getClass(auth, 'Student'));
-    const { course, section, select } = useParams();
-    const [course_info, setCourseInfo] = useState({ 
-        course_code: course,
-        course_title: null,
-        section: null,
-        professor: null
-    });
-    const [course_list, setCourseList] = useState([]);
+
+    const { class_id, select } = useParams();
+    const [class_info, setClassInfo] = useState(null);
+    const [class_list, setClassList] = useState([]);
+
     const [list_teams, setListTeams] = useState([]);
     const [list_activities, setListActivities] = useState([]);
     const [list_solo, setListSolo] = useState([]);
@@ -29,21 +26,23 @@ function BoardStudent({ auth, setHeaderName }) {
     const [team_count, setTeamCount] = useState(0);
     const [activity_count, setActivityCount] = useState(0);
     const [solo_count, setSoloCount] = useState(0);
+    
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [addCourse, setAddCourse] = useState(false);
+    const [showAddClass, setShowAddClass] = useState(false);
     const [noCourse, setNoCourse] = useState(false);
+    
     const navigate = useNavigate();
 
     useEffect(() => {
         async function init() {
             const rooms = await student.getSoloRooms();
-            const course_data = await student.getEnrolledCourses();
+            const classes = await student.getEnrolledClasses();
             
-            if (course_data[0] && !course_data.some(c => c.course_code === course && c.section === section)) {
-                navigate(`/dashboard/${course_data[0].course_code}/${course_data[0].section}/${select ? select : 'all'}`);
+            if (classes.length > 0 && !classes.some(c => c.class_id === class_id)) {
+                navigate(`/dashboard/${classes[0].class_id}/${select ? select : 'all'}`);
             }
-            setCourseList(course_data);
-            displayInformation(course_data);
+            displayInformation(classes);
+            setClassList(classes);
           
             setListSolo(rooms);
             setLoadingSolo(false);
@@ -53,31 +52,32 @@ function BoardStudent({ auth, setHeaderName }) {
     }, []);
 
     useEffect(() => {
-        if (course_list.length  > 0) {
-            displayInformation(course_list);
+        if (class_list.length  > 0) {
+            displayInformation(class_list);
         }
-    }, [course, section])
+    }, [class_id])
 
-    async function displayInformation(courses = []) {
+    async function displayInformation(classes = []) {
         setLoadingTeams(true);
         setLoadingActivities(true);
 
-        if (courses.length > 0) {
-            const info = courses.find((c) => c?.course_code === course && c?.section === section);
+        if (classes.length > 0) {
+            const info = classes.find((c) => c.class_id === class_id);
             if (info) {    
-                setCourseInfo({
-                    course_code: course,
+                setClassInfo({
+                    class_id: info.class_id,
+                    course_code: info.course_code,
                     course_title: info.course_title,
                     section: info.section,
                     professor: info.professor
-                })    
+                })
 
-                displayTeams(await student.getTeams(course, section));
-                displayActivities(await student.getActivities(course, section));    
+                displayTeams(await student.getTeams(class_id));
+                displayActivities(await student.getActivities(class_id));    
                 
-                setHeaderName(`${course}`);
+                setHeaderName(`${info.course_code}`);
             } else {
-                navigate(`/dashboard/${courses[0].course_code}/${courses[0].section}/${select ? select : 'all'}`);   
+                navigate(`/dashboard/${classes[0].class_id}/${select ? select : 'all'}`);   
             }
         } else {
             setNoCourse(true);
@@ -116,18 +116,18 @@ function BoardStudent({ auth, setHeaderName }) {
 
     return (
         <main id='dashboard-main'>
-                <Sidebar user={student} courses={course_list} setAddCourse={setAddCourse} />
+                <Sidebar user={student} courses={class_list} setShowAddClass={setShowAddClass} />
             <section className='dash-section flex-column'>
                 <button id='dash-burger' className='items-center' onClick={ showSidebar }><BsListUl size={ 30 }/></button>
                 <div className='display-content flex-column'>
-                    {course_info.course_title && course_info.section && course_info.professor &&
+                    {class_info &&
                     <div id='course-info' className='flex-column'>
-                        <label className='full-title'>{course_info.course_code} {course_info.course_title}</label>
-                        <label className='sub-title'>Section: {course_info.section}</label>
-                        <label className='sub-title'>Professor: {course_info.professor}</label>
+                        <label className='full-title'>{class_info.course_code} {class_info.course_title}</label>
+                        <label className='sub-title'>Section: {class_info.section}</label>
+                        <label className='sub-title'>Professor: {class_info.professor}</label>
                     </div>
                     }
-                    {course && section &&
+                    {class_id &&
                         <>
                             <div className={`separator ${(select === 'activities' || select === 'solo') && 'none'}`} id='show-teams'>
                                 <div className='section-title'>
@@ -136,8 +136,8 @@ function BoardStudent({ auth, setHeaderName }) {
                                 {loading_teams 
                                     ? <div className='in-retrieve'>Retrieving...</div>
                                     : <TeamBoard uid={student.uid} 
-                                                teams={list_teams} 
-                                                openTeamPopup={openTeamPopup}/>
+                                                 teams={list_teams} 
+                                                 openTeamPopup={openTeamPopup}/>
                                 }
                             </div>
                             <div className={`separator ${(select === 'teams' || select === 'solo') && 'none'}`} id='show-teams'>
@@ -147,19 +147,17 @@ function BoardStudent({ auth, setHeaderName }) {
                                 {loading_activities
                                     ? <div className='in-retrieve'>Retrieving...</div> 
                                     : <ActivityBoard activities={list_activities} 
-                                                    student={student} 
-                                                    course={course} 
-                                                    section={course_info.section}/>
+                                                     student={student} 
+                                                     class_id={class_id}/>
                                 }
                             </div>
                         </>
                     } 
                     {noCourse &&
                         <div className='no-course'>
-                            <label>No course yet? Click '+ Join Course' on the sidebar.</label>
+                            <label>No classes yet? Click <b>'+ Join Class'</b> on the sidebar.</label>
                         </div>
                     }
-
                     <div className={`separator ${(select === 'activities' || select === 'teams') && 'none'}`} id='show-teams'>
                         <div className='section-title'>
                             <label>Solo Rooms <span>({solo_count})</span></label>
@@ -175,15 +173,13 @@ function BoardStudent({ auth, setHeaderName }) {
                 {
                     isModalOpen && ( <CreateTeam 
                                         user={student} 
-                                        course={course_info.course_code} 
-                                        section={course_info.section} 
-                                        teams={list_teams}
+                                        class_info={class_info}
                                         exit={() => {setIsModalOpen(false)}} /> )
                 }
                 {
-                    addCourse && ( <AddCourse 
+                    showAddClass && ( <AddClass 
                                     user={student}
-                                    exit={() => {setAddCourse(false)}} 
+                                    exit={() => {setShowAddClass(false)}} 
                                     /> )
 
                 }
@@ -203,7 +199,7 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
         
         if (hasTargetMemberA && !hasTargetMemberB) return -1;
         if (!hasTargetMemberA && hasTargetMemberB) return 1;
-        // If neither team has the target member, return 0 to preserve original order
+
         return 0;
     });
 
@@ -228,9 +224,10 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
     )
 }
 
-function ActivityBoard({activities, student, course, section}) {
+function ActivityBoard({activities, student, class_id}) {
     function goToAssignedRoom(activity_id) {
-        student.visitActivity(activity_id, course, section);
+        console.log(class_id);
+        student.visitActivity(activity_id, class_id);
     }
 
     if (activities.length === 0) {

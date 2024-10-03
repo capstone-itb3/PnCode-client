@@ -3,11 +3,10 @@ import api from '../api';
 import errorHandler from '../error';
 
 export default class Team {
-    constructor (team_id, team_name, course, section, members) {
+    constructor (team_id, team_name, class_id, members) {
         this.team_id = team_id;
         this.team_name = team_name; 
-        this.course = course;
-        this.section = section;
+        this.class_id = class_id;
         this.members = members;
     }
 
@@ -34,8 +33,7 @@ export default class Team {
             const response = await api.post('/api/add-member', {
                 team_id: this.team_id,
                 student_uid: student.uid,
-                course: this.course,
-                section: this.section,
+                class_id: this.class_id,
             });
 
             const data = response.data;
@@ -55,8 +53,7 @@ export default class Team {
             const response = await api.post('/api/remove-member', {
                 team_id: this.team_id,
                 student_uid: uid,
-                course: this.course,
-                section: this.section,
+                class_id: this.class_id,
             });
 
             const data = response.data;
@@ -74,8 +71,7 @@ export default class Team {
         try {
             const response = await api.post('/api/delete-team', {
                 team_id: this.team_id,
-                course: this.course,
-                section: this.section,
+                class_id: this.class_id,
             });
 
             const data = response.data;

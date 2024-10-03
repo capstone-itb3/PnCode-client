@@ -2,18 +2,17 @@ import React, { useEffect, useState } from 'react'
 import { BsXLg } from 'react-icons/bs';
 import { MdLoop } from 'react-icons/md';
 
-function StudentList({user, course_code, section, showStudents}) {
+function StudentList({user, class_info, showStudents}) {
     const [students, setStudents] = useState([]);
     const [requests, setRequests] = useState([]);
     const [switchView, setSwitchView] = useState(false);
 
     useEffect(() => {
-        console.log(user, course_code, section);
         getStudents();
-    }, [course_code, section]);
+    }, [class_info?.class_id]);
 
     async function getStudents() {
-        const info = await user.getCourseStudents(course_code, section, 'all');
+        const info = await user.getCourseStudents(class_info.class_id, 'all');
         if (info) {
             setStudents(info.students);
             setRequests(info.requests);
@@ -24,20 +23,20 @@ function StudentList({user, course_code, section, showStudents}) {
         const result = confirm('Are you sure you want to remove this student from this class?');
 
         if (result) {
-            const info = await user.removeStudent(course_code, section, uid);
+            const info = await user.removeStudent(class_info.class_id, uid);
             if (info) {
                 getStudents();
             }
         }
     }
     async function acceptRequest(uid) {
-        const info = await user.acceptRequest(course_code, section, uid);
+        const info = await user.acceptRequest(class_info.class_id, uid);
         if (info) {
             getStudents();
         }
     }
     async function rejectRequest(uid) {
-        const info = await user.rejectRequest(course_code, section, uid);
+        const info = await user.rejectRequest(class_info.class_id, uid);
         if (info) {
             getStudents();
         }

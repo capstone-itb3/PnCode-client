@@ -16,6 +16,7 @@ body {
     --dark: rgb(25, 25, 25);
 
     /*Text*/
+    --near-black: rgb(30, 30, 30);
     --gray-dark: rgb(70, 70, 70);
     --gray: rgb(128, 128, 128);
     --gray-light: rgb(224, 224, 224);
@@ -83,6 +84,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .switch {
+
     margin-left: 10px; 
     position: relative;
     display: inline-block;
@@ -166,6 +168,14 @@ input:checked + .slider:before {
 .input-data {
     padding: 10px 15px;
     color: var(--gray-dark);
+}
+
+.extra-info {
+    font-size: 14px !important;
+    color: var(--gray) !important;
+    margin-left: 5px !important;
+    font-style: italic !important;
+    
 }
 
 .label-warning {
@@ -750,8 +760,9 @@ header {
 .reload-btn {
     border: 0;
     border-radius: 50%;
-    height: 35px;
-    width: 35px;
+    height: 30px;
+    width: 30px;
+    padding: 0;
     background-color: transparent;
     color: var(--gray);
     transition: .7s;
@@ -850,6 +861,8 @@ header {
 #create-popup h4:not(.head) {
     margin: 18px 10px 0 0;
     font-weight: normal;
+    display: flex;
+    align-items: center;
 }
 
 #create-popup .flex-row .flex-column {

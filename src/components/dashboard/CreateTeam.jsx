@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BsXLg, BsExclamationCircleFill } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 
-function CreateTeam({ teams, user, course, section, exit }) {
+function CreateTeam({ user, class_info, exit }) {
   const [team_name, setTeamName] = useState('');
   const navigate = useNavigate();
   
   async function submitTeam(e) {
     e.preventDefault();
-    const created = await user.createTeam(team_name, course, section);
+    const created = await user.createTeam(team_name, class_info.class_id);
 
     if (created) {
       navigate(`/team/${created}`);
@@ -25,8 +25,8 @@ function CreateTeam({ teams, user, course, section, exit }) {
           <form autoComplete='off' onSubmit={(e) => submitTeam(e)}>
             <h3 className='head'>Create A New Team</h3>
             <div className='flex-row two-column-grid'>
-                <label><b>Course:</b> {course}</label>
-                <label><b>Section:</b> {section}</label>
+                <label><b>Course:</b> {class_info.course_code}</label>
+                <label><b>Section:</b> {class_info.section}</label>
             </div>
             <div className='flex-column'>
               <h4>Team Name</h4>

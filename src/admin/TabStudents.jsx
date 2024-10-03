@@ -1,15 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
-import { LuPencilLine } from 'react-icons/lu';
-import { BsSearch } from 'react-icons/bs';
+import { BsSearch, BsFilter } from 'react-icons/bs';
 import { FiPlus } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
+import toast from 'react-hot-toast';
+import ShowId from './ShowId';
 
 
-function TabStudents({ admin, students, getAllStudents }) {
+function TabStudents({ admin, showId, setShowId }) {
+  const [students, setStudents] = useState(null);
   const [results, setResults] = useState(students);
+  const selectedRef = useRef(null);
+  
+  const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
-  const queryRef = useRef(new URLSearchParams(window.location.search));
+  
   const navigate = useNavigate();
   const { query } = useParams();
   const [showForm, setShowForm] = useState(null);
@@ -20,31 +25,93 @@ function TabStudents({ admin, students, getAllStudents }) {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
-    const q = new URLSearchParams(query).get('q');
+    const init = async () => await getAllStudents();
+    init();
+  }, []);
 
-    if (q === null) {
-      setResults(students);
+  async function getAllStudents() {
+    const data = await admin.getAllStudents();
+    setStudents(data);
+    setResults(data);
+
+    doSearch(data);
+  }
+
+  function doSearch(list) {
+    const q = new URLSearchParams(query).get('q');
+    const f = new URLSearchParams(query).get('f');
+
+    if (q === null || !list) {
       return;
     }
 
-    const filter = students.filter((s) => {
+    if (!(f === 'uid' || f === 'last_name' || f === 'first_name' || f === 'email' || f === '') === true) {
+      navigate('/admin/dashboard/students/q=&f=');
+      return;
+    }
+
+    const filtered = list.filter((s) => {
       const uid = String(s.uid).toLowerCase().includes(q.toLowerCase());
-      const lastToFirst = `${s.last_name} ${s.first_name}`.toLowerCase().includes(q.toLowerCase());
-      const firstToLast = `${s.first_name} ${s.last_name}`.toLowerCase().includes(q.toLowerCase());
       const email = String(s.email).toLowerCase().includes(q.toLowerCase());
-      return (uid || lastToFirst || firstToLast || email);
+
+
+      if (f === 'uid') {
+        return uid;
+
+      } else if (f === 'last_name') {
+        return `${s.last_name}`.toLowerCase().includes(q.toLowerCase());
+
+      } else if (f === 'first_name') {
+        return `${s.first_name}`.toLowerCase().includes(q.toLowerCase());
+
+      } else if (f === 'email') {
+        return email;
+
+      } else {
+        const lastToFirst = `${s.last_name} ${s.first_name}`.toLowerCase().includes(q.toLowerCase());
+        const firstToLast = `${s.first_name} ${s.last_name}`.toLowerCase().includes(q.toLowerCase());
+        return (uid || lastToFirst || firstToLast || email);
+      }
     })
 
     setSearch(q);
-    setResults(filter);
+    setFilter(f);
+    setResults(filtered);
+  }
+
+  useEffect(() => {
+    doSearch(students);
   }, [query]);
 
   function searchStudents(e) {
     e.preventDefault();
-    navigate(`/admin/dashboard/students/q=${search}`);
+
+    setShowForm(null);
+    selectedRef.current = null;
+    navigate(`/admin/dashboard/students/q=${search}&f=${filter}`);
   }
   
+  function selectStudent(student) {
+    if (selectedRef.current === student) {
+      selectedRef.current = null;
+      navigate(`/admin/dashboard/students/q=&f=`);
+      return;
+    }
+    selectedRef.current = student;
+    setShowForm(null);
+    navigate(`/admin/dashboard/students/q=${student.uid}&f=uid`);
+  }
+
   function showCreateForm() {
+    selectedRef.current = null;
+
+    if (showForm === 'create') {
+      setShowForm(null);
+
+      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      return;
+    }
+
     setShowForm('create');
     setEmail('');
     setFirstName('');
@@ -52,63 +119,157 @@ function TabStudents({ admin, students, getAllStudents }) {
     setPassword('');
     setConfirmPassword('');
 
-    document.body.scrollTo(0, document.body.scrollHeight);
-    document.getElementById('first_name').focus();
+    setTimeout(() => document.getElementById('first_name')?.focus(), 100);
+  }
+
+  function showEditForm() {
+    if (showForm === 'edit' || !selectedRef.current?.uid) {
+      setShowForm(null);
+      
+      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      return;
+    }
+
+    setShowForm('edit');
+    setEmail(selectedRef.current.email); 
+    setFirstName(selectedRef.current.first_name);
+    setLastName(selectedRef.current.last_name);
+    setPassword('');
+    setConfirmPassword('');
+
+    setTimeout(() => document.getElementById('first_name')?.focus(), 100);
   }
 
   async function reloadTable() {
     await getAllStudents();
-    navigate(`/admin/dashboard/students`);
+    selectedRef.current = null;
+    
+    navigate(`/admin/dashboard/students/q=`);
   }
-  async function createStudent(e) {
+  
+  async function submitStudent(e) {
     e.preventDefault();
+
+    if (showForm === 'create') {
+      const result = await admin.createStudent(email, first_name, last_name, password, confirmPassword);
+      if (result) {
+        toast.success('Student created successfully!');
+        setShowForm(null);
+        reloadTable();
+      }
+
+
+    } else if (showForm === 'edit') {
+      const result = await admin.updateStudent(selectedRef.current.uid, email, first_name, last_name, password, confirmPassword);
+      if (result) {
+        toast.success('Student updated successfully!');
+        setShowForm(null);
+        reloadTable();
+      }
+    
+    }
   }
 
   return (
     <>
       <div className='manage-header flex-row items-center'>
-        <h4>Students</h4>
-        <button className='items-center reload-btn' onClick={showCreateForm}>
-          <FiPlus size={20}/>
-        </button>
-        <button className='items-center reload-btn' onClick={reloadTable}>
-          <MdLoop size={20}/>
-        </button>
+        <div className='flex-row items-center'>
+          <h4>Students</h4>
+          <button className='items-center reload-btn' onClick={reloadTable}>
+            <MdLoop size={22}/>
+          </button>
+          <ShowId showId={showId} setShowId={setShowId}/>
+        </div>
+        <div className='flex-row items-center'>
+          <button className='admin-create items-center' onClick={showCreateForm}>
+            Create <FiPlus size={17}/>
+          </button>
+        </div>
       </div>
       <div className='search-div flex-row items-center'>
-          <form className='flex-row items-center width-100' onSubmit={(e) => searchStudents(e)}>
+        <form className='flex-row items-center width-100' onSubmit={(e) => searchStudents(e)}>
+          <div className='flex-row items-center'>
+            <BsFilter size={30}/>
+            <select id='filter-drop' value={filter} onChange={e => setFilter(e.target.value)}>
+              <option value=''>All</option>
+              <option value='uid'>UID</option>
+              <option value='first_name'>First Name</option>
+              <option value='last_name'>Last Name</option>
+              <option value='email'>Email</option>
+            </select>
+          </div>
+          <div className='flex-row width-100 items-center'>
             <input 
               type='text' 
+              id='search-bar'
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder='Search for a student...' />
             <button type='submit'>
               <BsSearch size={17}/>
             </button>
-          </form>
+          </div>
+        </form>
       </div>
-      <table className='admin-table'>
-        <thead>
-          <tr>
-            <th>UID</th>
-            <th>Last Name</th>
-            <th>First Name</th>
-            <th>Email</th>
-            </tr>
-        </thead>
-        <tbody>
-          {results.map(res => (
-            <tr key={res.uid}>
-              <td>{res.uid}</td>
-              <td>{res.last_name}</td>
-              <td>{res.first_name}</td>
-              <td>{res.email}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <form id='admin-form' className={`${!showForm && 'none' }`} onSubmit={createStudent}>
+      {showForm !== 'create' &&
+      <div id='admin-table-container'>
+        <table id='admin-table'>
+          <thead>
+            <tr>
+              {showId && <th>UID</th>}
+              <th>Last Name</th>
+              <th>First Name</th>
+              <th>Email</th>
+              </tr>
+          </thead>
+          <tbody>
+            {results && results.map(res => (
+              <tr 
+                key={res.uid} 
+                onClick={() => selectStudent(res)} 
+                className={`${selectedRef.current?.uid === res.uid && 'selected'}`}>
+                {showId && <td>{res.uid}</td>}
+                <td>{res.last_name}</td>
+                <td>{res.first_name}</td>
+                <td>{res.email}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {results && results.length < 1 &&
+          <div className='no-results'>
+            <label>No results found for {new URLSearchParams(query).get('q')}.</label>
+          </div>
+        }
+      </div>
+      }
+      <div id='admin-table-buttons'>
+        {selectedRef.current &&
+          <button className='admin-view'>
+            View Student's Teams
+          </button>
+        }
+        {selectedRef.current &&
+          <button 
+            className='admin-view' 
+            onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=student`)}>
+            View Student's Classes
+          </button>
+        }
+        {selectedRef.current &&
+          <button className='admin-edit' onClick={showEditForm}>
+            Edit Student
+          </button>
+        }
+        {selectedRef.current &&
+          <button className='admin-delete'>
+            Delete Student
+          </button>
+        }
+      </div>
+      <form id='admin-form' className={`two-column-grid ${!showForm && 'none' }`} onSubmit={submitStudent}>
         {showForm === 'create' && <h4>Create a student account:</h4>}
+        {showForm === 'edit' && <h4>Edit student account:</h4>}
         <div/>
         <div className='flex-column'>
           <label>First Name</label>
@@ -138,29 +299,38 @@ function TabStudents({ admin, students, getAllStudents }) {
             onChange={e => setEmail(e.target.value)} 
             required />
         </div>
-        {showForm === 'create' && <div></div>}
+        <div></div>
         <div className='flex-column'>
-          <label>Password</label>
+          <label className='single-line'>{showForm === 'edit' && 'New '}Password
+            {showForm === 'edit' &&
+              <span className='extra-info'>(Leave blank to remain unchanged.)</span>
+            }
+          </label>
           <input
             className='input-data' 
             type='password' 
             value={password} 
             onChange={e => setPassword(e.target.value)} 
-            required />
+            {...(showForm === 'create' ? { required: true } : {})}/>
         </div>
-        {showForm === 'create' && 
-          <div className='flex-column'>
-            <label>Repeat Password</label>
-            <input
-              className='input-data' 
-              type='password' 
-              value={confirmPassword} 
-              onChange={e => setConfirmPassword(e.target.value)} 
-              required />
-          </div>
-        }
+        <div className='flex-column'>
+          <label className='single-line'>Repeat {showForm === 'edit' && 'New '}Password
+            {showForm === 'edit' &&
+              <span className='extra-info'>(Leave blank to remain unchanged.)</span>
+            }
+          </label>
+          <input
+            className='input-data' 
+            type='password' 
+            value={confirmPassword} 
+            onChange={e => setConfirmPassword(e.target.value)} 
+            {...(showForm === 'create' ? { required: true } : {})}/>
+        </div>
         <div id='admin-form-buttons'>
-          <button className='file-add-btn' type='submit'>Create</button>
+          <button className='file-add-btn' type='submit'>
+            {showForm === 'create' && 'Create'}
+            {showForm === 'edit' && 'Update'}
+          </button>
           <button className='file-cancel-btn' type='button' onClick={() => setShowForm(false)}>Cancel</button>
         </div>
       </form>
@@ -169,3 +339,5 @@ function TabStudents({ admin, students, getAllStudents }) {
 }
 
 export default TabStudents
+
+

@@ -26,8 +26,8 @@ function App() {
       <Route path = '/login' element={ <Login/> }/>
       <Route path = '/login/professor' element={ <ProfLogin/> }/>
       <Route path = '/dashboard/' element={ <Dashboard/> }/>
-      <Route path = '/dashboard/:course/:section' element={ <Dashboard/> }/>
-      <Route path = '/dashboard/:course/:section/:select' element={ <Dashboard/> }/>
+      <Route path = '/dashboard/:class_id' element={ <Dashboard/> }/>
+      <Route path = '/dashboard/:class_id/:select' element={ <Dashboard/> }/>
       <Route path = '/team/:team_id' element={ <PageTeam/> }/>
       <Route path = '/activity/:activity_id' element={ <PageActivity/> }/>
       <Route path = '/room/:room_id/' element={ <AssignedRoom/> }/>

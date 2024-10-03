@@ -3,12 +3,12 @@ import { BsXLg } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 
 
-function AddCourse({user, exit}) {
+function AddClass({user, exit}) {
   const [course_code, setCourseCode] = useState('');
   const [section, setSection] = useState('');
 
 
-  async function requestCourse(e) {
+  async function requestClass(e) {
     e.preventDefault();
     const request = await user.requestCourse(course_code, section);
 
@@ -25,11 +25,14 @@ function AddCourse({user, exit}) {
           <div id='popup-close'onClick={ exit } >
             <BsXLg size={ 18 }/>
           </div>
-          <form autoComplete='off' onSubmit={(e) => requestCourse(e)}>
-            <h3 className='head'>Join A Course</h3>
+          <form autoComplete='off' onSubmit={(e) => requestClass(e)}>
+            <h3 className='head'>Join A Class</h3>
             <div className='flex-row two-column-grid'>
               <div className='flex-column'>
-                <h4>Course Code</h4>
+                <h4 className='single-line'>
+                  Course Code
+                  <span className='extra-info'>(Ex. CCS110)</span>
+                </h4>
                 <input 
                   className='input-data'
                   type='text'
@@ -40,7 +43,10 @@ function AddCourse({user, exit}) {
                 />
               </div>
               <div className='flex-column'>
-              <h4>Section</h4>
+                <h4 className='single-line'>
+                  Section
+                  <span className='extra-info'>(Ex. 1IT-A)</span>
+                </h4>
                 <input 
                   className='input-data'
                   type='text'
@@ -66,4 +72,4 @@ function AddCourse({user, exit}) {
   )
 }
 
-export default AddCourse
+export default AddClass

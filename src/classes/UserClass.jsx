@@ -14,12 +14,11 @@ export class User {
         this.position = position;
     }
 
-    async getCourseDetails(course_code, section) {
+    async getCourseDetails(class_id) {
         try {
             const response = await api.get('/api/get-course-details/', {
                 params: {
-                    course_code,
-                    section
+                    class_id
                 }
             });
 
@@ -33,12 +32,11 @@ export class User {
         }
     }
 
-    async getCourseStudents(course_code, section, list) {
+    async getCourseStudents(class_id, list) {
         try {
             const response = await api.post('/api/get-included-students/', {
-                    course_code,
-                    section,
-                    list
+                class_id,
+                list
             });
             const data = response.data;
     
@@ -53,12 +51,11 @@ export class User {
         }
     }
 
-    async getTeams(course, section) {
+    async getTeams(class_id) {
         try {
             const response = await api.get('/api/get-teams/', {
                 params: {
-                    course,
-                    section
+                    class_id
                 }
             });
 
@@ -73,12 +70,11 @@ export class User {
         }
     }
 
-    async getActivities(course, section) {
+    async getActivities(class_id) {
         try {
             const response = await api.get('/api/get-activities', {
                 params: {
-                    course,
-                    section
+                    class_id
                 }
             });
 
@@ -112,12 +108,13 @@ export class User {
         }
     }
 
-    async createTeam(team_name, course, section) {
+    async createTeam(team_name, class_id) {
         try {
+            console.log(class_id);
+
             const response = await api.post('/api/create-team', {
                 name: team_name,
-                course,
-                section,
+                class_id
             });
 
             const data = response.data;
@@ -159,13 +156,15 @@ export class User {
             if (data.status === 'ok' && data.access) {
                 const info = data.team;
         
-                return { team_class : new Team(
+                return { team_class: new Team(
                             info.team_id, 
                             info.team_name, 
-                            info.course, 
-                            info.section, 
-                            info.members ), 
-                            access : data.access 
+                            info.class_id,
+                            info.members 
+                            ), 
+                            access: data.access,
+                            course_code: data.course_code,
+                            section: data.section,
                         };
 
             } else {
@@ -265,14 +264,14 @@ export class Student extends User {
         super(uid, first_name, last_name, position);
     }
 
-    async getEnrolledCourses() {
+    async getEnrolledClasses() {
         try {
-            const response = await api.post('/api/get-enrolled-courses');
+            const response = await api.post('/api/get-enrolled-classes');
 
             const data = response.data;
 
             if (data.status === 'ok') {
-                return data.courses;
+                return data.classes;
             }
         } catch (e) {
             errorHandler(e);
@@ -280,13 +279,12 @@ export class Student extends User {
         }
     }
 
-    async visitActivity(activity_id, course, section) {
+    async visitActivity(activity_id, class_id) {
         try {
             const response = await api.get('/api/visit-activity', {
                 params: {
                     activity_id,
-                    course,
-                    section
+                    class_id
                 }
             });
 
@@ -325,15 +323,15 @@ export class Professor extends User {
         super(uid, first_name, last_name, position);
     }
 
-    async getAssignedCourses() {
+    async getAssignedClasses() {
         try {
-            const response = await api.post('/api/get-assigned-courses');
+            const response = await api.post('/api/get-assigned-classes');
 
             const data = response.data;
 
             if (data.status === 'ok') {
-                console.log(data.courses);
-                return data.courses;
+                console.log(data.classes);
+                return data.classes;
             }
         } catch (e) {
             errorHandler(e);
@@ -341,11 +339,10 @@ export class Professor extends User {
         }
     }
 
-    async acceptRequest(course_code, section, uid) {
+    async acceptRequest(class_id, uid) {
         try {
             const response = await api.post('/api/accept-request', {
-                course_code,
-                section,
+                class_id,
                 uid
             });
 
@@ -361,11 +358,10 @@ export class Professor extends User {
         }
     }
 
-    async rejectRequest(course_code, section, uid) {
+    async rejectRequest(class_id, uid) {
         try {
             const response = await api.post('/api/reject-request', {
-                course_code,
-                section,
+                class_id,
                 uid
             });
 
@@ -381,11 +377,10 @@ export class Professor extends User {
         }
     }
 
-    async removeStudent(course_code, section, uid) {
+    async removeStudent(class_id, uid) {
         try {
             const response = await api.post('/api/remove-student', {
-                course_code,
-                section,
+                class_id,
                 uid
             });
             const data = response.data;
@@ -400,11 +395,10 @@ export class Professor extends User {
         }
     }
 
-    async createActivity(course, section, activity_name, instructions, open_time, close_time) {
+    async createActivity(class_id, activity_name, instructions, open_time, close_time) {
         try {
             const response = await api.post('/api/create-activity', {
-                course,
-                section,
+                class_id,
                 activity_name,
                 instructions,
                 open_time,
@@ -438,13 +432,14 @@ export class Professor extends User {
                     activity_class: new Activity(
                         info.activity_id,
                         info.activity_name,
-                        info.course_code,
-                        info.section,
+                        info.class_id,
                         info.instructions,
                         info.open_time,
                         info.close_time,
                     ),
-                    rooms: data.rooms
+                    rooms: data.rooms,
+                    course_code: data.course_code,
+                    section: data.section
                 };
             }
         } catch (e) {

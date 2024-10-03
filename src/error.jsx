@@ -6,7 +6,7 @@ export default function errorHandler(e) {
         toast.error(e.response.data?.message);
         
     } else if (e?.response && (e.response.status === 404 || e.response.status === 403)) {
-        window.location.href = '/error/404';
+        // window.location.href = '/error/404';
         console.error(e.message);
         
     } else if (e?.response && e.response.status === 401) {

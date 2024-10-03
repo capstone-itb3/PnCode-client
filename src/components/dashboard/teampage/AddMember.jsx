@@ -8,7 +8,7 @@ function AddMember({team, user, renderTeam}) {
 
     useEffect(() => {
         async function init() {
-            const students = await user.getCourseStudents(team.course, team.section, 'students');
+            const students = await user.getCourseStudents(team.class_id, 'students');
             const filtered = students.filter((s) => {
                 return !team.members.map((m) => { 
                     return m.uid; 

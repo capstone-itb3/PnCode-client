@@ -19,6 +19,9 @@ function PageTeam() {
   const [showTeamNameInputs, setShowTeamNameInputs] = useState(false);
   const [showMemberSearch, setShowMemberSearch] = useState(false);
   const [permitted, setPermitted] = useState(true);
+  const [course_code, setCourseCode] = useState(null);
+  const [section, setSection] = useState(null);
+
 
   useEffect(() => {
     async function init () { 
@@ -28,7 +31,7 @@ function PageTeam() {
   }, [])
 
   async function renderTeam () {
-    const team_info = await user.getTeamDetails(team_id)
+    const team_info = await user.getTeamDetails(team_id);
     
     if (team_info.access === 'write') {
       setPermitted(true);
@@ -38,6 +41,9 @@ function PageTeam() {
     }
     setTeam(team_info.team_class);
     setTeamName(team_info.team_class.team_name);
+
+    setCourseCode(team_info.course_code);
+    setSection(team_info.section);
 
     document.title = `Team · ${team_info.team_class.team_name}`;
   }
@@ -124,10 +130,10 @@ function PageTeam() {
                     <MdLoop size={24} />
                 </button>
                 </div>
-              <div className='two-column-grid'>
-                <label>Course: <b>{team.course}</b></label>
-                <label>Section: <b>{team.section}</b></label>
-              </div>
+                <div className='two-column-grid'>
+                  <label>Course: <b>{course_code}</b></label>
+                  <label>Section: <b>{section}</b></label>
+                </div>
             </div>
             <div id='team-members-list'>
               <h3>Members</h3>
@@ -161,7 +167,7 @@ function PageTeam() {
             </div>
             <div id='team-footer'>
               
-              <a href={`/dashboard/${team.course}/${team.section}/all`}>&lt; BACK</a>
+              <a href={`/dashboard/${team.class_id}/all`}>&lt; BACK</a>
               {permitted && user.position === 'Professor' &&
                 <button id='delete-btn' onClick={deleteTeam}><BsTrash size={20}/><label>Delete Team</label></button>
               }

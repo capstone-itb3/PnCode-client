@@ -3,11 +3,10 @@ import api from '../api';
 import errorHandler from '../error';
 
 export default class Activity {
-    constructor (activity_id, activity_name, course_code, section, instructions, open_time, close_time) {
+    constructor (activity_id, activity_name, class_id, instructions, open_time, close_time) {
         this.activity_id = activity_id;
         this.activity_name = activity_name;
-        this.course_code = course_code;
-        this.section = section;
+        this.class_id = class_id;
         this.instructions = instructions;
         this.open_time = open_time;
         this.close_time = close_time;

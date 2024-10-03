@@ -45,7 +45,6 @@ function AdminDashboard() {
       return null;
     }    
   });
-  const [students, setStudents] = useState(null);
   const [professors, setProfessors] = useState(null);
   const [courses, setCourses] = useState(null);
   const [classes, setClasses] = useState(null);
@@ -55,6 +54,8 @@ function AdminDashboard() {
   const [assignedRooms, setAssignedRooms] = useState(null);
   const [files, setFiles] = useState(null);
   const [admins, setAdmins] = useState(null);
+  const [showId, setShowId] = useState(false);
+
 
   const [showArrows, setShowArrows] = useState(false);
   const scrollContainerRef = useRef(null);
@@ -65,52 +66,8 @@ function AdminDashboard() {
   const signOutRef = useRef(null);
 
   useEffect(() => {
-    async function getAllRelationalData() {
-      await getAllStudents();
-      await getAllProfessors();
-      await getAllCourses();
-      await getAllClasses();
-      await getAllTeams();
-      // await getAllActivities();
-      // await getAllSoloRooms();
-      // await getAllAssignedRooms();
-      // await getAllFiles();
-      // await getAllAdmins();
-    }
-    getAllRelationalData();
   }, []);
 
-  async function getAllStudents() {
-    console.log('a');
-    setStudents(await admin.getAllStudents());
-  }
-  async function getAllProfessors() {
-    setProfessors(await admin.getAllProfessors());
-  }
-  async function getAllCourses() {
-    setCourses(await admin.getAllCourses());
-  }
-  async function getAllClasses() {
-    setClasses(await admin.getAllSections());
-  }
-  async function getAllTeams() {
-    setTeams(await admin.getAllTeams());
-  }
-  // async function getAllActivities() {
-  //   return await admin.getAllActivities();
-  // }
-  // async function getAllSoloRooms() {
-  //   return await admin.getAllSoloRooms();
-  // }
-  // async function getAllAssignedRooms() {
-  //   return await admin.getAllAssignedRooms();
-  // }
-  // async function getAllFiles() {
-  //   return await admin.getAllFiles();
-  // }
-  // async function getAllAdmins() {
-  //   return await admin.getAllAdmins();
-  // }
 
   useEffect(() => {
     try {
@@ -174,7 +131,7 @@ function AdminDashboard() {
 
 
   return (
-    <>
+    <div className='admin-dashboard'>
       <header className='admin items-center'>
         <div className='left-nav items-center'>
           <div id='header-url' className='flex-row items-center admin'>
@@ -185,7 +142,7 @@ function AdminDashboard() {
         <div className='right-nav items-center'>
           <div className='top-profile flex-row items-center'>
             <UserAvatar name={admin.last_name + ', ' + admin.first_name.charAt(0)} size={25}/>
-            {admin.last_name} {admin.first_name}
+            {admin.last_name}, {admin.first_name}
           </div>
           <button className='items-center' onClick={() => setSignOut(!signOut)}><FiSettings size={24} /></button>
           <div ref={signOutRef}>
@@ -224,20 +181,20 @@ function AdminDashboard() {
           }
         </div>
         <div id='manage-content'>
-          {collection === 'students' && students &&
-            <TabStudents admin={admin} students={students} getAllStudents={getAllStudents} />
+          {collection === 'students' &&
+            <TabStudents admin={admin} showId={showId}  setShowId={setShowId} />
           }
-          {collection === 'professors' && professors &&
-            <TabProfessors admin={admin} professors={professors} getAllProfessors={getAllProfessors} />
+          {collection === 'professors' &&
+            <TabProfessors admin={admin} showId={showId}  setShowId={setShowId} />
           }
-          {collection === 'courses' && courses &&
-            <TabCourses admin={admin} courses={courses} getAllCourses={getAllCourses} />
+          {collection === 'courses' &&
+            <TabCourses admin={admin} />
           }
-          {collection === 'classes' && classes &&
-            <TabClasses admin={admin} classes={classes} getAllClasses={getAllClasses} />
+          {collection === 'classes' &&
+            <TabClasses admin={admin} showId={showId}  setShowId={setShowId} />
           }
-          {collection === 'teams' && teams &&
-            <TabTeams admin={admin} teams={teams} getAllTeams={getAllTeams} />
+          {collection === 'teams' &&
+            <TabTeams admin={admin} />
           }
           {collection === 'activities' && activities &&
             <TabActivities admin={admin} activities={activities} />
@@ -256,7 +213,7 @@ function AdminDashboard() {
           }
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

@@ -3,17 +3,17 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BsChevronLeft } from 'react-icons/bs';
 import { FiPlus } from 'react-icons/fi';
 
-function Sidebar({ user, courses, setAddCourse, setShowStudents }) {
-  const {course, section, select} = useParams();
+function Sidebar({ user, courses, setShowAddClass, setShowStudents }) {
+  const {class_id, select} = useParams();
   const navigate = useNavigate();
 
   function showSelected(selected) {
-    navigate(`/dashboard/${course}/${section}/${selected}`);
+    navigate(`/dashboard/${class_id}/${selected}`);
     setShowStudents ? setShowStudents(false) : null;
   }
 
-  function showSelectedSection(course, section) {
-    navigate(`/dashboard/${course}/${section}/${select ? select : 'all'}`);
+  function showSelectedSection(class_id) {
+    navigate(`/dashboard/${class_id}/${select ? select : 'all'}`);
     setShowStudents ? setShowStudents(false) : null;
   }
 
@@ -38,22 +38,21 @@ function Sidebar({ user, courses, setAddCourse, setShowStudents }) {
       <button id='sb-remove' className='items-center' onClick={hideSidebar}><BsChevronLeft size={ 25 }/></button>
       <div className='sidebar-section flex-column'>
         <div className='sb-filter'>
-          {user.position === 'Student'  && 'COURSES'}
-          {user.position === 'Professor' && 'CLASSES'}
+          CLASSES
         </div>
         {courses && courses.map((c, index) => {
           return (
             <button 
               key={index}
-              className={`sb-ops ${(c.course_code + c.section === course + section) === true && 'selected'}`} 
-              onClick={() => { showSelectedSection(c.course_code, c.section) }}>
+              className={`sb-ops ${c.class_id === class_id && 'selected'}`} 
+              onClick={() => { showSelectedSection(c.class_id) }}>
               <label>{c.course_code} {user.position === 'Professor' && c.section}</label>
             </button>
           )
         })}
         {user.position === 'Student' &&
-          <button className='sb-ops add-course items-center' onClick={() => setAddCourse(true)}>
-            <FiPlus size={18}/> JOIN COURSE
+          <button className='sb-ops add-course items-center' onClick={() => setShowAddClass(true)}>
+            <FiPlus size={18}/> JOIN CLASS
           </button>
         }
       </div>

@@ -25,6 +25,7 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
     function addFile() {
         setDeleteFile(false);
         setAddNewFile(true);
+        setLeftDisplay('files');
 
         const option = document.getElementById(`files-menu`);
         option.classList.toggle('hidden');
@@ -33,6 +34,7 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
     function deleteFile() {
         setAddNewFile(false);
         setDeleteFile(true);
+        setLeftDisplay('files');
         
         const option = document.getElementById(`files-menu`);
         option.classList.toggle('hidden');

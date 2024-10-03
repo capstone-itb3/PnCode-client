@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { BsExclamationCircleFill } from 'react-icons/bs';
 
-function CreateActivity({user, course, section, exit}) {
+function CreateActivity({user, class_info, exit}) {
     const [activity_name, setActivityName] = useState('');
     const [instructions, setInstructions] = useState('');
     const [open_time, setOpenTime] = useState('07:00');
@@ -14,7 +14,7 @@ function CreateActivity({user, course, section, exit}) {
     async function submitActivity(e) {
         e.preventDefault();
 
-        const created = await user.createActivity(course, section, activity_name, instructions, open_time, close_time);
+        const created = await user.createActivity(class_info.class_id, activity_name, instructions, open_time, close_time);
 
         if (created) {
             navigate(`/activity/${created}`);
@@ -33,8 +33,8 @@ function CreateActivity({user, course, section, exit}) {
                     <form autoComplete='off' onSubmit={(e) => submitActivity(e)}>
                         <h3 className='head'>Create A Group Activity</h3>
                         <div className='two-column-grid'>
-                            <label>Course: <b>{course}</b></label>
-                            <label>Section: <b>{section}</b></label>
+                            <label>Course: <b>{class_info.course_code}</b></label>
+                            <label>Section: <b>{class_info.section}</b></label>
                         </div>
                         <div className='flex-column width-100'>
                             <h4>Activity Name</h4>

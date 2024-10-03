@@ -65,6 +65,10 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
           debounceUserType(user.uid);
         }
       }
+    } 
+  if (event.ctrlKey && event.key === 's') {
+      event.preventDefault();
+      updateCode(editorRef.current);
     }
   };
 
@@ -78,7 +82,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
       // console.log(editorRef.current.state.doc.toString());
       updateCode(editorRef.current);
     }
-  }, 500);
+  }, 200);
 
   useEffect(() => {
     editorRef.current ? editorRef.current.destroy() : null;

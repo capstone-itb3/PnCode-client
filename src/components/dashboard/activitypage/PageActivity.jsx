@@ -17,7 +17,9 @@ function PageActivity() {
     const [room_list, setRoomList] = useState([]);
     const [instructions, setInstructions] = useState('');
     const [showInstructionInputs, setShowInstructionInputs] = useState(false);
-
+    const [course_code, setCourseCode] = useState(null);
+    const [section, setSection] = useState(null);
+  
     useEffect(() => {
         async function init () {
             await renderActivity();
@@ -32,6 +34,9 @@ function PageActivity() {
         setInstructions(act_info.activity_class.instructions);
         setRoomList(act_info.rooms);
 
+        setCourseCode(act_info.course_code);
+        setSection(act_info.section);
+    
         document.title = `Activity · ${act_info.activity_class.activity_name}`;
     }
     
@@ -72,7 +77,7 @@ function PageActivity() {
             if (result2) {
                 const deleted = await activity.deleteActivity();
                 if (deleted) {
-                    navigate(`/dashboard/${activity.course_code}/${activity.section}/all`);
+                    navigate(`/dashboard/${activity.class_id}/all`);
                 }
             }
         }
@@ -95,8 +100,8 @@ function PageActivity() {
                             </button>
                         </div>
                         <div className='two-column-grid'>
-                            <label>Course: <b>{activity.course_code}</b></label>
-                            <label>Section: <b>{activity.section}</b></label>
+                            <label>Course: <b>{course_code}</b></label>
+                            <label>Section: <b>{section}</b></label>
                         </div>
                     </div>
                     <div className='flex-column'>
