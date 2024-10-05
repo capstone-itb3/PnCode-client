@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(() => {
-  return {
+export default defineConfig(({ command }) => {
+  const config = {
+    plugins: [react()],
     server: {
-      open: false,
       port: process.env.PORT || 5173,
     },
     define: {
@@ -13,6 +13,11 @@ export default defineConfig(() => {
     build: {
       outDir: 'build',
     },
-    plugins: [react()],
   };
+
+  if (command !== 'serve') {
+    config.base = '/';
+  }
+
+  return config;
 });
