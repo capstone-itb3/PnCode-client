@@ -54,9 +54,9 @@
     "yjs": "^13.5.17"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite --host",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview --host"
   },
   "eslintConfig": {
     "extends": [

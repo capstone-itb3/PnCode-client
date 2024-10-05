@@ -5,6 +5,7 @@ export default defineConfig(() => {
   return {
     server: {
       open: false,
+      port: process.env.PORT || 5173,
     },
     define: {
       'process.env': {},
