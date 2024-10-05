@@ -85,20 +85,20 @@ export default class Admin {
         }
     }
 
-    // async getAllActivities() {
-    //     try {
-    //         const response = await api.get('/api/admin/activities');
+    async getAllActivities() {
+        try {
+            const response = await api.get('/api/admin/activities');
 
-    //         const data = response.data;
+            const data = response.data;
 
-    //         if (data.status === 'ok') {
-    //             return data.activities;
-    //         }
-    //     } catch (e) {
-    //         errorHandler(e);
-    //         return null;
-    //     }
-    // }
+            if (data.status === 'ok') {
+                return data.activities;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
 
     // async getAllSoloRooms() {
     //     try {
@@ -277,13 +277,12 @@ export default class Admin {
         }
     }
 
-    async createClass(course_code, section, professor_uid, professor_name) {
+    async createClass(course_code, section, professor_uid) {
         try {
-            const response = await api.post('/api/admin/create-course', {
+            const response = await api.post('/api/admin/create-class', {
                 course_code,
                 section,
                 professor_uid,
-                professor_name
             });
             const data = response.data;
 
@@ -296,13 +295,13 @@ export default class Admin {
         }
     }
 
-    async updateClass(course_code, section, professor_uid, professor_name) {
+    async updateClass(class_id, course_code, section, professor_uid) {
         try {
-            const response = await api.post('/api/admin/update-course', {
+            const response = await api.post('/api/admin/update-class', {
+                class_id,
                 course_code,
                 section,
                 professor_uid,
-                professor_name
             });
             const data = response.data;
 
@@ -310,9 +309,222 @@ export default class Admin {
                 return true;
             }
         } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async addStudent(class_id, uid) {
+        try {
+            const response = await api.post('/api/admin/add-student', {
+                class_id,
+                uid
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async acceptRequest(class_id, uid) {
+        try {
+            const response = await api.post('/api/admin/accept-request', {
+                class_id,
+                uid
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async rejectRequest(class_id, uid) {
+        try {
+            const response = await api.post('/api/admin/reject-request', {
+                class_id,
+                uid
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async removeStudent(class_id, uid) {
+        try {
+            const response = await api.post('/api/admin/remove-student', {
+                class_id,
+                uid
+            });
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                toast.success('Student is removed from the class.');
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async createTeam(class_id, team_name) {
+        try {
+            const response = await api.post('/api/admin/create-team', {
+                class_id,
+                team_name,
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async updateTeam(team_id, team_name) {
+        try {
+            const response = await api.post('/api/admin/update-team', {
+                team_id,
+                team_name,
+            });
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async getClassStudents(class_id) {
+        try {
+            const response = await api.post('/api/admin/get-class-students', {
+                class_id
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return data.students;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async addMember(team_id, uid) {
+        try {
+            const response = await api.post('/api/admin/add-member', {
+                team_id,
+                uid
+            });
+    
+            const data = response.data;
+    
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch(e) {
+            console.error('Error in addMember:', e);
             errorHandler(e);
             return null;
         }
     }
     
+    async removeMember(team_id, uid) {
+        try {
+            const response = await api.post('/api/admin/remove-member', {
+                team_id,
+                uid
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+
+        } catch(e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async deleteCourse(course_code) {
+        try {
+            const response = await api.post('/api/admin/delete-course', {
+                course_code
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async deleteClass(class_id) {
+        try {
+            const response = await api.post('/api/admin/delete-class', {
+                class_id
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async deleteTeam(team_id) {
+        try {
+            const response = await api.post('/api/admin/delete-team', {
+                team_id
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
 }

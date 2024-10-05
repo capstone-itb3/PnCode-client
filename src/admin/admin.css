@@ -19,7 +19,7 @@
 
 .admin-dashboard {
     position: relative;
-    min-width: 300px;
+    min-width: 350px;
 }
 
 header.admin {
@@ -34,12 +34,11 @@ header.admin {
     bottom: 0;
 }
 
-
 /* MANAGES TAB  */
 
  #manages-tab {
-    position: sticky;
-    top: 0;
+    position: absolute;
+    top: 60px;
     left: 0;
     right: 0;
     height: 50px;
@@ -174,12 +173,12 @@ header.admin {
 }
 
 #filter-drop {
-    height: 33px;
+    height: 35px;
     border-radius: 10px;
     border: 1px solid var(--gray);
     background-color: var(--gray-light);
     margin: 0 10px 0 5px; 
-    padding: 0 5px 0 0;
+    padding-right: 5px;
     font-size: 15px;
     color: var(--gray-dark)
 }
@@ -224,11 +223,11 @@ header.admin {
 
 #admin-table-buttons {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
 }
 #admin-table-buttons.long{
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .admin-create, .info-btn {
@@ -252,7 +251,6 @@ header.admin {
 }
 
 #admin-form {
-    grid-gap: 20px;
     border: 2px solid var(--base);
     padding: 15px 30px;
     border-radius: 10px;    
@@ -260,12 +258,43 @@ header.admin {
     background-color: var(--near-white);
 }
 
+#admin-form .flex-row .flex-column {
+    width: 100%;
+}
+
+
+#admin-form .flex-row .flex-column:nth-child(1) {
+    margin-right: 20px;
+}
+#admin-form.two-column-grid, #admin-form div.two-column-grid {
+    gap: 20px;    
+}
+#admin-form.flex-column .input-data {
+    margin-bottom: 20px;
+}
+
+
 #admin-form h4{
     color: var(--gray-dark);
 }
-#admin-form .input-data {
-    padding: 4px;
+
+#admin-form .input-data, #admin-form select, .sub-admin-form .input-data {
+    padding: 6px 12px;
+    margin-top: 2px;
+    /* width: calc(100% - 40px); */
+    border: 1px solid var(--gray);
 }
+#admin-form textarea{
+    /* resize: none; */
+    height: 50px;
+    /* width: 100%; */
+}
+
+#admin-form select {
+    font-size: 15px;
+    color: var(--gray-dark);
+}
+
 #admin-form .file-add-btn {
     background-color: var(--base-light);
     border: 1px solid var(--base);
@@ -274,7 +303,7 @@ header.admin {
 .admin-member-list-container {
     position: relative;
     width: 100%;
-    margin: 30px 0 60px 0;
+    margin: 30px 0;
     box-shadow: 0 0 2px var(--gray-dark);
 }
 
@@ -304,35 +333,64 @@ header.admin {
     color: var(--near-white);
 }
 
+.sub-admin-form {
+    margin-bottom: 60px;
+}
 
+.sub-admin-form label {
+    margin-right: 10px;
+}
 
-
-.search-dropdown-input {
+.sub-admin-form .search-dropdown-input {
+    width: 60%;
     position: relative;
+}
+
+
+.search-dropdown-input .input-data{
+    width: 100%;
+    border-radius: 10px;
 }
 
 .collection-search-div {
     background-color: white;
     position: absolute;
-    top: 48px;
+    bottom: 100%;
     left: 0;
     right: 0;
     z-index: 20;
+    max-height: 200px;
+    overflow-y: auto;
     border: 1px solid var(--gray);
+    margin-bottom: 5px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .collection-search-list {
-    margin: 0;
+    padding: 10px 0;
+    position: relative;
     padding: 0;
     list-style: none;
-    
+    width: 100%;
+    overflow-x: hidden;
 }
 .collection-search-list li {
-    padding: 10px 10px 10px 30px;
+    padding: 10px 30px;
     margin: 0;
     color: var(--gray-dark);
+    font-size: 16px;
     cursor: pointer;
+    justify-content: space-between;
 }
+.collection-search-list li span {
+    margin-left: 20px;
+    color: var(--gray);
+    font-size: 13px;
+    font-weight: bold;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
 .collection-search-list li:hover {
     background-color: var(--gray-light);
 }
@@ -359,12 +417,24 @@ header.admin {
 
 
 @media (width < 500px) {
-    .search-div form {
+    .search-div form, .sub-admin-form {
         flex-direction: column !important;
         align-items: flex-start !important;
     }
-    .show-id {
 
-       flex-direction: column; 
+    .admin .right-nav button {
+        padding-left: 10px;
+    }
+
+    #filter-drop {
+        margin-bottom: 4px;
+    }
+
+    .show-id,  #admin-form .flex-row {
+       flex-direction: column !important; 
+    }
+
+    .collection-search-list li {
+        padding: 10px;
     }
 }

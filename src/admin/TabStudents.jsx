@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
-import { BsSearch, BsFilter } from 'react-icons/bs';
-import { FiPlus } from 'react-icons/fi';
+import { BsSearch } from 'react-icons/bs';
+import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
@@ -142,6 +142,7 @@ function TabStudents({ admin, showId, setShowId }) {
 
   async function reloadTable() {
     await getAllStudents();
+    setShowForm(null);
     selectedRef.current = null;
     
     navigate(`/admin/dashboard/students/q=`);
@@ -189,7 +190,7 @@ function TabStudents({ admin, showId, setShowId }) {
       <div className='search-div flex-row items-center'>
         <form className='flex-row items-center width-100' onSubmit={(e) => searchStudents(e)}>
           <div className='flex-row items-center'>
-            <BsFilter size={30}/>
+            <FiFilter size={25}/>
             <select id='filter-drop' value={filter} onChange={e => setFilter(e.target.value)}>
               <option value=''>All</option>
               <option value='uid'>UID</option>
@@ -245,7 +246,7 @@ function TabStudents({ admin, showId, setShowId }) {
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
-          <button className='admin-view'>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/teams/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=member`)}>
             View Student's Teams
           </button>
         }

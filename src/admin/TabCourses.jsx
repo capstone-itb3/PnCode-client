@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
-import { BsSearch, BsFilter } from 'react-icons/bs';
-import { FiPlus } from 'react-icons/fi';
+import { BsSearch } from 'react-icons/bs';
+import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 
@@ -125,6 +125,7 @@ function TabCourses({ admin }) {
 
   async function reloadTable() {
     await getAllCourses();
+    setShowForm(null);
     selectedRef.current = null;
     
     navigate(`/admin/dashboard/courses/q=`);
@@ -153,6 +154,18 @@ function TabCourses({ admin }) {
     }
   }
 
+  async function deleteCourse() {
+    if (confirm('Are you sure you want to delete this course?')) {    
+      const result = await admin.deleteCourse(selectedRef.current.course_code);
+
+      if (result) {
+        toast.success('Course deleted successfully!');
+        setShowForm(null);
+        reloadTable();
+      }
+    }
+  }
+
   return (
     <>
       <div className='manage-header flex-row items-center'>
@@ -171,7 +184,7 @@ function TabCourses({ admin }) {
       <div className='search-div flex-row items-center'>
         <form className='flex-row items-center width-100' onSubmit={(e) => searchCourses(e)}>
         <div className='flex-row items-center'>
-            <BsFilter size={30}/>
+            <FiFilter size={25}/>
             <select id='filter-drop' value={filter} onChange={e => setFilter(e.target.value)}>
               <option value=''>All</option>
               <option value='course_code'>Course Code</option>
@@ -231,7 +244,7 @@ function TabCourses({ admin }) {
           </button>
         }
         {selectedRef.current &&
-          <button className='admin-delete'>
+          <button className='admin-delete' onClick={deleteCourse}>
             Delete Course
           </button>
         }

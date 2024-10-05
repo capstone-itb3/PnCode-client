@@ -1,8 +1,438 @@
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate, useParams } from 'react-router-dom';
+import { BsSearch } from 'react-icons/bs';
+import { FiPlus, FiFilter } from 'react-icons/fi';
+import { MdLoop } from 'react-icons/md';
+import toast from 'react-hot-toast';
+import { SearchUserList, searchDropdown } from './SearchList';
+import ShowId from './ShowId';
 
-function TabActivities() {
+function TabActivities({ admin, showId, setShowId }) {
+  const [activites, setActivity] = useState(null);
+  const [results, setResults] = useState(activites);
+  const selectedRef = useRef(null);
+
+  const [filter, setFilter] = useState('');
+  const [search, setSearch] = useState('');
+  
+  const navigate = useNavigate();
+  const { query } = useParams();
+
+  const [showForm, setShowForm] = useState(null);
+  // const [showMemberList, setShowMemberList] = useState(false);
+  
+  const [activity_name, setActivityName] = useState('');  
+  const [class_id, setClassId] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [open_time, setOpenTime] = useState('');
+  const [close_time, setCloseTime] = useState('');
+  
+  const [class_list, setClassList] = useState(null);
+  
+  // const [student_list, setStudentList] = useState(null);  
+  // const [member_input, setMemberInput] = useState('');
+  // const [showStudents, setShowStudents] = useState(false);
+  
+  useEffect(() => {
+    const init = async () => await getAllActivities();
+    init();
+  }, []);
+  
+  async function getAllActivities() {
+    const data = await admin.getAllActivities();
+    setActivity(data);
+    setResults(data);
+    
+    doSearch(data);
+  }
+
+  function doSearch (list) {
+    const q = new URLSearchParams(query).get('q');
+    const f = new URLSearchParams(query).get('f');
+
+    if (q === null || !list) {
+      return;
+    }
+
+    if (!(f === 'activity_id' || f === 'activity_name' || f === 'class' || f === 'instructions' || f === '') === true) {
+      navigate('/admin/dashboard/activities/q=&f=');
+      return;
+    }
+
+
+
+    const filtered = list.filter((act) => {
+      const class_combined = `${act.class_id} ${act.class_name}`.toLowerCase().includes(q.toLowerCase());
+
+      if (f === 'activity_id') {
+        return act.activity_id.toLowerCase().includes(q.toLowerCase());
+
+      } else if (f === 'activity_name') {
+        return act.activity_name.toLowerCase().includes(q.toLowerCase());
+
+      } else if (f === 'class') {
+        return class_combined;
+
+      } else if (f === 'instructions') {
+        return act.instructions.toLowerCase().includes(q.toLowerCase());
+
+      } else {
+        const combined = `${act.activity_id} ${act.activity_name} ${act.instructions}`.toLowerCase().includes(q.toLowerCase());
+        return (combined || class_combined);
+      }
+    })
+ 
+    setSearch(q);
+    setFilter(`${f ? f : ''}`);
+    setResults(filtered);
+  } 
+
+  useEffect(() => {
+    doSearch(activites);
+  }, [query]);
+
+  function searchActivities(e) {
+    e.preventDefault();
+
+    setShowForm(null);
+    selectedRef.current = null;
+    navigate(`/admin/dashboard/activities/q=${search}&f=${filter}`);
+  }
+  
+  function selectActivity(activity) {
+    if (selectedRef.current === activity) {
+      selectedRef.current = null;
+      // setShowMemberList(false);
+      navigate(-1);
+      return;
+    }
+
+    selectedRef.current = activity;
+    setShowForm(null);
+    navigate(`/admin/dashboard/activities/q=${activity.activity_id}&f=activity_id`);
+  }
+
+  async function showCreateForm() {
+    // setShowMemberList(false);
+    selectedRef.current = null;
+
+    if (showForm === 'create') {
+      setShowForm(null);
+      
+      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      return;
+    }
+
+    setClassList(await admin.getAllClasses());
+    setShowForm('create');
+    setActivityName('');
+    setClassId('');
+    setInstructions('');
+    setOpenTime('');
+    setCloseTime('');
+
+    setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
+  }
+
+  async function showEditForm() {
+    // setShowMemberList(false);
+
+    if (showForm === 'edit' || !selectedRef.current?.team_name) {
+      setShowForm(null);
+      
+      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      return;
+    }
+    
+    setClassList([{ class_id: selectedRef.current.class_id, 
+                    course_code: selectedRef.current.class_name,
+                    section: '' }]);
+    setShowForm('edit');
+    setClassId(selectedRef.current.class_id);
+    setActivityName(selectedRef.current.activity_name);
+    setInstructions(selectedRef.current.instructions);
+    setOpenTime(selectedRef.current.open_time);
+    setCloseTime(selectedRef.current.close_time);
+
+    setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
+  }
+
+  // async function manageList() {
+  //   setShowForm(null);
+  //   setShowMemberList(!showMemberList);
+
+  //   console.log(selectedRef.current);
+  //   setMemberInput('');
+  //   setShowStudents(false);
+  // }
+
+  // async function showDropdown(bool) {
+  //   await searchDropdown(bool, setShowStudents, async () => setStudentList(await admin.getClassStudents(selectedRef.current?.class_id)));
+  // }
+
+
+  async function reloadTable() {
+    await getAllActivities();
+    setShowForm(null);
+    selectedRef.current = null;
+    
+    navigate(`/admin/dashboard/activities/q=&f=`);
+  }
+  
+  async function submitActivity(e) {
+    let success = false;
+    e.preventDefault();
+
+    if (showForm === 'create') {
+      const res = await admin.createActivity(class_id, activity_name, instructions, open_time, close_time);
+      if (res) {
+        toast.success('Activity created successfully!');
+        success = true;
+      }
+
+    } else if (showForm === 'edit') {
+      const res = await admin.updateActivity(selectedRef.current.activity_id, activity_name, instructions, open_time, close_time);
+      if (res) {
+        toast.success('Activity updated successfully!');
+        success = true;
+      }    
+    }
+  
+    if (success) {
+      setShowForm(null);
+      // setShowMemberList(false);
+      reloadTable();
+    }
+  }
+
+  async function deleteActivity() {
+    if (confirm('Are you sure you want to delete this activity?')) {
+      const res = await admin.deleteActivity(selectedRef.current.activity_id);
+
+      if (res) {
+        toast.success('Activity deleted successfully!');
+        setShowMemberList(false);
+        setShowForm(null);
+        reloadTable();
+      }
+    }
+  }
+
   return (
-    <div>TabActivities</div>
+    <>
+      <div className='manage-header flex-row items-center'>
+        <div className='flex-row items-center'>
+          <h4>Activities</h4>
+          <button className='items-center reload-btn' onClick={reloadTable}>
+            <MdLoop size={22}/>
+          </button>
+          <ShowId showId={showId} setShowId={setShowId}/>
+        </div>
+        <div className='flex-row items-center'>
+          <button className='admin-create items-center' onClick={showCreateForm}>
+            Create <FiPlus size={17}/>
+          </button>
+        </div>
+      </div>
+      <div className='search-div flex-row items-center'>
+        <form className='flex-row items-center width-100' onSubmit={(e) => searchActivities(e)}>
+          <div className='flex-row items-center'>
+            <FiFilter size={25}/>
+            <select id='filter-drop' value={filter} onChange={e => setFilter(e.target.value)}>
+              <option value=''>All</option>
+              <option value='activity_id'>Activity ID</option>
+              <option value='activity_name'>Activity Name</option>
+              <option value='class'>Class</option>
+              <option value='instructions'>Instructions</option>
+            </select>
+          </div>
+          <div className='flex-row width-100 items-center'>
+            <input 
+              type='text' 
+              id='search-bar'
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder='Search for an activity...' />
+            <button type='submit'>
+              <BsSearch size={17}/>
+            </button>
+          </div>
+        </form>
+      </div>
+      {showForm !== 'create' &&
+      <div id='admin-table-container'>
+        <table id='admin-table'>
+          <thead>
+            <tr>
+              {showId && <th>Activity ID</th>}
+              <th>Activity Name</th>
+              <th>Class</th>
+              <th>Instructions</th>
+              <th>Open Time</th>
+              <th>Close Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results && results.map(res => (
+              <tr 
+                key={res.activity_id} 
+                onClick={() => selectActivity(res)} 
+                className={`${selectedRef.current?.activity_id === res.activity_id && 'selected'}`}>
+                {showId && <td>{res.activity_id}</td>}
+                <td>{res.activity_name}</td>
+                <td>{res.class_name}</td>
+                <td><label className='single-line'>{res.instructions}</label></td>
+                <td>{res.open_time}</td>
+                <td>{res.close_time}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {results && results.length < 1 &&
+          <div className='no-results'>
+            <label>No results found for {new URLSearchParams(query).get('q')}.</label>
+          </div>
+        }
+      </div>
+      }
+      <div id='admin-table-buttons'>
+        {selectedRef.current &&
+        <>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`)}>
+            View Class
+          </button>
+          <button className='admin-view'>
+            View Assigned Rooms
+          </button>
+          {/* <button className='admin-manage' onClick={manageList}>
+            Manage Members
+          </button> */}
+          <button className='admin-edit' onClick={showEditForm}>
+            Edit Activity
+          </button>
+          <button className='admin-delete' onClick={deleteActivity}>
+            Delete Activity
+          </button>
+        </>
+        }
+      </div>
+      <form id='admin-form' className={`flex-column ${!showForm && 'none' }`} onSubmit={submitActivity}>
+        {showForm === 'create' && <h4>Create a activity:</h4>}
+        {showForm === 'edit' && <h4>Edit activity:</h4>}
+        <div className='flex-row'>
+          <div className='flex-column'>
+            <label>Select Class</label>
+            <select 
+              value={class_id} 
+              className='input-data'  
+              onChange={e => setClassId(e.target.value)} 
+              {...(showForm === 'edit' ? { required: false, disabled: true } : {})}
+              {...(showForm === 'create' ? { required: true, disabled: false } : {})}>
+              <option value=''>Select Class</option>
+              {class_list && class_list.map(cla => (
+                <option 
+                  key={cla.class_id} 
+                  value={cla.class_id} 
+                  className='single-line'>
+                  {cla.course_code} {cla.section}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className='flex-column'>
+            <label>Activity Name</label>
+            <input
+              className='input-data'  
+              id='activity_name'
+              type='text' 
+              value={activity_name} 
+              onChange={e => setActivityName(e.target.value)} 
+              required />
+          </div>
+        </div>        
+        <div className='flex-column'>
+          <label>Instructions</label>
+          <textarea
+            className='input-data'
+            id='instructions'
+            value={instructions}
+            onChange={e => setInstructions(e.target.value)} 
+            required />
+          </div>
+          <div className='two-column-grid'>
+            <div className='flex-column'>
+              <label>Open Time</label>
+              <input
+                type='time'
+                className='input-data'
+                value={open_time}
+                onChange={e => setOpenTime(e.target.value)}
+                required />
+            </div>
+            <div className='flex-column'>
+              <label>Close Time</label>
+              <input
+                type='time'
+                className='input-data'
+                value={close_time}
+                onChange={e => setCloseTime(e.target.value)}
+                required />
+            </div>
+          </div>
+          <div id='admin-form-buttons'>
+          <button className='file-add-btn' type='submit'>
+            {showForm === 'create' && 'Create'}
+            {showForm === 'edit' && 'Update'}
+          </button>
+          <button className='file-cancel-btn' type='button' onClick={() => setShowForm(false)}>Cancel</button>
+        </div>
+      </form>
+      {/* {showMemberList && selectedRef.current &&
+      <>
+        <div className='admin-member-list-container flex-column'>
+          <h4>Team Members</h4>
+          <div className='admin-member-list flex-column'>
+            {selectedRef.current.members.map((mem) => 
+              <div className='item flex-row items-center' key={mem.uid}>
+                <label className='single-line'>{mem.last_name} {mem.first_name}</label>
+                <div className='items-center flex-row'>
+                  <button className='remove-btn' onClick={() => removeMember(mem.uid)}>Remove</button>
+                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid}&f=uid`)}>
+                    Student Info
+                  </button>
+                </div>
+              </div>
+            )}
+            {selectedRef.current.members.length === 0 &&
+              <div className='item items-center'>
+                <label className='single-line'>No team members.</label>
+              </div>
+            }
+          </div>
+        </div>
+          <div className='sub-admin-form flex-row items-center'>
+            <label>Add Member: </label>
+            <div className='search-dropdown-input flex-row'>
+              <input  
+                type='text'
+                className='input-data'
+                value={member_input}
+                onChange={e => setMemberInput(e.target.value)}
+                onFocus={() => showDropdown(true)}
+                onBlur={() => showDropdown(false)}
+                placeholder='Add a student for this class...'
+              />
+              {showStudents && student_list &&
+                <SearchUserList 
+                  list={student_list.filter(sl => !selectedRef.current.members.some(st => st.uid === sl.uid))} 
+                  filter={member_input} 
+                  selectUser={addMember}/>
+              }
+            </div>
+          </div>
+      </>
+      } */}
+    </>
   )
 }
 

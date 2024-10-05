@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
-import { BsSearch, BsFilter } from 'react-icons/bs';
-import { FiPlus } from 'react-icons/fi';
+import { BsSearch } from 'react-icons/bs';
+import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
-import { SearchUserList, SearchCourseList } from './SearchList';
+import { SearchUserList, searchDropdown } from './SearchList';
 import ShowId from './ShowId';
 
 function TabClasses({ admin, showId, setShowId }) {
@@ -25,17 +25,13 @@ function TabClasses({ admin, showId, setShowId }) {
   const [course_code, setCourseCode] = useState('');
   const [section, setSection] = useState('');
   const [professor_uid, setProfessorUid] = useState('');
-  const [professor_name, setProfessorName] = useState('');
   
-  const [student_name, setStudentName] = useState('');
-
   const [professor_list, setProfessorList] = useState(null);
   const [course_list, setCourseList] = useState(null);
-  const [student_list, setStudentList] = useState(null);
 
+  const [student_list, setStudentList] = useState(null);  
+  const [student_input, setStudentInput] = useState('');
   const [showStudents, setShowStudents] = useState(false);
-  const [showProfessors, setShowProfessors] = useState(false);
-  const [showCourses, setShowCourses] = useState(false);
   
   useEffect(() => {
     const init = async () => await getAllClasses();
@@ -135,6 +131,9 @@ function TabClasses({ admin, showId, setShowId }) {
   }
 
   async function showCreateForm() {
+    setShowStudentList(false);
+    setShowRequestList(false);
+
     selectedRef.current = null;
 
     if (showForm === 'create') {
@@ -145,16 +144,19 @@ function TabClasses({ admin, showId, setShowId }) {
     }
 
     setProfessorList(await admin.getAllProfessors());
+    setCourseList(await admin.getAllCourses());
     setShowForm('create');
     setCourseCode('');
     setSection('');
     setProfessorUid('');
-    setProfessorName('');
 
     setTimeout(() => document.getElementById('course_code')?.focus(), 100);
   }
 
   async function showEditForm() {
+    setShowStudentList(false);
+    setShowRequestList(false);
+
     if (showForm === 'edit' || !selectedRef.current?.course_code) {
       setShowForm(null);
       
@@ -163,11 +165,11 @@ function TabClasses({ admin, showId, setShowId }) {
     }
     
     setProfessorList(await admin.getAllProfessors());
+    setCourseList(await admin.getAllCourses());
     setShowForm('edit');
     setCourseCode(selectedRef.current.course_code);
     setSection(selectedRef.current.section);
     setProfessorUid(selectedRef.current.professor_uid);
-    setProfessorName(selectedRef.current.professor);
 
     setTimeout(() => document.getElementById('course_code')?.focus(), 100);
   }
@@ -183,47 +185,105 @@ function TabClasses({ admin, showId, setShowId }) {
     }
   }
 
+  async function addStudent(student) {
+    const res = await admin.addStudent(selectedRef.current.class_id, student.uid);
+
+    if (res) {
+      toast.success('Student added successfully.');
+      setShowStudents(false);
+      reloadTable();
+      selectedRef.current = null;
+      navigate(-1);
+    }
+  }
+   
+  async function removeStudent(uid) {
+    if (confirm('Are you sure you want to remove this student from this class?')) {
+      const res = await admin.removeStudent(selectedRef.current.class_id, uid);
+
+      if (res) {
+        toast.success('Student is rejected from the class.');
+        reloadTable();
+        selectedRef.current = null;
+        navigate(-1);
+      }
+    }
+  }
+
+  async function acceptRequest(uid) {
+    const res = await admin.acceptRequest(selectedRef.current.class_id, uid);
+
+    if (res) {
+      toast.success('Accepted request successfully.');
+      reloadTable();
+      selectedRef.current = null;
+      navigate(-1);
+    }
+  }
+
+  async function rejectRequest(uid) {
+    const res = await admin.rejectRequest(selectedRef.current.class_id, uid);
+
+    if (res) {
+      toast.success('Rejected request successfully.');
+      reloadTable();
+      selectedRef.current = null;
+      navigate(-1);
+    }
+  }
+
+  async function showDropdown(bool) {
+    await searchDropdown(bool, setShowStudents, async () => setStudentList(await admin.getAllStudents()))
+  }
+
+
   async function reloadTable() {
     await getAllClasses();
+    setShowForm(null);
     selectedRef.current = null;
     
-    navigate(`/admin/dashboard/classes/q=`);
+    navigate(`/admin/dashboard/classes/q=&f=`);
   }
   
   async function submitClass(e) {
+    let success = false;
     e.preventDefault();
 
     if (showForm === 'create') {
-      const result = await admin.createClass(course_code, section, professor_uid, professor_name);
-      if (result) {
-        toast.success('Course created successfully!');
+      const res = await admin.createClass(course_code, section, professor_uid);
+      if (res) {
+        toast.success('Class created successfully!');
+        success = true;
       }
 
     } else if (showForm === 'edit') {
-      const result = await admin.updateClass(course_code, section, professor_uid, professor_name);
-      if (result) {
-        toast.success('Course updated successfully!');
+      const res = await admin.updateClass(selectedRef.current.class_id, course_code, section, professor_uid);
+      if (res) {
+        toast.success('Class updated successfully!');
+        success = true;
       }    
     }
   
-    setShowForm(null);
-    setShowStudentList(false);
-    setShowRequestList(false);
-    reloadTable();
+    if (success) {
+      setShowForm(null);
+      setShowStudentList(false);
+      setShowRequestList(false);
+      reloadTable();
+    }
   }
 
-  function selectCourse(course) {
-    setCourseCode(course.course_code);
-    setSection('');
-    setShowProfessors(false);
-  }
+  async function deleteClass() {
+    if (confirm('Are you sure you want to delete this class?')) {
+      const res = await admin.deleteClass(selectedRef.current.class_id);
 
-  
-  function selectProfessor(prof) {
-    setProfessorUid(prof.uid);
-    setProfessorName(`${prof.first_name} ${prof.last_name}`);
-    setShowProfessors(false);
-    console.log(prof);
+      if (res) {
+        toast.success('Class deleted successfully!');
+        setShowStudentList(false);
+        setShowRequestList(false);
+        setShowForm(null);
+        reloadTable();
+      }
+    }
   }
 
   return (
@@ -245,7 +305,7 @@ function TabClasses({ admin, showId, setShowId }) {
       <div className='search-div flex-row items-center'>
         <form className='flex-row items-center width-100' onSubmit={(e) => searchClasses(e)}>
           <div className='flex-row items-center'>
-            <BsFilter size={30}/>
+            <FiFilter size={25}/>
             <select id='filter-drop' value={filter} onChange={e => setFilter(e.target.value)}>
               <option value=''>All</option>
               <option value='class_id'>Class ID</option>
@@ -278,18 +338,22 @@ function TabClasses({ admin, showId, setShowId }) {
               <th>Course Code</th>
               <th>Section</th>
               <th>Professor</th>
+              <th>Students</th>
+              <th>Requests</th>
             </tr>
           </thead>
           <tbody>
             {results && results.map(res => (
               <tr 
-                key={res.course_code + res.section} 
+                key={res.class_id} 
                 onClick={() => selectClass(res)} 
-                className={`${selectedRef.current?.course_code === res.course_code && 'selected'}`}>
+                className={`${selectedRef.current?.class_id === res.class_id && 'selected'}`}>
                 {showId && <td>{res.class_id}</td>}
                 <td>{res.course_code}</td>
                 <td>{res.section}</td>
                 <td>{res.professor}</td>
+                <td>{res.students.length}</td>
+                <td>{res.requests.length}</td>
               </tr>
             ))}
           </tbody>
@@ -304,7 +368,7 @@ function TabClasses({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view'>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/teams/q=${selectedRef.current.class_id} ${selectedRef.current.course_code} ${selectedRef.current.section}&f=class`)}>
             View Teams
           </button>
           <button className='admin-view'>
@@ -319,25 +383,29 @@ function TabClasses({ admin, showId, setShowId }) {
           <button className='admin-edit' onClick={showEditForm}>
             Edit Class
           </button>
-          <button className='admin-delete'>
+          <button className='admin-delete' onClick={deleteClass}>
             Delete Class
           </button>
         </>
         }
       </div>
       <form id='admin-form' className={`two-column-grid ${!showForm && 'none' }`} onSubmit={submitClass}>
-        {showForm === 'create' && <h4>Create a course:</h4>}
-        {showForm === 'edit' && <h4>Edit course:</h4>}
+        {showForm === 'create' && <h4>Create a class:</h4>}
+        {showForm === 'edit' && <h4>Edit class:</h4>}
         <div/>
         <div className='flex-column'>
-          <label>Course Code</label>
-          <input
-            className='input-data'  
-            id='course_code'
-            type='text' 
-            value={course_code} 
-            onChange={e => setCourseCode(e.target.value)} 
-            required />
+          <label>Select Course Code</label>
+          <select value={course_code} onChange={e => setCourseCode(e.target.value)} required>
+            <option value=''>Select Course Code</option>
+            {course_list && course_list.map(cou => (
+              <option 
+                key={cou.course_code} 
+                value={cou.course_code} 
+                className='single-line'>
+                {cou.course_code} - {cou.course_title}
+              </option>
+            ))}
+          </select>
         </div>
         <div className='flex-column'>
           <label>Section</label>
@@ -349,31 +417,31 @@ function TabClasses({ admin, showId, setShowId }) {
             onChange={e => setSection(e.target.value)} 
             required />
         </div>
-        <div className='search-dropdown-input flex-column'>
-        <label>Select Professor</label>
-        <input
-          className='input-data'  
-          id='professor_uid'
-          type='text' 
-          value={professor_name} 
-          onFocus={() => setShowProfessors(true)}
-          onBlur={e => setTimeout(() => setShowProfessors(false), 400)}
-          onChange={e => setProfessorName(e.target.value)} 
-          required />
-          {showProfessors && professor_list &&
-              <SearchUserList 
-                list={professor_list} 
-                filter={professor_name}
-                selectUser={selectProfessor}/>
-          }
+        <div className='flex-column'>
+          <label>Select Professor</label>
+          <select value={professor_uid} onChange={e => setProfessorUid(e.target.value)} required>
+            <option value=''>Select Professor</option>
+            {professor_list && professor_list.map(prof => (
+              <option 
+                key={prof.uid} 
+                value={prof.uid}
+                className='single-line'>
+                {prof.first_name} {prof.last_name}
+              </option>
+            ))}
+          </select>
         </div>
         <div></div>
         <div id='admin-form-buttons'>
-          <button className='file-add-btn' type='submit'>Create</button>
+          <button className='file-add-btn' type='submit'>
+            {showForm === 'create' && 'Create'}
+            {showForm === 'edit' && 'Update'}
+          </button>
           <button className='file-cancel-btn' type='button' onClick={() => setShowForm(false)}>Cancel</button>
         </div>
       </form>
       {showStudentList && selectedRef.current &&
+      <>
         <div className='admin-member-list-container flex-column'>
           <h4>Students</h4>
           <div className='admin-member-list flex-column'>
@@ -381,15 +449,41 @@ function TabClasses({ admin, showId, setShowId }) {
               <div className='item flex-row items-center' key={stud.uid}>
                 <label className='single-line'>{stud.last_name} {stud.first_name}</label>
                 <div className='items-center flex-row'>
-                  <button className='remove-btn'>Remove</button>
+                  <button className='remove-btn' onClick={() => removeStudent(stud.uid)}>Remove</button>
                   <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${stud.uid}&f=uid`)}>
                     Student Info
                   </button>
                 </div>
               </div>
             )}
+            {selectedRef.current.students.length === 0 &&
+              <div className='item items-center'>
+                <label className='single-line'>No students.</label>
+              </div>
+            }
           </div>
         </div>
+          <div className='sub-admin-form flex-row items-center'>
+            <label>Add Student: </label>
+            <div className='search-dropdown-input flex-row'>
+              <input  
+                type='text'
+                className='input-data'
+                value={student_input}
+                onChange={e => setStudentInput(e.target.value)}
+                onFocus={() => showDropdown(true)}
+                onBlur={() => showDropdown(false)}
+                placeholder='Add a student for this class...'
+              />
+              {showStudents && student_list &&
+                <SearchUserList 
+                  list={student_list.filter(sl => !selectedRef.current.students.some(st => st.uid === sl.uid))} 
+                  filter={student_input} 
+                  selectUser={addStudent}/>
+              }
+            </div>
+          </div>
+      </>
       }
       {showRequestList && selectedRef.current &&
         <div className='admin-member-list-container flex-column'>
@@ -399,14 +493,19 @@ function TabClasses({ admin, showId, setShowId }) {
               <div className='item flex-row items-center' key={req.uid}>
                 <label className='single-line'>{req.last_name} {req.first_name}</label>
                 <div className='items-center flex-row'>
-                  <button className='accept-btn'>Accept</button>
-                  <button className='remove-btn'>Remove</button>
+                  <button className='accept-btn' onClick={() => acceptRequest(req.uid)}>Accept</button>
+                  <button className='remove-btn' onClick={() => rejectRequest(req.uid)}>Reject</button>
                   <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${req.uid}&f=uid`)}>
                     Student Info
                   </button>
                 </div>
               </div>
             )}
+            {selectedRef.current.requests.length === 0 &&
+              <div className='item items-center'>
+                <label className='single-line'>No requests.</label>
+              </div>
+            }
           </div>
         </div>
       }

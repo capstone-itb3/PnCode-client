@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { LuPencilLine } from 'react-icons/lu';
-import { BsSearch, BsFilter } from 'react-icons/bs';
-import { FiPlus } from 'react-icons/fi';
+import { BsSearch } from 'react-icons/bs';
+import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
@@ -142,6 +142,7 @@ function TabProfessors({ admin, showId, setShowId }) {
 
   async function reloadTable() {
     await getAllProfessors();
+    setShowForm(null);
     selectedRef.current = null;
     
     navigate(`/admin/dashboard/professors/q=`);
@@ -189,7 +190,7 @@ function TabProfessors({ admin, showId, setShowId }) {
       <div className='search-div flex-row items-center'>
         <form className='flex-row items-center width-100' onSubmit={(e) => searchProfessors(e)}>
           <div className='flex-row items-center'>
-            <BsFilter size={30}/>
+            <FiFilter size={25}/>
             <select id='filter-drop' value={filter} onChange={e => setFilter(e.target.value)}>
               <option value=''>All</option>
               <option value='uid'>UID</option>
