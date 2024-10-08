@@ -19,6 +19,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return data.students;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -34,6 +35,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return data.professors;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -49,6 +51,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return data.courses;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -64,6 +67,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return data.classes;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -79,6 +83,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return data.teams;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -94,6 +99,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return data.activities;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -109,6 +115,7 @@ export default class Admin {
     //         if (data.status === 'ok') {
     //             return data.solo_rooms;
     //         }
+    // return null;
     //     } catch (e) {
     //         errorHandler(e);
     //         return null;
@@ -124,6 +131,7 @@ export default class Admin {
     //         if (data.status === 'ok') {
     //             return data.assigned_rooms;
     //         }
+    // return null;
     //     } catch (e) {
     //         errorHandler(e);
     //         return null;
@@ -139,6 +147,7 @@ export default class Admin {
     //         if (data.status === 'ok') {
     //             return data.files;
     //         }
+    // return null;
     //     } catch (e) {
     //         errorHandler(e);
     //         return null;
@@ -154,11 +163,13 @@ export default class Admin {
     //         if (data.status === 'ok') {
     //             return data.admins;
     //         }
+    // return null;
     //     } catch (e) {
     //         errorHandler(e);
     //         return null;
     //     }
     // }
+    
 
     async createStudent(email, first_name, last_name, password, confirmPassword) {
         try {
@@ -172,8 +183,9 @@ export default class Admin {
             const data = response.data;
 
             if (data.status === 'ok') {
-                return true;
+                return data.uid;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -195,6 +207,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -213,8 +226,9 @@ export default class Admin {
             const data = response.data;
 
             if (data.status === 'ok') {
-                return true;
+                return data.uid;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -236,6 +250,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -251,8 +266,9 @@ export default class Admin {
             const data = response.data;
 
             if (data.status === 'ok') {
-                return true;
+                return data.course_code;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -271,6 +287,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -287,8 +304,9 @@ export default class Admin {
             const data = response.data;
 
             if (data.status === 'ok') {
-                return true;
+                return data.class_id;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -308,6 +326,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -326,6 +345,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -344,6 +364,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -362,6 +383,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -377,9 +399,9 @@ export default class Admin {
             const data = response.data;
 
             if (data.status === 'ok') {
-                toast.success('Student is removed from the class.');
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -396,8 +418,9 @@ export default class Admin {
             const data = response.data;
 
             if (data.status === 'ok') {
-                return true;
+                return data.team_id;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -415,6 +438,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -432,6 +456,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return data.students;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -450,8 +475,8 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch(e) {
-            console.error('Error in addMember:', e);
             errorHandler(e);
             return null;
         }
@@ -469,10 +494,54 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
-
-        } catch(e) {
+            return null;
+        } catch (e) {
             errorHandler(e);
             return null;
+        }
+    }
+
+    async createActivity(class_id, activity_name, instructions, open_time, close_time) {
+        try {
+            const response = await api.post('/api/admin/create-activity', {
+                class_id,
+                activity_name,
+                instructions,
+                open_time,
+                close_time
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return data.activity_id;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async updateActivity(activity_id, activity_name, instructions, open_time, close_time) {
+        try {
+            const response = await api.post('/api/admin/update-activity', {
+                activity_id,
+                activity_name,
+                instructions,
+                open_time,
+                close_time
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+                errorHandler(e);
+                return null;
         }
     }
 
@@ -487,6 +556,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -504,6 +574,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -521,7 +592,7 @@ export default class Admin {
             if (data.status === 'ok') {
                 return true;
             }
-
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;

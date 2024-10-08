@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -11,12 +11,14 @@ function TabTeams({ admin, showId, setShowId }) {
   const [teams, setTeams] = useState(null);
   const [results, setResults] = useState(teams);
   const selectedRef = useRef(null);
+  const [team_members, setTeamMembers] = useState([]);
 
   const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
   
   const navigate = useNavigate();
   const { query } = useParams();
+  const { state } = useLocation();
 
   const [showForm, setShowForm] = useState(null);
   const [showMemberList, setShowMemberList] = useState(false);
@@ -30,12 +32,15 @@ function TabTeams({ admin, showId, setShowId }) {
   const [member_input, setMemberInput] = useState('');
   const [showStudents, setShowStudents] = useState(false);
   
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const init = async () => await getAllTeams();
     init();
   }, []);
   
   async function getAllTeams() {
+    setLoading(true);
     const data = await admin.getAllTeams();
     setTeams(data);
     setResults(data);
@@ -88,6 +93,7 @@ function TabTeams({ admin, showId, setShowId }) {
     setSearch(q);
     setFilter(`${f ? f : ''}`);
     setResults(filtered);
+    setLoading(false);
   } 
 
   useEffect(() => {
@@ -96,40 +102,52 @@ function TabTeams({ admin, showId, setShowId }) {
 
   function searchTeams(e) {
     e.preventDefault();
-
     setShowForm(null);
     selectedRef.current = null;
+    setTeamMembers([]);
     navigate(`/admin/dashboard/teams/q=${search}&f=${filter}`);
   }
   
   function selectTeam(team) {
-    if (selectedRef.current === team) {
+    if (selectedRef.current?.team_id === team.team_id) {
       selectedRef.current = null;
+      setTeamMembers([]);
       setShowMemberList(false);
       navigate(-1);
       return;
     }
-
+    
     selectedRef.current = team;
-    setShowForm(null);
+    setTeamMembers(team.members);      
     navigate(`/admin/dashboard/teams/q=${team.team_id}&f=team_id`);
   }
 
-  async function showCreateForm() {
+  async function showCreateForm(type) {
+    setLoading(true);
     setShowMemberList(false);
     selectedRef.current = null;
+    setTeamMembers([]);
 
     if (showForm === 'create') {
       setShowForm(null);
-      
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      setLoading(false);
       return;
     }
 
-    setClassList(await admin.getAllClasses());
+    if (type === 'new') {
+      setClassList(await admin.getAllClasses());
+      setClassId('');
+    } else if (type === 'custom') {
+      setClassList([{ class_id: state.origin_id,
+                      course_code: state.origin_name,
+                      section: '' }]);
+      setClassId(state.origin_id);
+    }
+
     setShowForm('create');
     setTeamName('');
-
+    setLoading(false);
     setTimeout(() => document.getElementById('team_name')?.focus(), 100);
   }
 
@@ -156,34 +174,34 @@ function TabTeams({ admin, showId, setShowId }) {
   async function manageList() {
     setShowForm(null);
     setShowMemberList(!showMemberList);
-
-    console.log(selectedRef.current);
     setMemberInput('');
     setShowStudents(false);
   }
 
   async function addMember(student) {
+    setLoading(true);
     const res = await admin.addMember(selectedRef.current.team_id, student.uid);
-    console.log(selectedRef.current);
 
     if (res) {
       toast.success('Student added to the team successfully.');
-      setShowStudents(false);
-      reloadTable();
-      selectedRef.current = null;
-      navigate(-1);
+      await reloadData();
+      setTeamMembers([...team_members, student]);
+    } else {
+      setLoading(false);
     }
   }
    
   async function removeMember(uid) {
     if (confirm('Are you sure you want to remove this member from the team?')) {
+      setLoading(true);
       const res = await admin.removeMember(selectedRef.current.team_id, uid);
 
       if (res) {
         toast.success('Student is removed from the team.');
-        reloadTable();
-        selectedRef.current = null;
-        navigate(-1);
+        await reloadData();
+        setTeamMembers(team_members.filter(m => m.uid !== uid));
+      } else {
+        setLoading(false);
       }
     }
   }
@@ -192,66 +210,82 @@ function TabTeams({ admin, showId, setShowId }) {
     await searchDropdown(bool, setShowStudents, async () => setStudentList(await admin.getClassStudents(selectedRef.current?.class_id)));
   }
 
-
-  async function reloadTable() {
+  async function reloadData() {
     await getAllTeams();
     setShowForm(null);
-    selectedRef.current = null;
-    
-    navigate(`/admin/dashboard/teams/q=&f=`);
   }
+
+  async function resetUI() {
+    await reloadData();
+    selectedRef.current = null; 
+    setTeamMembers([]);
+    navigate('/admin/dashboard/teams/q=&f=');
+  }
+
   
   async function submitTeam(e) {
-    let success = false;
     e.preventDefault();
+    setLoading(true);
 
     if (showForm === 'create') {
       const res = await admin.createTeam(class_id, team_name);
       if (res) {
         toast.success('Team created successfully!');
-        success = true;
+        await reloadData();
+        navigate(`/admin/dashboard/teams/q=${res}&f=team_id`);
+      } else {
+        setLoading(false);
       }
 
     } else if (showForm === 'edit') {
       const res = await admin.updateTeam(selectedRef.current.team_id, team_name);
       if (res) {
         toast.success('Team updated successfully!');
-        success = true;
-      }    
-    }
-  
-    if (success) {
-      setShowForm(null);
-      setShowMemberList(false);
-      reloadTable();
+        await reloadData();
+        selectedRef.current = null;
+        setTeamMembers([]);
+      } else {
+        setLoading(false);
+      }
     }
   }
 
   async function deleteTeam() {
     if (confirm('Are you sure you want to delete this team?')) {
+      setLoading(true);
       const res = await admin.deleteTeam(selectedRef.current.team_id);
 
       if (res) {
         toast.success('Team deleted successfully!');
-        setShowMemberList(false);
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        navigate(-1);
+        selectedRef.current = null;
+        setTeamMembers([]);
+      } else {
+        setLoading(false);
       }
     }
   }
 
   return (
     <>
+      <div id='admin-loading-container'>
+        {loading &&
+          <div className='loading-line'>
+              <div></div>
+          </div>
+        }
+      </div>
       <div className='manage-header flex-row items-center'>
         <div className='flex-row items-center'>
           <h4>Teams</h4>
-          <button className='items-center reload-btn' onClick={reloadTable}>
+          <button className='items-center reload-btn' onClick={resetUI}>
             <MdLoop size={22}/>
           </button>
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          <button className='admin-create items-center' onClick={showCreateForm}>
+          <button className='admin-create items-center' onClick={() => showCreateForm('new')}>
             Create <FiPlus size={17}/>
           </button>
         </div>
@@ -283,6 +317,20 @@ function TabTeams({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
+        {state &&
+          <div className='origin-div items-center'> 
+              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
+              <div className='items-center'>
+                {state.origin_path === 'Class' && results &&
+                  <>
+                    <button className='add' onClick={() => showCreateForm('custom')}>Add team for this class?</button>
+                    <button className='delete'>Delete all class's teams?</button>
+                  </>
+                }
+                <button className='back' onClick={() => navigate(-1)}>Back</button>
+              </div>
+          </div>
+        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -316,7 +364,9 @@ function TabTeams({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`, 
+            { state: { origin_id: selectedRef.current.team_id, origin_name: `${selectedRef.current.team_name}`, origin_path: 'Team' } }
+          )}>
             View Class
           </button>
           <button className='admin-view'>
@@ -379,18 +429,20 @@ function TabTeams({ admin, showId, setShowId }) {
         <div className='admin-member-list-container flex-column'>
           <h4>Team Members</h4>
           <div className='admin-member-list flex-column'>
-            {selectedRef.current.members.map((mem) => 
+            {team_members.map((mem) => 
               <div className='item flex-row items-center' key={mem.uid}>
                 <label className='single-line'>{mem.last_name} {mem.first_name}</label>
                 <div className='items-center flex-row'>
                   <button className='remove-btn' onClick={() => removeMember(mem.uid)}>Remove</button>
-                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid}&f=uid`)}>
+                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid} ${mem.first_name} ${mem.last_name}&f=`, 
+                    { state: { origin_id: selectedRef.current.team_id, origin_name: `${selectedRef.current.team_name}`, origin_path: 'Team' } }
+                  )}>
                     Student Info
                   </button>
                 </div>
               </div>
             )}
-            {selectedRef.current.members.length === 0 &&
+            {team_members.length === 0 &&
               <div className='item items-center'>
                 <label className='single-line'>No team members.</label>
               </div>
@@ -411,7 +463,7 @@ function TabTeams({ admin, showId, setShowId }) {
               />
               {showStudents && student_list &&
                 <SearchUserList 
-                  list={student_list.filter(sl => !selectedRef.current.members.some(st => st.uid === sl.uid))} 
+                  list={student_list.filter(sl => !team_members.some(st => st.uid === sl.uid))} 
                   filter={member_input} 
                   selectUser={addMember}/>
               }

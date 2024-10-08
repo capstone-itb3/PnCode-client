@@ -11,7 +11,6 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
     });
 
     function openMenu(clicked) {
-        console.log(isChecked);
         const option = document.getElementById(`${clicked}-menu`);
         option.classList.toggle('hidden');
 
@@ -31,6 +30,20 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
         option.classList.toggle('hidden');
     }
 
+    function openFile() {
+        setLeftDisplay('files');
+        setAddNewFile(false);
+        setDeleteFile(false);
+        const option = document.getElementById(`files-menu`);
+        option.classList.toggle('hidden');
+
+        const first_file = document.querySelector('#file-drawer .item');
+
+        if (first_file) {
+            first_file.focus();
+        }
+    }
+    
     function deleteFile() {
         setAddNewFile(false);
         setDeleteFile(true);
@@ -75,18 +88,25 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
 
     return (
         <>
-            {type === 'assigned' && user.position === 'Student' &&
+            {type === 'assigned' &&
             <>
                 <button className='room-header-options' onClick={() => openMenu('files')}>
                     Files
                 </button>
                 <div id='files-menu' className='flex-column options-menu hidden'>
-                    <div className='item items-center'  onClick={addFile}>
-                        <label>Add File</label><span>Alt + A</span>
+                    {user.position === 'Student' &&
+                        <div className='item items-center'  onClick={addFile}>
+                            <label>Add File</label><span>Alt + A</span>
+                        </div>
+                    }
+                    <div className='item items-center'  onClick={openFile}>
+                        <label>Open File</label><span>Alt + (#)</span>
                     </div>
-                    <div className='item items-center' onClick={deleteFile}>
-                        <label>Delete File</label><span>Alt + X</span>
-                    </div>
+                    {user.position === 'Student' &&
+                        <div className='item items-center' onClick={deleteFile}>
+                            <label>Delete File</label><span>Alt + X</span>
+                        </div>
+                    }
                 </div>
             </>
             }

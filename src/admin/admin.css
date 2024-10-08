@@ -64,7 +64,6 @@ header.admin {
 .manage-scroll::-webkit-scrollbar {
     display: none;
 }
-
 .manage-button {
     padding: 4px 12px;
     margin: 0 2px;
@@ -105,17 +104,49 @@ header.admin {
     left: 0;
     right: 0;
     overflow: auto;
-    padding: 20px;
 }
 
 #manage-content .manage-header {
     margin-bottom: 10px; 
     justify-content: space-between;
+    padding: 20px 20px 0px 20px;
 }
 
 #manage-content .manage-header h4 {
     margin-right: 5px;
 }
+
+.origin-div {
+    /* border-radius: 10px; */
+    margin: 10px 0px;
+}
+.origin-div b {
+    margin: 0 5px;
+}
+.origin-div span {
+    color: var(--gray)
+}
+
+.origin-div button {
+    border: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: 0;
+    font-size: 16px;
+    margin-left: 10px;
+    background-color: transparent;
+}
+
+.origin-div button.delete {
+    color: red;
+}
+.origin-div button.add {
+    color: #0066ff;
+}
+.origin-div button.back {
+    color: #0066ff;
+}
+
 
 #admin-table {
     font-size: 17px;
@@ -126,6 +157,7 @@ header.admin {
 #admin-table-container {
     overflow-x: auto;
     margin-bottom: 30px;
+    padding: 0 20px;
 }
 
 #admin-table thead th {
@@ -169,7 +201,9 @@ header.admin {
 .search-div {
     display: flex;
     flex-direction: row;
-    color: var(--gray-dark)
+    color: var(--gray-dark);
+    padding: 0 20px;
+
 }
 
 #filter-drop {
@@ -225,6 +259,7 @@ header.admin {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
+    padding: 0 20px;
 }
 #admin-table-buttons.long{
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -254,7 +289,7 @@ header.admin {
     border: 2px solid var(--base);
     padding: 15px 30px;
     border-radius: 10px;    
-    margin: 30px 10px 200px 10px;
+    margin: 30px 20px 200px 20px;
     background-color: var(--near-white);
 }
 
@@ -281,13 +316,11 @@ header.admin {
 #admin-form .input-data, #admin-form select, .sub-admin-form .input-data {
     padding: 6px 12px;
     margin-top: 2px;
-    /* width: calc(100% - 40px); */
     border: 1px solid var(--gray);
 }
 #admin-form textarea{
-    /* resize: none; */
     height: 50px;
-    /* width: 100%; */
+    max-width: calc(100% - 25px);
 }
 
 #admin-form select {
@@ -302,8 +335,8 @@ header.admin {
 
 .admin-member-list-container {
     position: relative;
-    width: 100%;
-    margin: 30px 0;
+    width: calc(100% - 40px);
+    margin: 30px 20px;
     box-shadow: 0 0 2px var(--gray-dark);
 }
 
@@ -324,6 +357,10 @@ header.admin {
     margin: 0 10px;
 }
 
+#admin-loading-container{
+    height: 5px;
+}
+
 .info-btn {
     font-size: 14px;
     border: 0;
@@ -334,7 +371,7 @@ header.admin {
 }
 
 .sub-admin-form {
-    margin-bottom: 60px;
+    margin: 0 20px 60px 20px;
 }
 
 .sub-admin-form label {
@@ -414,6 +451,22 @@ header.admin {
 .show-id .slider::before {
     box-shadow:  0 0 3px var(--gray-dark);
 }
+
+#manage-content footer {
+    margin: 0 20px 50px 20px;
+}
+
+#manage-content footer button{
+    border: 0;
+    background-color: transparent;
+    color: var(--gray-dark);
+    font-size: 20px;
+    transition: 0.3s ease;
+}
+#manage-content footer button:hover {
+    color: unset;
+}
+
 
 
 @media (width < 500px) {

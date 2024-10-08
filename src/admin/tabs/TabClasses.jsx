@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -11,12 +11,15 @@ function TabClasses({ admin, showId, setShowId }) {
   const [classes, setClasses] = useState(null);
   const [results, setResults] = useState(classes);
   const selectedRef = useRef(null);
+  const [class_students, setClassStudents] = useState([]);
+  const [class_requests, setClassRequests] = useState([]);
 
   const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
   
   const navigate = useNavigate();
   const { query } = useParams();
+  const { state } = useLocation();
 
   const [showForm, setShowForm] = useState(null);
   const [showStudentList, setShowStudentList] = useState(false);
@@ -32,6 +35,8 @@ function TabClasses({ admin, showId, setShowId }) {
   const [student_list, setStudentList] = useState(null);  
   const [student_input, setStudentInput] = useState('');
   const [showStudents, setShowStudents] = useState(false);
+
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const init = async () => await getAllClasses();
@@ -39,6 +44,7 @@ function TabClasses({ admin, showId, setShowId }) {
   }, []);
   
   async function getAllClasses() {
+    setLoading(true);
     const data = await admin.getAllClasses();
     setClasses(data);
     setResults(data);
@@ -102,6 +108,7 @@ function TabClasses({ admin, showId, setShowId }) {
     setSearch(q);
     setFilter(`${f ? f : ''}`);
     setResults(filtered);
+    setLoading(false);
   } 
 
   useEffect(() => {
@@ -110,15 +117,18 @@ function TabClasses({ admin, showId, setShowId }) {
 
   function searchClasses(e) {
     e.preventDefault();
-
     setShowForm(null);
     selectedRef.current = null;
+    setClassStudents([]);
+    setClassRequests([]);
     navigate(`/admin/dashboard/classes/q=${search}&f=${filter}`);
   }
   
   function selectClass(class_data) {
-    if (selectedRef.current === class_data) {
+    if (selectedRef.current?.class_id === class_data.class_id) {
       selectedRef.current = null;
+      setClassStudents([]);
+      setClassRequests([]);
       setShowStudentList(false);
       setShowRequestList(false);
       navigate(-1);
@@ -126,20 +136,23 @@ function TabClasses({ admin, showId, setShowId }) {
     }
 
     selectedRef.current = class_data;
-    setShowForm(null);
+    setClassStudents(class_data.students);
+    setClassRequests(class_data.requests);
     navigate(`/admin/dashboard/classes/q=${class_data.class_id}&f=class_id`);
   }
 
   async function showCreateForm() {
+    setLoading(true);
     setShowStudentList(false);
     setShowRequestList(false);
-
     selectedRef.current = null;
+    setClassStudents([]);
+    setClassRequests([]);
 
     if (showForm === 'create') {
       setShowForm(null);
-      
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      setLoading(false);
       return;
     }
 
@@ -149,7 +162,7 @@ function TabClasses({ admin, showId, setShowId }) {
     setCourseCode('');
     setSection('');
     setProfessorUid('');
-
+    setLoading(false);
     setTimeout(() => document.getElementById('course_code')?.focus(), 100);
   }
 
@@ -186,49 +199,57 @@ function TabClasses({ admin, showId, setShowId }) {
   }
 
   async function addStudent(student) {
+    setLoading(true);
     const res = await admin.addStudent(selectedRef.current.class_id, student.uid);
 
     if (res) {
       toast.success('Student added successfully.');
-      setShowStudents(false);
-      reloadTable();
-      selectedRef.current = null;
-      navigate(-1);
+      await reloadData();
+      setClassStudents([...class_students, student]);
+    } else {
+      setLoading(false);
     }
   }
    
   async function removeStudent(uid) {
     if (confirm('Are you sure you want to remove this student from this class?')) {
+      setLoading(true);
       const res = await admin.removeStudent(selectedRef.current.class_id, uid);
 
       if (res) {
         toast.success('Student is rejected from the class.');
-        reloadTable();
-        selectedRef.current = null;
-        navigate(-1);
+        await reloadData();
+        setClassStudents(class_students.filter(s => s.uid !== uid));
+      } else {
+        setLoading(false);
       }
     }
   }
 
-  async function acceptRequest(uid) {
-    const res = await admin.acceptRequest(selectedRef.current.class_id, uid);
+  async function acceptRequest(student) {
+    setLoading(true);
+    const res = await admin.acceptRequest(selectedRef.current.class_id, student.uid);
 
     if (res) {
       toast.success('Accepted request successfully.');
-      reloadTable();
-      selectedRef.current = null;
-      navigate(-1);
+      await reloadData();
+      setClassStudents([...class_students, student]);
+      setClassRequests(class_requests.filter(r => r.uid !== student.uid));
+    } else {
+      setLoading(false);
     }
   }
 
-  async function rejectRequest(uid) {
-    const res = await admin.rejectRequest(selectedRef.current.class_id, uid);
+  async function rejectRequest(student) {
+    setLoading(true);
+    const res = await admin.rejectRequest(selectedRef.current.class_id, student.uid);
 
     if (res) {
       toast.success('Rejected request successfully.');
-      reloadTable();
-      selectedRef.current = null;
-      navigate(-1);
+      await reloadData();
+      setClassRequests(class_requests.filter(r => r.uid !== student.uid));
+    } else {
+      setLoading(false);
     }
   }
 
@@ -237,61 +258,78 @@ function TabClasses({ admin, showId, setShowId }) {
   }
 
 
-  async function reloadTable() {
+  async function reloadData() {
     await getAllClasses();
     setShowForm(null);
-    selectedRef.current = null;
-    
-    navigate(`/admin/dashboard/classes/q=&f=`);
+  }
+
+  async function resetUI() {
+    await reloadData();
+    selectedRef.current = null; 
+    setClassStudents([]);
+    setClassRequests([]);
+    navigate('/admin/dashboard/classes/q=&f=');
   }
   
   async function submitClass(e) {
-    let success = false;
     e.preventDefault();
+    setLoading(true);
 
     if (showForm === 'create') {
       const res = await admin.createClass(course_code, section, professor_uid);
       if (res) {
         toast.success('Class created successfully!');
-        success = true;
+        await reloadData();
+        navigate(`/admin/dashboard/classes/q=${res}&f=class_id`);
+      } else {
+        setLoading(false);
       }
 
     } else if (showForm === 'edit') {
       const res = await admin.updateClass(selectedRef.current.class_id, course_code, section, professor_uid);
       if (res) {
         toast.success('Class updated successfully!');
-        success = true;
-      }    
-    }
-  
-    if (success) {
-      setShowForm(null);
-      setShowStudentList(false);
-      setShowRequestList(false);
-      reloadTable();
+        await reloadData();
+        selectedRef.current = null;
+        setClassStudents([]);
+        setClassRequests([]);
+      } else {
+        setLoading(false);
+      }
     }
   }
 
   async function deleteClass() {
     if (confirm('Are you sure you want to delete this class?')) {
+      setLoading(true);
       const res = await admin.deleteClass(selectedRef.current.class_id);
 
       if (res) {
         toast.success('Class deleted successfully!');
-        setShowStudentList(false);
-        setShowRequestList(false);
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        navigate(-1);
+        selectedRef.current = null;
+        setClassStudents([]);
+        setClassRequests([]);
+      } else {
+        setLoading(false);
       }
     }
   }
 
   return (
     <>
+      <div id='admin-loading-container'>
+        {loading &&
+          <div className='loading-line'>
+              <div></div>
+          </div>
+        }
+      </div>
       <div className='manage-header flex-row items-center'>
         <div className='flex-row items-center'>
           <h4>Classes</h4>
-          <button className='items-center reload-btn' onClick={reloadTable}>
+          <button className='items-center reload-btn' onClick={resetUI}>
             <MdLoop size={22}/>
           </button>
           <ShowId showId={showId} setShowId={setShowId}/>
@@ -331,6 +369,14 @@ function TabClasses({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
+        {state &&
+          <div className='origin-div items-center'> 
+              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
+              <div className='items-center'>
+                <button className='back' onClick={() => navigate(-1)}>Back</button>
+              </div>
+          </div>
+        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -368,10 +414,16 @@ function TabClasses({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/teams/q=${selectedRef.current.class_id} ${selectedRef.current.course_code} ${selectedRef.current.section}&f=class`)}>
+          <button className='admin-view' onClick={() => 
+            navigate(`/admin/dashboard/teams/q=${selectedRef.current.class_id} ${selectedRef.current.course_code} ${selectedRef.current.section}&f=class`, 
+            { state: { origin_id: selectedRef.current.class_id, origin_name: `${selectedRef.current.course_code} ${selectedRef.current.section}`, origin_path: 'Class' } }
+          )}>
             View Teams
           </button>
-          <button className='admin-view'>
+          <button className='admin-view' onClick={() =>
+            navigate(`/admin/dashboard/activities/q=${selectedRef.current.class_id} ${selectedRef.current.course_code} ${selectedRef.current.section}&f=class`, 
+              { state: { origin_id: selectedRef.current.class_id, origin_name: `${selectedRef.current.course_code} ${selectedRef.current.section}`, origin_path: 'Class' } }    
+            )}>
             View Activities
           </button>
           <button className='admin-manage' onClick={() => manageList('students')}>
@@ -445,18 +497,20 @@ function TabClasses({ admin, showId, setShowId }) {
         <div className='admin-member-list-container flex-column'>
           <h4>Students</h4>
           <div className='admin-member-list flex-column'>
-            {selectedRef.current.students.map((stud) => 
+            {class_students.map((stud) => 
               <div className='item flex-row items-center' key={stud.uid}>
                 <label className='single-line'>{stud.last_name} {stud.first_name}</label>
                 <div className='items-center flex-row'>
                   <button className='remove-btn' onClick={() => removeStudent(stud.uid)}>Remove</button>
-                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${stud.uid}&f=uid`)}>
+                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${stud.uid} ${stud.first_name} ${stud.last_name}&f=`, 
+                    { state: { origin_id: selectedRef.current.class_id, origin_name: `${selectedRef.current.course_code} ${selectedRef.current.section}`, origin_path: 'Class' } }
+                  )}>
                     Student Info
                   </button>
                 </div>
               </div>
             )}
-            {selectedRef.current.students.length === 0 &&
+            {class_students.length === 0 &&
               <div className='item items-center'>
                 <label className='single-line'>No students.</label>
               </div>
@@ -477,7 +531,7 @@ function TabClasses({ admin, showId, setShowId }) {
               />
               {showStudents && student_list &&
                 <SearchUserList 
-                  list={student_list.filter(sl => !selectedRef.current.students.some(st => st.uid === sl.uid))} 
+                  list={student_list.filter(sl => !class_students.some(st => st.uid === sl.uid))} 
                   filter={student_input} 
                   selectUser={addStudent}/>
               }
@@ -489,19 +543,21 @@ function TabClasses({ admin, showId, setShowId }) {
         <div className='admin-member-list-container flex-column'>
           <h4>Requests</h4>
           <div className='admin-member-list flex-column'>
-            {selectedRef.current.requests.map((req) =>
+            {class_requests.map((req) =>
               <div className='item flex-row items-center' key={req.uid}>
                 <label className='single-line'>{req.last_name} {req.first_name}</label>
                 <div className='items-center flex-row'>
-                  <button className='accept-btn' onClick={() => acceptRequest(req.uid)}>Accept</button>
-                  <button className='remove-btn' onClick={() => rejectRequest(req.uid)}>Reject</button>
-                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${req.uid}&f=uid`)}>
+                  <button className='accept-btn' onClick={() => acceptRequest(req)}>Accept</button>
+                  <button className='remove-btn' onClick={() => rejectRequest(req)}>Reject</button>
+                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${req.uid} ${req.first_name} ${req.last_name}&f=`, 
+                    { state: { origin_id: selectedRef.current.class_id, origin_name: `${selectedRef.current.course_code} ${selectedRef.current.section}`, origin_path: 'Class' } }
+                  )}>
                     Student Info
                   </button>
                 </div>
               </div>
             )}
-            {selectedRef.current.requests.length === 0 &&
+            {class_requests.length === 0 &&
               <div className='item items-center'>
                 <label className='single-line'>No requests.</label>
               </div>

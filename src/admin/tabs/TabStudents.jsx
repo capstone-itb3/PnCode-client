@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
-
 
 function TabStudents({ admin, showId, setShowId }) {
   const [students, setStudents] = useState(null);
@@ -17,6 +16,8 @@ function TabStudents({ admin, showId, setShowId }) {
   
   const navigate = useNavigate();
   const { query } = useParams();
+  const { state } = useLocation();
+
   const [showForm, setShowForm] = useState(null);
   const [email, setEmail] = useState('');
   const [first_name, setFirstName] = useState('');
@@ -24,12 +25,15 @@ function TabStudents({ admin, showId, setShowId }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const init = async () => await getAllStudents();
     init();
   }, []);
 
   async function getAllStudents() {
+    setLoading(true);
     const data = await admin.getAllStudents();
     setStudents(data);
     setResults(data);
@@ -70,13 +74,15 @@ function TabStudents({ admin, showId, setShowId }) {
       } else {
         const lastToFirst = `${s.last_name} ${s.first_name}`.toLowerCase().includes(q.toLowerCase());
         const firstToLast = `${s.first_name} ${s.last_name}`.toLowerCase().includes(q.toLowerCase());
-        return (uid || lastToFirst || firstToLast || email);
+        const combined = `${s.uid} ${s.first_name} ${s.last_name}`.toLowerCase().includes(q.toLowerCase());
+        return (uid || lastToFirst || firstToLast || email || combined);
       }
     })
 
     setSearch(q);
     setFilter(f);
     setResults(filtered);
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -85,30 +91,29 @@ function TabStudents({ admin, showId, setShowId }) {
 
   function searchStudents(e) {
     e.preventDefault();
-
     setShowForm(null);
     selectedRef.current = null;
     navigate(`/admin/dashboard/students/q=${search}&f=${filter}`);
   }
   
   function selectStudent(student) {
-    if (selectedRef.current === student) {
+    if (selectedRef.current?.uid === student.uid) {
       selectedRef.current = null;
-      navigate(`/admin/dashboard/students/q=&f=`);
+      navigate(-1);
       return;
     }
     selectedRef.current = student;
-    setShowForm(null);
     navigate(`/admin/dashboard/students/q=${student.uid}&f=uid`);
   }
 
   function showCreateForm() {
+    setLoading(true)
     selectedRef.current = null;
 
     if (showForm === 'create') {
       setShowForm(null);
-
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      setLoading(false);
       return;
     }
 
@@ -118,7 +123,7 @@ function TabStudents({ admin, showId, setShowId }) {
     setLastName('');
     setPassword('');
     setConfirmPassword('');
-
+    setLoading(false);
     setTimeout(() => document.getElementById('first_name')?.focus(), 100);
   }
 
@@ -140,43 +145,56 @@ function TabStudents({ admin, showId, setShowId }) {
     setTimeout(() => document.getElementById('first_name')?.focus(), 100);
   }
 
-  async function reloadTable() {
+  async function reloadData() {
     await getAllStudents();
     setShowForm(null);
-    selectedRef.current = null;
-    
-    navigate(`/admin/dashboard/students/q=`);
+  }
+
+  async function resetUI() {
+    await reloadData();
+    selectedRef.current = null; 
+    navigate('/admin/dashboard/students/q=&f=');
   }
   
   async function submitStudent(e) {
     e.preventDefault();
+    setLoading(true)
 
     if (showForm === 'create') {
-      const result = await admin.createStudent(email, first_name, last_name, password, confirmPassword);
-      if (result) {
+      const res = await admin.createStudent(email, first_name, last_name, password, confirmPassword);
+      if (res) {
         toast.success('Student created successfully!');
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        navigate(`/admin/dashboard/students/q=${res}&f=uid`);
+      } else {
+        setLoading(false);
       }
-
 
     } else if (showForm === 'edit') {
-      const result = await admin.updateStudent(selectedRef.current.uid, email, first_name, last_name, password, confirmPassword);
-      if (result) {
+      const res = await admin.updateStudent(selectedRef.current.uid, email, first_name, last_name, password, confirmPassword);
+      if (res) {
         toast.success('Student updated successfully!');
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        selectedRef.current = null;
+      } else {
+        setLoading(false);
       }
-    
     }
   }
 
   return (
     <>
+      <div id='admin-loading-container'>
+        {loading &&
+          <div className='loading-line'>
+              <div></div>
+          </div>
+        }
+      </div>
       <div className='manage-header flex-row items-center'>
         <div className='flex-row items-center'>
           <h4>Students</h4>
-          <button className='items-center reload-btn' onClick={reloadTable}>
+          <button className='items-center reload-btn' onClick={resetUI}>
             <MdLoop size={22}/>
           </button>
           <ShowId showId={showId} setShowId={setShowId}/>
@@ -214,6 +232,14 @@ function TabStudents({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
+        {state &&
+          <div className='origin-div items-center'> 
+              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
+              <div className='items-center'>
+                <button className='back' onClick={() => navigate(-1)}>Back</button>
+              </div>
+          </div>
+        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -246,14 +272,18 @@ function TabStudents({ admin, showId, setShowId }) {
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/teams/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=member`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/teams/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=member`,
+            { state: { origin_id: selectedRef.current.uid, origin_name: selectedRef.current.first_name + ' ' + selectedRef.current.last_name, origin_path: 'student' } }
+          )}>
             View Student's Teams
           </button>
         }
         {selectedRef.current &&
           <button 
             className='admin-view' 
-            onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=student`)}>
+            onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=student`, 
+              { state: { origin_id: selectedRef.current.uid, origin_name: selectedRef.current.first_name + ' ' + selectedRef.current.last_name, origin_path: 'student' } }
+            )}>
             View Student's Classes
           </button>
         }

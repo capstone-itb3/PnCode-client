@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
-import { LuPencilLine } from 'react-icons/lu';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -17,6 +16,8 @@ function TabProfessors({ admin, showId, setShowId }) {
 
   const navigate = useNavigate();
   const { query } = useParams();
+  const { state } = useLocation();
+
   const [showForm, setShowForm] = useState(null);
   const [email, setEmail] = useState('');
   const [first_name, setFirstName] = useState('');
@@ -24,12 +25,15 @@ function TabProfessors({ admin, showId, setShowId }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const init = async () => await getAllProfessors();
     init();
   }, []);
 
   async function getAllProfessors() {
+    setLoading(true);
     const data = await admin.getAllProfessors();
     setProfessors(data);
     setResults(data);
@@ -70,13 +74,15 @@ function TabProfessors({ admin, showId, setShowId }) {
       } else {
         const lastToFirst = `${p.uid} ${p.last_name} ${p.first_name} ${p.email}`.toLowerCase().includes(q.toLowerCase());
         const firstToLast = `${p.uid} ${p.first_name} ${p.last_name} ${p.email}`.toLowerCase().includes(q.toLowerCase());
-        return (lastToFirst || firstToLast);
+        const combined = `${p.uid} ${p.first_name} ${p.last_name}`.toLowerCase().includes(q.toLowerCase());
+        return (uid || lastToFirst || firstToLast || email || combined);
       }
     })
 
     setSearch(q);
     setFilter(`${f ? f : ''}`);
     setResults(filtered);
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -85,30 +91,29 @@ function TabProfessors({ admin, showId, setShowId }) {
 
   function searchProfessors(e) {
     e.preventDefault();
-
     setShowForm(null);
     selectedRef.current = null;
     navigate(`/admin/dashboard/professors/q=${search}&f=${filter}`);
   }
   
   function selectProfessor(professor) {
-    if (selectedRef.current === professor) {
+    if (selectedRef.current?.uid === professor.uid) {
       selectedRef.current = null;
-      navigate(`/admin/dashboard/professors/q=&f=`);
+      navigate(-1);
       return;
     }
     selectedRef.current = professor;
-    setShowForm(null);
     navigate(`/admin/dashboard/professors/q=${professor.uid}&f=uid`);
   }
 
   function showCreateForm() {
+    setLoading(true)
     selectedRef.current = null;
 
     if (showForm === 'create') {
       setShowForm(null);
-
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      setLoading(false)
       return;
     }
 
@@ -118,7 +123,7 @@ function TabProfessors({ admin, showId, setShowId }) {
     setLastName('');
     setPassword('');
     setConfirmPassword('');
-
+    setLoading(false);
     setTimeout(() => document.getElementById('first_name')?.focus(), 100);
   }
 
@@ -140,43 +145,56 @@ function TabProfessors({ admin, showId, setShowId }) {
     setTimeout(() => document.getElementById('first_name')?.focus(), 100);
   }
 
-  async function reloadTable() {
+  async function reloadData() {
     await getAllProfessors();
     setShowForm(null);
-    selectedRef.current = null;
-    
-    navigate(`/admin/dashboard/professors/q=`);
+  }
+
+  async function resetUI() {
+    await reloadData();
+    selectedRef.current = null; 
+    navigate('/admin/dashboard/professors/q=&f=');
   }
   
   async function submitProfessor(e) {
     e.preventDefault();
+    setLoading(true);
 
     if (showForm === 'create') {
       const result = await admin.createProfessor(email, first_name, last_name, password, confirmPassword);
       if (result) {
         toast.success('Professor created successfully!');
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        navigate(`/admin/dashboard/professors/q=${result}&f=uid`);
+      } else {
+        setLoading(false);
       }
-
 
     } else if (showForm === 'edit') {
       const result = await admin.updateProfessor(selectedRef.current.uid, email, first_name, last_name, password, confirmPassword);
       if (result) {
         toast.success('Professor updated successfully!');
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        selectedRef.current = null;
+      } else {
+        setLoading(false);
       }
-    
     }
   }
 
   return (
     <>
+      <div id='admin-loading-container'>
+        {loading &&
+          <div className='loading-line'>
+              <div></div>
+          </div>
+        }
+      </div>
       <div className='manage-header flex-row items-center'>
         <div className='flex-row items-center'>
           <h4>Professors</h4>
-          <button className='items-center reload-btn' onClick={reloadTable}>
+          <button className='items-center reload-btn' onClick={resetUI}>
             <MdLoop size={22}/>
           </button>
           <ShowId showId={showId} setShowId={setShowId}/>
@@ -214,6 +232,14 @@ function TabProfessors({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
+        {state &&
+          <div className='origin-div items-center'> 
+              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
+              <div className='items-center'>
+                <button className='back' onClick={() => navigate(-1)}>Back</button>
+              </div>
+          </div>
+        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -246,7 +272,9 @@ function TabProfessors({ admin, showId, setShowId }) {
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=professor`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=professor`, 
+            { state: { origin_id: selectedRef.current.uid, origin_name: selectedRef.current.first_name + ' ' + selectedRef.current.last_name, origin_path: 'Professor' } }
+          )}>
             View Professor's Classes
           </button>
         }

@@ -1477,7 +1477,6 @@ header {
 
 #file-drawer {
     padding: 10px;
-
 }
 
 #note-container {
@@ -1493,23 +1492,36 @@ header {
     overflow-y: auto;
 }
 
-#file-drawer .item {
-    position: relative;
-    border-radius: 10px;
-    padding: 5px 0;
+#file-drawer span {
+    color: gray;
+    font-size: 12px !important;
+}
+#file-drawer .head {
+    margin-left: 8px;
+}
+
+#file-drawer .head span {
+    margin-right: 7px;
+}
+#file-drawer .item span {
+    margin-right: 8px;
 }
 
 #file-drawer .item *{
     cursor: pointer;
 }
 
-#file-drawer .item button {
+#file-drawer .item {
+    position: relative;
+    border-radius: 10px;
+    padding: 5px 0;
     border: 0;
     background-color: transparent;
     font-size: 16px;
     padding-left: 10px;
     color: var(--gray-dark);
     justify-content: space-between;
+    width: 100%;
 }
 
 #file-drawer .item .file-delete {
@@ -1520,13 +1532,15 @@ header {
 }
 
 
-#file-drawer .item .name-button {
-    width: 100%;
+#file-drawer .item:focus {
+    border: 1px solid var(--gray-dark);
+}
+#file-drawer .item:not(.active-file):hover {
+    background-color: rgba(224, 224, 224, 0.6);
 }
 
-#file-drawer .item button label {
+#file-drawer .item label {
     padding-left: 10px;
-    cursor: pointer;
 }
 
 #file-drawer .item.active-file {
@@ -1794,12 +1808,13 @@ header {
 }
 
 #feedback-div {
+    overflow-x: hidden;
     overflow-y: auto;
 }
 
 #feedback-container {
     position: relative;
-    margin: 8px 10px;
+    margin: 8px 25px 8px 15px;
 }
 
 #feedback-form {
@@ -1821,7 +1836,7 @@ header {
     position: relative;
     border: 1px solid var(--gray);
     border-radius: 10px;
-    border-right: var(--base) 4px solid;
+    border-top: var(--base) 4px solid;
     margin-bottom: 10px;
 }
 
@@ -1886,15 +1901,56 @@ header {
     color: var(--near-white);
 }
 
-.feedback-item button {
+.feedback-item .delete {
     position: absolute;
     top: 5px;
     right: 5px;
     border: 0;
     padding: 4px 6px;
     border-radius: 10px;
-    color: var(--error-color);
+    color: var(--gray);
     background-color: white;
+}
+
+.feedback-item .react-div {
+    position: relative;
+    justify-content: flex-end;
+    margin: 0 10px 5px 0;
+    color: var(--gray);
+}
+
+.react-div .react {
+    border: 0;
+    padding: 0 6px;
+    background-color: transparent;
+}
+.react-div .count {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+}
+.react-div .reacted-list {
+    background-color: white;
+    position: absolute;
+    bottom: 100%;
+    z-index: 20;
+    border-radius: 8px;
+    padding: 5px 10px;   
+    background-color: rgba(22, 7, 0, 0.7);
+    margin-bottom: 3px;
+    color: var(--near-white);
+    font-size: 11px;
+    display: none;
+    transition: 5px;
+}
+
+.react-div .count:hover .reacted-list {
+    display: flex;
+}
+
+.react-div .reacted-user {
+    /* //prevent word break */
+    white-space: nowrap;
 }
 
 #editor-container.light {

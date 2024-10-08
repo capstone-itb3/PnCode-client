@@ -1,32 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
-import { SearchUserList, searchDropdown } from './tabs/SearchList';
-import ShowId from './tabs/ShowId';
+import ShowId from './ShowId';
 
-function TabAssignRooms({ admin, showId, setShowId }) {
+function TabAssignedRooms({ admin, showId, setShowId }) {
   const [assigned_rooms, setAssignedRooms] = useState(null);
-  const [results, setResults] = useState(assigned_rooms);
+  const [results, setResults] = useState(null);
   const selectedRef = useRef(null);
+  const [feedback_list, setFeedbackList] = useState(null);
 
   const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
   
   const navigate = useNavigate();
-  const { query } = useParams();
+  const { foreign_name, foreign_key, query } = useParams();
+  const { state } = useLocation();
 
   const [showForm, setShowForm] = useState(null);
   
-  const [activity_id, setActivityId] = useState('');
   const [team_id, setTeamId] = useState('');
-  const [instructions, setInstructions] = useState('');
-  const [open_time, setOpenTime] = useState('07:00');
-  const [close_time, setCloseTime] = useState('20:59');
-  
-  const [class_list, setClassList] = useState(null);
+  const [activity_id, setActivityId] = useState('');
+  const [feedback_body, setFeedbackBody] = useState('');
+
+  const [team_list, setTeamList] = useState(null);
+
+  const [loading, setLoading] = useState(true);
     
   useEffect(() => {
     const init = async () => await getAllAssignedRooms();
@@ -34,52 +35,53 @@ function TabAssignRooms({ admin, showId, setShowId }) {
   }, []);
   
   async function getAllAssignedRooms() {
-    const data = await admin.getAllAssignedRooms();
-    setAssignedRooms(data);
-    setResults(data);
-    
-    doSearch(data);
+    setLoading(true);
+
+    if (foreign_name && foreign_key) {
+      const data = await admin.getAllAssignedRooms(foreign_name, foreign_key);
+      setAssignedRooms(data);
+      doSearch(data);
+    } else {
+      navigate('/admin/dashboard/classes/q=&f=');
+    }
   }
 
   function doSearch (list) {
     const q = new URLSearchParams(query).get('q');
     const f = new URLSearchParams(query).get('f');
-
+    
     if (q === null || !list) {
       return;
     }
 
-    if (!(f === 'activity_id' || f === 'activity_name' || f === 'class' || f === 'instructions' || f === '') === true) {
-      navigate('/admin/dashboard/activities/q=&f=');
+    if (!(f === 'room_id' || f === 'activity' || f === 'owner' || f === '') === true) {
+      navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned_rooms/q=&f=`);
       return;
     }
 
+    const filtered = list.filter((asr) => {
+      const act_combined = `${asr.activity_id} ${asr.activity_name}`.toLowerCase().includes(q.toLowerCase());
+      const owner_combined = `${asr.owner_id} ${asr.room_name}`.toLowerCase().includes(q.toLowerCase());
 
+      if (f === 'room_id') {
+        return asr.room_id.toLowerCase().includes(q.toLowerCase());
+        
+      } else if (f === 'activity') {
+        return act_combined;
 
-    const filtered = list.filter((act) => {
-      const class_combined = `${act.class_id} ${act.class_name}`.toLowerCase().includes(q.toLowerCase());
-
-      if (f === 'activity_id') {
-        return act.activity_id.toLowerCase().includes(q.toLowerCase());
-
-      } else if (f === 'activity_name') {
-        return act.activity_name.toLowerCase().includes(q.toLowerCase());
-
-      } else if (f === 'class') {
-        return class_combined;
-
-      } else if (f === 'instructions') {
-        return act.instructions.toLowerCase().includes(q.toLowerCase());
-
+      } else if (f === 'owner') {
+        return owner_combined;
+        
       } else {
-        const combined = `${act.activity_id} ${act.activity_name} ${act.instructions}`.toLowerCase().includes(q.toLowerCase());
-        return (combined || class_combined);
+        const room_combined = `${asr.room_id} ${asr.room_name}`.toLowerCase().includes(q.toLowerCase());
+        return (room_combined || owner_combined || class_combined);
       }
     })
  
     setSearch(q);
     setFilter(`${f ? f : ''}`);
     setResults(filtered);
+    setLoading(false);
   } 
 
   useEffect(() => {
@@ -88,47 +90,53 @@ function TabAssignRooms({ admin, showId, setShowId }) {
 
   function searchActivities(e) {
     e.preventDefault();
-
     setShowForm(null);
     selectedRef.current = null;
-    navigate(`/admin/dashboard/activities/q=${search}&f=${filter}`);
+    navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned_rooms/q=${search}&f=${filter}`);
   }
   
   function selectActivity(activity) {
-    if (selectedRef.current === activity) {
+    if (selectedRef.current?.activity_id === activity.activity_id) {
       selectedRef.current = null;
       navigate(-1);
       return;
     }
 
     selectedRef.current = activity;
-    setShowForm(null);
-    navigate(`/admin/dashboard/activities/q=${activity.activity_id}&f=activity_id`);
+    navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned_rooms/q=${activity.activity_id}&f=activity_id`);
   }
 
-  async function showCreateForm() {
+  async function showCreateForm(type) {
+    setLoading(true);
     selectedRef.current = null;
 
     if (showForm === 'create') {
       setShowForm(null);
-      
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      setLoading(false);
       return;
     }
 
-    setClassList(await admin.getAllClasses());
+    if (type === 'new') {
+      setClassList(await admin.getAllClasses());
+      setClassId('');
+    } else if (type === 'custom') {
+      setClassList([{ class_id: state.origin_id,
+                      course_code: state.origin_name,
+                      section: '' }]);
+      setClassId(state.origin_id);
+    }
+
     setShowForm('create');
     setActivityName('');
-    setTeamId('');
     setInstructions('');
     setOpenTime('07:00');
     setCloseTime('20:59');
-
+    setLoading(false);
     setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
   }
 
   async function showEditForm() {
-
     if (showForm === 'edit' || !selectedRef.current?.activity_id) {
       setShowForm(null);
       
@@ -140,7 +148,7 @@ function TabAssignRooms({ admin, showId, setShowId }) {
                     course_code: selectedRef.current.class_name,
                     section: '' }]);
     setShowForm('edit');
-    setTeamId(selectedRef.current.class_id);
+    setClassId(selectedRef.current.class_id);
     setActivityName(selectedRef.current.activity_name);
     setInstructions(selectedRef.current.instructions);
     setOpenTime(selectedRef.current.open_time);
@@ -149,63 +157,78 @@ function TabAssignRooms({ admin, showId, setShowId }) {
     setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
   }
 
-  async function reloadTable() {
+  async function reloadData() {
     await getAllAssignedRooms();
     setShowForm(null);
-    selectedRef.current = null;
-    
-    navigate(`/admin/dashboard/activities/q=&f=`);
   }
-  
+
+  async function resetUI() {
+    await reloadData();
+    selectedRef.current = null; 
+    navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned_rooms/q=&f=`);
+  }
+
   async function submitActivity(e) {
     e.preventDefault();
+    setLoading(true);
 
     if (showForm === 'create') {
-      const res = await admin.createActivity(team_id, activity_name, instructions, open_time, close_time);
+      const res = await admin.createActivity(class_id, activity_name, instructions, open_time, close_time);
       if (res) {
         toast.success('Activity created successfully!');
-        setShowForm(null);
-        await getAllAssignedRooms();
-        selectedRef.current = null;
-        navigate(`/admin/dashboard/activities/q=${res}&f=activity_id`);
+        await reloadData();
+        navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned_rooms/q=${res}&f=activity_id`);
+      } else {
+        setLoading(false);
       }
 
     } else if (showForm === 'edit') {
       const res = await admin.updateActivity(selectedRef.current.activity_id, activity_name, instructions, open_time, close_time);
       if (res) {
         toast.success('Activity updated successfully!');
-        setShowForm(null);
-        await getAllAssignedRooms();
+        await reloadData();
         selectedRef.current = null;
-      }    
+      } else {
+        setLoading(false);
+      }
     }
   }
 
   async function deleteActivity() {
     if (confirm('Are you sure you want to delete this activity?')) {
+      setLoading(true);
       const res = await admin.deleteActivity(selectedRef.current.activity_id);
 
       if (res) {
         toast.success('Activity deleted successfully!');
-        setShowMemberList(false);
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        navigate(-1);
+        selectedRef.current = null;
+      } else {
+        setLoading(false);
       }
     }
   }
 
   return (
     <>
+      <div id='admin-loading-container'>
+        {loading &&
+          <div className='loading-line'>
+              <div></div>
+          </div>
+        }
+      </div>
       <div className='manage-header flex-row items-center'>
         <div className='flex-row items-center'>
           <h4>Activities</h4>
-          <button className='items-center reload-btn' onClick={reloadTable}>
+          <button className='items-center reload-btn' onClick={resetUI}>
             <MdLoop size={22}/>
           </button>
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          <button className='admin-create items-center' onClick={showCreateForm}>
+          <button className='admin-create items-center' onClick={() => showCreateForm('new')}>
             Create <FiPlus size={17}/>
           </button>
         </div>
@@ -216,10 +239,10 @@ function TabAssignRooms({ admin, showId, setShowId }) {
             <FiFilter size={25}/>
             <select id='filter-drop' value={filter} onChange={e => setFilter(e.target.value)}>
               <option value=''>All</option>
-              <option value='activity_id'>Activity ID</option>
-              <option value='activity_name'>Activity Name</option>
-              <option value='class'>Class</option>
-              <option value='instructions'>Instructions</option>
+              <option value='room_id'>Room ID</option>
+              {foreign_name === 'activity' && <option value='owner'>Owner</option>}
+              {foreign_name === 'owner' && <option value='activity'>Activity</option>}
+              <option value='notes'>Notes</option>
             </select>
           </div>
           <div className='flex-row width-100 items-center'>
@@ -237,27 +260,30 @@ function TabAssignRooms({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
+        {state &&
+          <div className='origin-div items-center'> 
+              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
+              <div className='items-center'>
+                {state.origin_path === 'Class' && results &&
+                  <>
+                    <button className='add' onClick={() => showCreateForm('custom')}>Add activity for this class?</button>
+                    <button className='delete'>Delete all class's activities?</button>
+                  </>
+                }
+                <button className='back' onClick={() => navigate(-1)}>Back</button>
+              </div>
+          </div>
+        }
         <table id='admin-table'>
           <thead>
             <tr>
-              {showId && <th>Activity ID</th>}
-              <th>Activity Name</th>
-              <th>Class</th>
-              <th>Instructions</th>
-              <th>Open Time</th>
-              <th>Close Time</th>
+              {showId && <th>Room ID</th>}
+              <th>Room Name</th>
+              <th>Activity</th>
             </tr>
           </thead>
           <tbody>
             {results && results.map(res => {
-              const convertTime = (time) => {
-                const [hour, minutes] = time.split(':');
-                const HH = (parseInt(hour) % 12 || 12) < 10 ? `0${parseInt(hour) % 12 || 12}` : parseInt(hour) % 12 || 12;
-                const mm = parseInt(minutes) < 10 ? `0${parseInt(minutes)}` : minutes;
-                const ampm = parseInt(hour) >= 12 ? 'PM' : 'AM';
-                return `${HH}:${mm} ${ampm}`;    
-              }
-
               return (
               <tr 
                 key={res.activity_id} 
@@ -283,7 +309,9 @@ function TabAssignRooms({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`, 
+            { state: { origin_id: selectedRef.current.activity_id, origin_name: `${selectedRef.current.class_name} ${selectedRef.current.activity_name}`, origin_path: 'Activity' } }
+          )}>
             View Class
           </button>
           <button className='admin-view'>
@@ -315,9 +343,9 @@ function TabAssignRooms({ admin, showId, setShowId }) {
           <div className='flex-column'>
             <label>{showForm === 'create' && 'Select'} Class</label>
             <select 
-              value={team_id} 
+              value={class_id} 
               className='input-data'  
-              onChange={e => setTeamId(e.target.value)} 
+              onChange={e => setClassId(e.target.value)} 
               {...(showForm === 'edit' ? { required: false, disabled: true } : {})}
               {...(showForm === 'create' ? { required: true, disabled: false } : {})}>
               <option value=''>Select Class</option>
@@ -373,4 +401,4 @@ function TabAssignRooms({ admin, showId, setShowId }) {
   )
 }
 
-export default TabAssignRooms
+export default TabAssignedRooms

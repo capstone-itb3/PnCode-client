@@ -90,23 +90,29 @@ function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, d
     return (
         <div className='room-top-left'> 
             <div id='file-drawer'>
+                <label className='head'>
+                    <span>#</span>
+                    <span>Type</span>
+                    <span>Name</span>
+                </label>
                 {room_files.map((file, index) => {
                     return (
-                        <div className={`${activeFile && file.file_id === activeFile?.file_id ? 'active-file' : ''} flex-row item`} key={index} >
-                            <button onClick={() => useFile(file)} className={'items-center name-button'}>
-                                <div className='items-center'>
-                                    { file.type === 'html' && <FaHtml5 size={22}/> }
-                                    { file.type === 'css' && <FaCss3 size={22}/> }
-                                    { file.type === 'js' && <FaJs size={22}/> }
-                                    <label className='single-line'>{file.name}</label>
-                                </div>
-                                {deleteFile &&
-                                    <label className='file-delete items-center'> 
-                                        <BsTrash size={18}/>
-                                    </label>
-                                }
-                            </button>
-                        </div>    
+                        <button className={`${activeFile && file.file_id === activeFile?.file_id ? 'active-file' : ''} items-center flex-row item`} 
+                            key={index} 
+                            onClick={() => useFile(file)}>
+                            <div className='items-center'>
+                                <span>{index + 1}</span>
+                                { file.type === 'html' && <FaHtml5 size={22}/> }
+                                { file.type === 'css' && <FaCss3 size={22}/> }
+                                { file.type === 'js' && <FaJs size={22}/> }
+                                <label className='single-line'>{file.name}</label>
+                            </div>
+                            {deleteFile &&
+                                <label className='file-delete items-center'> 
+                                    <BsTrash size={18}/>
+                                </label>
+                            }
+                        </button>    
                     )})
                 }
                 {deleteFile &&

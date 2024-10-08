@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -16,9 +16,13 @@ function TabCourses({ admin }) {
 
   const navigate = useNavigate();
   const { query } = useParams();
+  const { state } = useLocation();
+
   const [showForm, setShowForm] = useState(null);
   const [course_code, setCourseCode] = useState('');
   const [course_title, setCourseTitle] = useState('');
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => await getAllCourses();
@@ -26,6 +30,7 @@ function TabCourses({ admin }) {
   }, []);
 
   async function getAllCourses() {
+    setLoading(true);
     const data = await admin.getAllCourses();
     setCourses(data);
     setResults(data);
@@ -57,13 +62,15 @@ function TabCourses({ admin }) {
         return course_title;
 
       } else {
-        return (course_code || course_title);
+        const combined = `${s.course_code} ${s.course_title}`.toLowerCase().includes(q.toLowerCase());
+        return (course_code || course_title || combined);
       }
     })
 
     setSearch(q);
     setFilter(`${f ? f : ''}`);
     setResults(filtered);
+    setLoading(false);
   }
 
 
@@ -74,37 +81,36 @@ function TabCourses({ admin }) {
 
   function searchCourses(e) {
     e.preventDefault();
-
     setShowForm(null);
     selectedRef.current = null;
     navigate(`/admin/dashboard/courses/q=${search}&f=${filter}`);
   }
   
   function selectCourse(course) {
-    if (selectedRef.current === course) {
+    if (selectedRef.current?.course_code === course.course_code) {
       selectedRef.current = null;
-      navigate(`/admin/dashboard/courses/q=&f=`);
+      navigate(-1);
       return;
     }
     selectedRef.current = course;
-    setShowForm(null);
     navigate(`/admin/dashboard/courses/q=${course.course_code}&f=course_code`);
   }
 
   function showCreateForm() {
+    setLoading(true);
     selectedRef.current = null;
 
     if (showForm === 'create') {
       setShowForm(null);
-
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      setLoading(false);
       return;
     }
 
     setShowForm('create');
     setCourseCode('');
     setCourseTitle('');
-
+    setLoading(false);
     setTimeout(() => document.getElementById('course_code')?.focus(), 100);
   }
 
@@ -123,55 +129,74 @@ function TabCourses({ admin }) {
     setTimeout(() => document.getElementById('course_code')?.focus(), 100);
   }
 
-  async function reloadTable() {
+  async function reloadData() {
     await getAllCourses();
     setShowForm(null);
-    selectedRef.current = null;
-    
-    navigate(`/admin/dashboard/courses/q=`);
   }
+
+  async function resetUI() {
+    await reloadData();
+    selectedRef.current = null; 
+    navigate('/admin/dashboard/courses/q=&f=');
+  }
+
   
   async function submitCourse(e) {
     e.preventDefault();
+    setLoading(true);
 
     if (showForm === 'create') {
-      const result = await admin.createCourse(course_code, course_title);
-      if (result) {
+      const res = await admin.createCourse(course_code, course_title);
+      if (res) {
         toast.success('Course created successfully!');
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        navigate(`/admin/dashboard/courses/q=${res}&f=course_code`);
+      } else {
+        setLoading(false);
       }
 
 
     } else if (showForm === 'edit') {
-      const result = await admin.updateCourse(selectedRef.current.course_code, course_code, course_title);
-      if (result) {
+      const res = await admin.updateCourse(selectedRef.current.course_code, course_code, course_title);
+      if (res) {
         toast.success('Course updated successfully!');
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        selectedRef.current = null;
+      } else {
+        setLoading(false);
       }
     
     }
   }
 
   async function deleteCourse() {
-    if (confirm('Are you sure you want to delete this course?')) {    
-      const result = await admin.deleteCourse(selectedRef.current.course_code);
+    if (confirm('Are you sure you want to delete this course?')) {   
+      setLoading(true); 
+      const res = await admin.deleteCourse(selectedRef.current.course_code);
 
-      if (result) {
+      if (res) {
         toast.success('Course deleted successfully!');
         setShowForm(null);
-        reloadTable();
+        await reloadData();
+        navigate(-1);
+        selectedRef.current = null;
       }
     }
   }
 
   return (
     <>
+      <div id='admin-loading-container'>
+        {loading &&
+          <div className='loading-line'>
+              <div></div>
+          </div>
+        }
+      </div>
       <div className='manage-header flex-row items-center'>
         <div className='flex-row items-center'>
           <h4>Courses</h4>
-          <button className='items-center reload-btn' onClick={reloadTable}>
+          <button className='items-center reload-btn' onClick={resetUI}>
             <MdLoop size={22}/>
           </button>
         </div>
@@ -206,6 +231,14 @@ function TabCourses({ admin }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
+        {state &&
+          <div className='origin-div items-center'> 
+              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
+              <div className='items-center'>
+                <button className='back' onClick={() => navigate(-1)}>Back</button>
+              </div>
+          </div>
+        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -234,7 +267,9 @@ function TabCourses({ admin }) {
       }
       <div id='admin-table-buttons' className='long'>
         {selectedRef.current &&
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`, 
+            { state: { origin_id: selectedRef.current.course_code, origin_name: `${selectedRef.current.course_code} - ${selectedRef.current.course_title}`, origin_path: 'Course' } }
+          )}>
             View Classes Within this Course
           </button>
         }

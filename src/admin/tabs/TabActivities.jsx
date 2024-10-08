@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
-import { SearchUserList, searchDropdown } from './tabs/SearchList';
-import ShowId from './tabs/ShowId';
+import ShowId from './ShowId';
 
-function TabAssignRooms({ admin, showId, setShowId }) {
-  const [assigned_rooms, setAssignedRooms] = useState(null);
-  const [results, setResults] = useState(assigned_rooms);
+function TabActivities({ admin, showId, setShowId }) {
+  const [activites, setActivities] = useState(null);
+  const [results, setResults] = useState(activites);
   const selectedRef = useRef(null);
 
   const [filter, setFilter] = useState('');
@@ -17,25 +16,29 @@ function TabAssignRooms({ admin, showId, setShowId }) {
   
   const navigate = useNavigate();
   const { query } = useParams();
+  const { state } = useLocation();
 
   const [showForm, setShowForm] = useState(null);
   
-  const [activity_id, setActivityId] = useState('');
-  const [team_id, setTeamId] = useState('');
+  const [activity_name, setActivityName] = useState('');
+  const [class_id, setClassId] = useState('');
   const [instructions, setInstructions] = useState('');
   const [open_time, setOpenTime] = useState('07:00');
   const [close_time, setCloseTime] = useState('20:59');
   
   const [class_list, setClassList] = useState(null);
+
+  const [loading, setLoading] = useState(true);
     
   useEffect(() => {
-    const init = async () => await getAllAssignedRooms();
+    const init = async () => await getAllActivities();
     init();
   }, []);
   
-  async function getAllAssignedRooms() {
-    const data = await admin.getAllAssignedRooms();
-    setAssignedRooms(data);
+  async function getAllActivities() {
+    setLoading(true);
+    const data = await admin.getAllActivities();
+    setActivities(data);
     setResults(data);
     
     doSearch(data);
@@ -53,8 +56,6 @@ function TabAssignRooms({ admin, showId, setShowId }) {
       navigate('/admin/dashboard/activities/q=&f=');
       return;
     }
-
-
 
     const filtered = list.filter((act) => {
       const class_combined = `${act.class_id} ${act.class_name}`.toLowerCase().includes(q.toLowerCase());
@@ -80,55 +81,62 @@ function TabAssignRooms({ admin, showId, setShowId }) {
     setSearch(q);
     setFilter(`${f ? f : ''}`);
     setResults(filtered);
+    setLoading(false);
   } 
 
   useEffect(() => {
-    doSearch(assigned_rooms);
+    doSearch(activites);
   }, [query]);
 
   function searchActivities(e) {
     e.preventDefault();
-
     setShowForm(null);
     selectedRef.current = null;
     navigate(`/admin/dashboard/activities/q=${search}&f=${filter}`);
   }
   
   function selectActivity(activity) {
-    if (selectedRef.current === activity) {
+    if (selectedRef.current?.activity_id === activity.activity_id) {
       selectedRef.current = null;
       navigate(-1);
       return;
     }
 
     selectedRef.current = activity;
-    setShowForm(null);
     navigate(`/admin/dashboard/activities/q=${activity.activity_id}&f=activity_id`);
   }
 
-  async function showCreateForm() {
+  async function showCreateForm(type) {
+    setLoading(true);
     selectedRef.current = null;
 
     if (showForm === 'create') {
       setShowForm(null);
-      
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
+      setLoading(false);
       return;
     }
 
-    setClassList(await admin.getAllClasses());
+    if (type === 'new') {
+      setClassList(await admin.getAllClasses());
+      setClassId('');
+    } else if (type === 'custom') {
+      setClassList([{ class_id: state.origin_id,
+                      course_code: state.origin_name,
+                      section: '' }]);
+      setClassId(state.origin_id);
+    }
+
     setShowForm('create');
     setActivityName('');
-    setTeamId('');
     setInstructions('');
     setOpenTime('07:00');
     setCloseTime('20:59');
-
+    setLoading(false);
     setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
   }
 
   async function showEditForm() {
-
     if (showForm === 'edit' || !selectedRef.current?.activity_id) {
       setShowForm(null);
       
@@ -140,7 +148,7 @@ function TabAssignRooms({ admin, showId, setShowId }) {
                     course_code: selectedRef.current.class_name,
                     section: '' }]);
     setShowForm('edit');
-    setTeamId(selectedRef.current.class_id);
+    setClassId(selectedRef.current.class_id);
     setActivityName(selectedRef.current.activity_name);
     setInstructions(selectedRef.current.instructions);
     setOpenTime(selectedRef.current.open_time);
@@ -149,63 +157,78 @@ function TabAssignRooms({ admin, showId, setShowId }) {
     setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
   }
 
-  async function reloadTable() {
-    await getAllAssignedRooms();
+  async function reloadData() {
+    await getAllActivities();
     setShowForm(null);
-    selectedRef.current = null;
-    
-    navigate(`/admin/dashboard/activities/q=&f=`);
   }
-  
+
+  async function resetUI() {
+    await reloadData();
+    selectedRef.current = null; 
+    navigate('/admin/dashboard/activities/q=&f=');
+  }
+
   async function submitActivity(e) {
     e.preventDefault();
+    setLoading(true);
 
     if (showForm === 'create') {
-      const res = await admin.createActivity(team_id, activity_name, instructions, open_time, close_time);
+      const res = await admin.createActivity(class_id, activity_name, instructions, open_time, close_time);
       if (res) {
         toast.success('Activity created successfully!');
-        setShowForm(null);
-        await getAllAssignedRooms();
-        selectedRef.current = null;
+        await reloadData();
         navigate(`/admin/dashboard/activities/q=${res}&f=activity_id`);
+      } else {
+        setLoading(false);
       }
 
     } else if (showForm === 'edit') {
       const res = await admin.updateActivity(selectedRef.current.activity_id, activity_name, instructions, open_time, close_time);
       if (res) {
         toast.success('Activity updated successfully!');
-        setShowForm(null);
-        await getAllAssignedRooms();
+        await reloadData();
         selectedRef.current = null;
-      }    
+      } else {
+        setLoading(false);
+      }
     }
   }
 
   async function deleteActivity() {
     if (confirm('Are you sure you want to delete this activity?')) {
+      setLoading(true);
       const res = await admin.deleteActivity(selectedRef.current.activity_id);
 
       if (res) {
         toast.success('Activity deleted successfully!');
-        setShowMemberList(false);
-        setShowForm(null);
-        reloadTable();
+        await reloadData();
+        navigate(-1);
+        selectedRef.current = null;
+      } else {
+        setLoading(false);
       }
     }
   }
 
   return (
     <>
+      <div id='admin-loading-container'>
+        {loading &&
+          <div className='loading-line'>
+              <div></div>
+          </div>
+        }
+      </div>
       <div className='manage-header flex-row items-center'>
         <div className='flex-row items-center'>
           <h4>Activities</h4>
-          <button className='items-center reload-btn' onClick={reloadTable}>
+          <button className='items-center reload-btn' onClick={resetUI}>
             <MdLoop size={22}/>
           </button>
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          <button className='admin-create items-center' onClick={showCreateForm}>
+          <button className='admin-create items-center' onClick={() => showCreateForm('new')}>
             Create <FiPlus size={17}/>
           </button>
         </div>
@@ -237,6 +260,20 @@ function TabAssignRooms({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
+        {state &&
+          <div className='origin-div items-center'> 
+              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
+              <div className='items-center'>
+                {state.origin_path === 'Class' && results &&
+                  <>
+                    <button className='add' onClick={() => showCreateForm('custom')}>Add activity for this class?</button>
+                    <button className='delete'>Delete all class's activities?</button>
+                  </>
+                }
+                <button className='back' onClick={() => navigate(-1)}>Back</button>
+              </div>
+          </div>
+        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -283,7 +320,9 @@ function TabAssignRooms({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`, 
+            { state: { origin_id: selectedRef.current.activity_id, origin_name: `${selectedRef.current.class_name} ${selectedRef.current.activity_name}`, origin_path: 'Activity' } }
+          )}>
             View Class
           </button>
           <button className='admin-view'>
@@ -315,9 +354,9 @@ function TabAssignRooms({ admin, showId, setShowId }) {
           <div className='flex-column'>
             <label>{showForm === 'create' && 'Select'} Class</label>
             <select 
-              value={team_id} 
+              value={class_id} 
               className='input-data'  
-              onChange={e => setTeamId(e.target.value)} 
+              onChange={e => setClassId(e.target.value)} 
               {...(showForm === 'edit' ? { required: false, disabled: true } : {})}
               {...(showForm === 'create' ? { required: true, disabled: false } : {})}>
               <option value=''>Select Class</option>
@@ -373,4 +412,4 @@ function TabAssignRooms({ admin, showId, setShowId }) {
   )
 }
 
-export default TabAssignRooms
+export default TabActivities
