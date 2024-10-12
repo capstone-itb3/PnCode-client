@@ -91,7 +91,7 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
           return (
             <div className='feedback-item flex-column' key={index}>
               <label className='name'>
-                {feed.last_name}, {feed.first_name} 
+                {feed.first_name} {feed.last_name}
                 {index === 0 && <span>•<span>New</span></span>}
               </label>
               <label className='date'>{date}</label>
@@ -116,13 +116,13 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
                 </div>
                 <button className='react items-center' onClick={() => reactToFeedback(feed)}>
                   {user.position === 'Student' && reacted && 
-                    <FaHeart size={20} color={'#dc3545'} />
+                    <FaHeart size={18} color={'#dc3545'} />
                   }
                   {user.position === 'Student' && !reacted &&
-                    <FaRegHeart size={20} color={'var(--gray-dark)'}/>
+                    <FaRegHeart size={18} color={'var(--gray-dark)'}/>
                   }
                   {user.position === 'Professor' && 
-                    <FaHeart size={20} color={'#dc3545'}/>
+                    <FaHeart size={18} color={'#dc3545'}/>
                   }
                 </button>
               </div>

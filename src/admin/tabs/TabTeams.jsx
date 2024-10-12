@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -9,6 +9,8 @@ import ShowId from './ShowId';
 
 function TabTeams({ admin, showId, setShowId }) {
   const [teams, setTeams] = useState(null);
+  const [parent_class, setParentClass] = useState(null);
+
   const [results, setResults] = useState(teams);
   const selectedRef = useRef(null);
   const [team_members, setTeamMembers] = useState([]);
@@ -17,16 +19,12 @@ function TabTeams({ admin, showId, setShowId }) {
   const [search, setSearch] = useState('');
   
   const navigate = useNavigate();
-  const { query } = useParams();
-  const { state } = useLocation();
+  const { foreign_name, foreign_key, query } = useParams();
 
   const [showForm, setShowForm] = useState(null);
   const [showMemberList, setShowMemberList] = useState(false);
   
   const [team_name, setTeamName] = useState('');
-  const [class_id, setClassId] = useState('');
-
-  const [class_list, setClassList] = useState(null);
   
   const [student_list, setStudentList] = useState(null);  
   const [member_input, setMemberInput] = useState('');
@@ -41,11 +39,16 @@ function TabTeams({ admin, showId, setShowId }) {
   
   async function getAllTeams() {
     setLoading(true);
-    const data = await admin.getAllTeams();
-    setTeams(data);
-    setResults(data);
-    
-    doSearch(data);
+
+    if (foreign_name === 'classes' && foreign_key) {
+      const data = await admin.getAllTeams(foreign_key);
+      setTeams(data.teams);      
+      doSearch(data.teams);
+      setParentClass(data.class);
+
+    } else {
+        navigate('/admin/dashboard/classes/q=&f=');
+    }
   }
 
   function doSearch (list) {
@@ -56,8 +59,8 @@ function TabTeams({ admin, showId, setShowId }) {
       return;
     }
 
-    if (!(f === 'team_id' || f === 'team_name' || f === 'class' || f === 'member' || f === '') === true) {
-      navigate('/admin/dashboard/teams/q=&f=');
+    if (!(f === 'team_id' || f === 'team_name' || f === 'member' || f === '') === true) {
+      navigate('/admin/dashboard/classes/q=&f=');
       return;
     }
 
@@ -70,23 +73,18 @@ function TabTeams({ admin, showId, setShowId }) {
         return (uid || name || rev_name || combined);
       });
 
-      const class_combined = `${t.class_id} ${t.class_name}`.toLowerCase().includes(q.toLowerCase());
-
       if (f === 'team_id') {
         return t.team_id.toLowerCase().includes(q.toLowerCase());
 
       } else if (f === 'team_name') {
         return t.team_name.toLowerCase().includes(q.toLowerCase());
 
-      } else if (f === 'class') {
-        return class_combined;
-
       } else if (f === 'member') {
         return mem_combined;
 
       } else {
         const combined = `${t.team_id} ${t.team_name}`.toLowerCase().includes(q.toLowerCase());
-        return (combined || mem_combined || class_combined);
+        return (combined || mem_combined);
       }
     })
  
@@ -105,7 +103,7 @@ function TabTeams({ admin, showId, setShowId }) {
     setShowForm(null);
     selectedRef.current = null;
     setTeamMembers([]);
-    navigate(`/admin/dashboard/teams/q=${search}&f=${filter}`);
+    navigate(`/admin/dashboard/classes/${foreign_key}/teams/q=${search}&f=${filter}`);
   }
   
   function selectTeam(team) {
@@ -119,10 +117,10 @@ function TabTeams({ admin, showId, setShowId }) {
     
     selectedRef.current = team;
     setTeamMembers(team.members);      
-    navigate(`/admin/dashboard/teams/q=${team.team_id}&f=team_id`);
+    navigate(`/admin/dashboard/classes/${foreign_key}/teams/q=${team.team_id}&f=team_id`);
   }
 
-  async function showCreateForm(type) {
+  async function showCreateForm() {
     setLoading(true);
     setShowMemberList(false);
     selectedRef.current = null;
@@ -133,16 +131,6 @@ function TabTeams({ admin, showId, setShowId }) {
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
       setLoading(false);
       return;
-    }
-
-    if (type === 'new') {
-      setClassList(await admin.getAllClasses());
-      setClassId('');
-    } else if (type === 'custom') {
-      setClassList([{ class_id: state.origin_id,
-                      course_code: state.origin_name,
-                      section: '' }]);
-      setClassId(state.origin_id);
     }
 
     setShowForm('create');
@@ -161,11 +149,7 @@ function TabTeams({ admin, showId, setShowId }) {
       return;
     }
     
-    setClassList([{ class_id: selectedRef.current.class_id, 
-                    course_code: selectedRef.current.class_name,
-                    section: '' }]);
     setShowForm('edit');
-    setClassId(selectedRef.current.class_id);
     setTeamName(selectedRef.current.team_name);
 
     setTimeout(() => document.getElementById('team_name')?.focus(), 100);
@@ -207,7 +191,7 @@ function TabTeams({ admin, showId, setShowId }) {
   }
 
   async function showDropdown(bool) {
-    await searchDropdown(bool, setShowStudents, async () => setStudentList(await admin.getClassStudents(selectedRef.current?.class_id)));
+    await searchDropdown(bool, setShowStudents, async () => setStudentList(await admin.getClassStudents(foreign_key)));
   }
 
   async function reloadData() {
@@ -219,7 +203,7 @@ function TabTeams({ admin, showId, setShowId }) {
     await reloadData();
     selectedRef.current = null; 
     setTeamMembers([]);
-    navigate('/admin/dashboard/teams/q=&f=');
+    navigate(`/admin/dashboard/classes/${foreign_key}/teams/q=&f=`);
   }
 
   
@@ -228,11 +212,11 @@ function TabTeams({ admin, showId, setShowId }) {
     setLoading(true);
 
     if (showForm === 'create') {
-      const res = await admin.createTeam(class_id, team_name);
+      const res = await admin.createTeam(foreign_key, team_name);
       if (res) {
         toast.success('Team created successfully!');
         await reloadData();
-        navigate(`/admin/dashboard/teams/q=${res}&f=team_id`);
+        navigate(`/admin/dashboard/classes/${foreign_key}/teams/q=&f=`);
       } else {
         setLoading(false);
       }
@@ -268,12 +252,22 @@ function TabTeams({ admin, showId, setShowId }) {
   }
 
   return (
-    <>
+    <div id='manage-content' className='sub'>
       <div id='admin-loading-container'>
         {loading &&
           <div className='loading-line'>
               <div></div>
           </div>
+        }
+      </div>
+      <div className='origin-div flex-row items-center'>
+        {parent_class &&
+          <>
+            Class:
+            <b><Link to={`/admin/dashboard/classes/q=${parent_class.class_id}&f=class_id`}>{parent_class.course_code} {parent_class.section}</Link></b>
+            <label className='items-center'>&gt;</label>
+            Teams
+          </>
         }
       </div>
       <div className='manage-header flex-row items-center'>
@@ -317,26 +311,11 @@ function TabTeams({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
-        {state &&
-          <div className='origin-div items-center'> 
-              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
-              <div className='items-center'>
-                {state.origin_path === 'Class' && results &&
-                  <>
-                    <button className='add' onClick={() => showCreateForm('custom')}>Add team for this class?</button>
-                    <button className='delete'>Delete all class's teams?</button>
-                  </>
-                }
-                <button className='back' onClick={() => navigate(-1)}>Back</button>
-              </div>
-          </div>
-        }
         <table id='admin-table'>
           <thead>
             <tr>
               {showId && <th>Team ID</th>}
               <th>Team Name</th>
-              <th>Class</th>
               <th>Members</th>
             </tr>
           </thead>
@@ -348,35 +327,41 @@ function TabTeams({ admin, showId, setShowId }) {
                 className={`${selectedRef.current?.team_id === res.team_id && 'selected'}`}>
                 {showId && <td>{res.team_id}</td>}
                 <td>{res.team_name}</td>
-                <td>{res.class_name}</td>
                 <td>{res.members.length}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {results && results.length < 1 &&
-          <div className='no-results'>
-            <label>No results found for {new URLSearchParams(query).get('q')}.</label>
-          </div>
+          <>
+            {new URLSearchParams(query).get('q') !== '' &&
+              <div className='no-results'>
+                <label>No results found for "{new URLSearchParams(query).get('q')}" in this class.</label>
+              </div>
+            }
+            {new URLSearchParams(query).get('q') === '' &&
+              <div className='no-results'>
+                <label>This class doesn't have any team.</label>
+              </div>
+            }
+          </>
         }
       </div>
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`, 
-            { state: { origin_id: selectedRef.current.team_id, origin_name: `${selectedRef.current.team_name}`, origin_path: 'Team' } }
-          )}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${foreign_key}&f=class_id`)}>
             View Class
           </button>
-          <button className='admin-view'>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/teams/${selectedRef.current.team_id}/assigned-rooms/q=&f=`)}>
             View Assigned Rooms
           </button>
           <button className='admin-manage' onClick={manageList}>
             Manage Members
           </button>
           <button className='admin-edit' onClick={showEditForm}>
-            Edit Team
+            Edit Team Name
           </button>
           <button className='admin-delete' onClick={deleteTeam}>
             Delete Team
@@ -384,28 +369,10 @@ function TabTeams({ admin, showId, setShowId }) {
         </>
         }
       </div>
-      <form id='admin-form' className={`two-column-grid ${!showForm && 'none' }`} onSubmit={submitTeam}>
-        {showForm === 'create' && <h4>Create a team:</h4>}
+      <form id='admin-form' className={`flex-column ${!showForm && 'none' }`} onSubmit={submitTeam}>
+        {showForm === 'create' && <h4>Create a team for: <span>{parent_class?.course_code} {parent_class?.section}</span></h4>}
         {showForm === 'edit' && <h4>Edit team:</h4>}
-        <div/>
-        <div className='flex-column'>
-          <label>Select Class</label>
-          <select 
-            value={class_id} 
-            onChange={e => setClassId(e.target.value)} 
-            {...(showForm === 'edit' ? { required: false, disabled: true } : {})}
-            {...(showForm === 'create' ? { required: true, disabled: false } : {})}>
-            <option value=''>Select Class</option>
-            {class_list && class_list.map(cla => (
-              <option 
-                key={cla.class_id} 
-                value={cla.class_id} 
-                className='single-line'>
-                {cla.course_code} {cla.section}
-              </option>
-            ))}
-          </select>
-        </div>
+        <div className='form-space'/>
         <div className='flex-column'>
           <label>Team Name</label>
           <input
@@ -434,9 +401,7 @@ function TabTeams({ admin, showId, setShowId }) {
                 <label className='single-line'>{mem.last_name} {mem.first_name}</label>
                 <div className='items-center flex-row'>
                   <button className='remove-btn' onClick={() => removeMember(mem.uid)}>Remove</button>
-                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid} ${mem.first_name} ${mem.last_name}&f=`, 
-                    { state: { origin_id: selectedRef.current.team_id, origin_name: `${selectedRef.current.team_name}`, origin_path: 'Team' } }
-                  )}>
+                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid} ${mem.first_name} ${mem.last_name}&f=`)}>
                     Student Info
                   </button>
                 </div>
@@ -471,7 +436,7 @@ function TabTeams({ admin, showId, setShowId }) {
           </div>
       </>
       }
-    </>
+    </div>
   )
 }
 

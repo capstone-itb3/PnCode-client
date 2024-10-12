@@ -30,7 +30,7 @@ function AdminLogin() {
 
         if (data.status === 'ok' && data.token) {
             Cookies.set('token', data.token, { expires : 90 });
-            navigate(`/admin/dashboard/`);
+            navigate(`/admin/dashboard/students/`);
 
         } else {
             console.log(data.message);

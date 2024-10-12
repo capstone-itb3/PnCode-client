@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -8,6 +8,8 @@ import ShowId from './ShowId';
 
 function TabActivities({ admin, showId, setShowId }) {
   const [activites, setActivities] = useState(null);
+  const [parent_class, setParentClass] = useState(null);
+
   const [results, setResults] = useState(activites);
   const selectedRef = useRef(null);
 
@@ -15,18 +17,14 @@ function TabActivities({ admin, showId, setShowId }) {
   const [search, setSearch] = useState('');
   
   const navigate = useNavigate();
-  const { query } = useParams();
-  const { state } = useLocation();
+  const { foreign_name, foreign_key, query } = useParams();
 
   const [showForm, setShowForm] = useState(null);
   
   const [activity_name, setActivityName] = useState('');
-  const [class_id, setClassId] = useState('');
   const [instructions, setInstructions] = useState('');
   const [open_time, setOpenTime] = useState('07:00');
   const [close_time, setCloseTime] = useState('20:59');
-  
-  const [class_list, setClassList] = useState(null);
 
   const [loading, setLoading] = useState(true);
     
@@ -37,11 +35,14 @@ function TabActivities({ admin, showId, setShowId }) {
   
   async function getAllActivities() {
     setLoading(true);
-    const data = await admin.getAllActivities();
-    setActivities(data);
-    setResults(data);
-    
-    doSearch(data);
+    if (foreign_name === 'classes' && foreign_key) {
+      const data = await admin.getAllActivities(foreign_key);
+      setActivities(data.activities);
+      setParentClass(data.class);
+      doSearch(data.activities);
+    } else {
+      navigate('/admin/dashboard/classes/q=&f=');
+    }
   }
 
   function doSearch (list) {
@@ -52,29 +53,24 @@ function TabActivities({ admin, showId, setShowId }) {
       return;
     }
 
-    if (!(f === 'activity_id' || f === 'activity_name' || f === 'class' || f === 'instructions' || f === '') === true) {
-      navigate('/admin/dashboard/activities/q=&f=');
+    if (!(f === 'activity_id' || f === 'activity_name' || f === 'instructions' || f === '') === true) {
+      navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=&f=`);
       return;
     }
 
     const filtered = list.filter((act) => {
-      const class_combined = `${act.class_id} ${act.class_name}`.toLowerCase().includes(q.toLowerCase());
-
       if (f === 'activity_id') {
         return act.activity_id.toLowerCase().includes(q.toLowerCase());
 
       } else if (f === 'activity_name') {
         return act.activity_name.toLowerCase().includes(q.toLowerCase());
 
-      } else if (f === 'class') {
-        return class_combined;
-
       } else if (f === 'instructions') {
         return act.instructions.toLowerCase().includes(q.toLowerCase());
 
       } else {
         const combined = `${act.activity_id} ${act.activity_name} ${act.instructions}`.toLowerCase().includes(q.toLowerCase());
-        return (combined || class_combined);
+        return combined;
       }
     })
  
@@ -92,7 +88,7 @@ function TabActivities({ admin, showId, setShowId }) {
     e.preventDefault();
     setShowForm(null);
     selectedRef.current = null;
-    navigate(`/admin/dashboard/activities/q=${search}&f=${filter}`);
+    navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=${search}&f=${filter}`);
   }
   
   function selectActivity(activity) {
@@ -103,10 +99,10 @@ function TabActivities({ admin, showId, setShowId }) {
     }
 
     selectedRef.current = activity;
-    navigate(`/admin/dashboard/activities/q=${activity.activity_id}&f=activity_id`);
+    navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=${activity.activity_id}&f=activity_id`);
   }
 
-  async function showCreateForm(type) {
+  async function showCreateForm() {
     setLoading(true);
     selectedRef.current = null;
 
@@ -116,17 +112,6 @@ function TabActivities({ admin, showId, setShowId }) {
       setLoading(false);
       return;
     }
-
-    if (type === 'new') {
-      setClassList(await admin.getAllClasses());
-      setClassId('');
-    } else if (type === 'custom') {
-      setClassList([{ class_id: state.origin_id,
-                      course_code: state.origin_name,
-                      section: '' }]);
-      setClassId(state.origin_id);
-    }
-
     setShowForm('create');
     setActivityName('');
     setInstructions('');
@@ -144,11 +129,7 @@ function TabActivities({ admin, showId, setShowId }) {
       return;
     }
     
-    setClassList([{ class_id: selectedRef.current.class_id, 
-                    course_code: selectedRef.current.class_name,
-                    section: '' }]);
     setShowForm('edit');
-    setClassId(selectedRef.current.class_id);
     setActivityName(selectedRef.current.activity_name);
     setInstructions(selectedRef.current.instructions);
     setOpenTime(selectedRef.current.open_time);
@@ -165,7 +146,7 @@ function TabActivities({ admin, showId, setShowId }) {
   async function resetUI() {
     await reloadData();
     selectedRef.current = null; 
-    navigate('/admin/dashboard/activities/q=&f=');
+    navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=&f=`);
   }
 
   async function submitActivity(e) {
@@ -173,11 +154,11 @@ function TabActivities({ admin, showId, setShowId }) {
     setLoading(true);
 
     if (showForm === 'create') {
-      const res = await admin.createActivity(class_id, activity_name, instructions, open_time, close_time);
+      const res = await admin.createActivity(foreign_key, activity_name, instructions, open_time, close_time);
       if (res) {
         toast.success('Activity created successfully!');
         await reloadData();
-        navigate(`/admin/dashboard/activities/q=${res}&f=activity_id`);
+        navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=${res}&f=activity_id`);
       } else {
         setLoading(false);
       }
@@ -211,12 +192,22 @@ function TabActivities({ admin, showId, setShowId }) {
   }
 
   return (
-    <>
+    <div id='manage-content' className='sub'>
       <div id='admin-loading-container'>
         {loading &&
           <div className='loading-line'>
               <div></div>
           </div>
+        }
+      </div>
+      <div className='origin-div flex-row items-center'>
+        {parent_class &&
+          <>
+            Class:
+            <b><Link to={`/admin/dashboard/classes/q=${parent_class.class_id}&f=class_id`}>{parent_class.course_code} {parent_class.section}</Link></b>
+            <label className='items-center'>&gt;</label>
+            Activities
+          </>
         }
       </div>
       <div className='manage-header flex-row items-center'>
@@ -228,7 +219,7 @@ function TabActivities({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          <button className='admin-create items-center' onClick={() => showCreateForm('new')}>
+          <button className='admin-create items-center' onClick={showCreateForm}>
             Create <FiPlus size={17}/>
           </button>
         </div>
@@ -241,7 +232,6 @@ function TabActivities({ admin, showId, setShowId }) {
               <option value=''>All</option>
               <option value='activity_id'>Activity ID</option>
               <option value='activity_name'>Activity Name</option>
-              <option value='class'>Class</option>
               <option value='instructions'>Instructions</option>
             </select>
           </div>
@@ -260,26 +250,11 @@ function TabActivities({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
-        {state &&
-          <div className='origin-div items-center'> 
-              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
-              <div className='items-center'>
-                {state.origin_path === 'Class' && results &&
-                  <>
-                    <button className='add' onClick={() => showCreateForm('custom')}>Add activity for this class?</button>
-                    <button className='delete'>Delete all class's activities?</button>
-                  </>
-                }
-                <button className='back' onClick={() => navigate(-1)}>Back</button>
-              </div>
-          </div>
-        }
         <table id='admin-table'>
           <thead>
             <tr>
               {showId && <th>Activity ID</th>}
               <th>Activity Name</th>
-              <th>Class</th>
               <th>Instructions</th>
               <th>Open Time</th>
               <th>Close Time</th>
@@ -302,7 +277,6 @@ function TabActivities({ admin, showId, setShowId }) {
                 className={`${selectedRef.current?.activity_id === res.activity_id && 'selected'}`}>
                 {showId && <td>{res.activity_id}</td>}
                 <td>{res.activity_name}</td>
-                <td>{res.class_name}</td>
                 <td><label className='single-line'>{res.instructions}</label></td>
                 <td>{convertTime(res.open_time)}</td>
                 <td>{convertTime(res.close_time)}</td>
@@ -311,21 +285,28 @@ function TabActivities({ admin, showId, setShowId }) {
           </tbody>
         </table>
         {results && results.length < 1 &&
-          <div className='no-results'>
-            <label>No results found for {new URLSearchParams(query).get('q')}.</label>
-          </div>
+          <>
+            {new URLSearchParams(query).get('q') !== '' &&
+              <div className='no-results'>
+                <label>No results found for "{new URLSearchParams(query).get('q')}" in this class.</label>
+              </div>
+            }
+            {new URLSearchParams(query).get('q') === '' &&
+              <div className='no-results'>
+                <label>This class doesn't have any activity.</label>
+              </div>
+            }
+          </>
         }
       </div>
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`, 
-            { state: { origin_id: selectedRef.current.activity_id, origin_name: `${selectedRef.current.class_name} ${selectedRef.current.activity_name}`, origin_path: 'Activity' } }
-          )}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`)}>
             View Class
           </button>
-          <button className='admin-view'>
+          <button className='admin-view' onClick={() => navigate (`/admin/dashboard/activities/${selectedRef.current.activity_id}/assigned-rooms/q=&f=`)}>
             View Assigned Rooms
           </button>
           <button className='admin-edit' onClick={showEditForm}>
@@ -338,39 +319,19 @@ function TabActivities({ admin, showId, setShowId }) {
         }
       </div>
       <form id='admin-form' className={`flex-column ${!showForm && 'none' }`} onSubmit={submitActivity}>
-        {showForm === 'create' && <h4>Create a activity:</h4>}
+        {showForm === 'create' && <h4>Create an activity for: <span>{parent_class?.course_code} {parent_class?.section}</span></h4>}
         {showForm === 'edit' && <h4>Edit activity:</h4>}
-        <div className='flex-row'>
-          <div className='flex-column'>
-            <label>Activity Name</label>
-            <input
-              className='input-data'  
-              id='activity_name'
-              type='text' 
-              value={activity_name} 
-              onChange={e => setActivityName(e.target.value)} 
-              required />
-          </div>
-          <div className='flex-column'>
-            <label>{showForm === 'create' && 'Select'} Class</label>
-            <select 
-              value={class_id} 
-              className='input-data'  
-              onChange={e => setClassId(e.target.value)} 
-              {...(showForm === 'edit' ? { required: false, disabled: true } : {})}
-              {...(showForm === 'create' ? { required: true, disabled: false } : {})}>
-              <option value=''>Select Class</option>
-              {class_list && class_list.map(cla => (
-                <option 
-                  key={cla.class_id} 
-                  value={cla.class_id} 
-                  className='single-line'>
-                  {cla.course_code} {cla.section}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>        
+        <div className='form-space'/>
+        <div className='flex-column'>
+          <label>Activity Name</label>
+          <input
+            className='input-data'  
+            id='activity_name'
+            type='text' 
+            value={activity_name} 
+            onChange={e => setActivityName(e.target.value)} 
+            required />
+        </div>
         <div className='flex-column'>
           <label>Instructions</label>
           <textarea
@@ -408,7 +369,7 @@ function TabActivities({ admin, showId, setShowId }) {
           <button className='file-cancel-btn' type='button' onClick={() => setShowForm(false)}>Cancel</button>
         </div>
       </form>
-    </>
+    </div>
   )
 }
 

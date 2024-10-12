@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast';
 import api from '../api';
-import errorHandler from '../error';
+import { errorHandler } from '../error';
 
 export default class Activity {
     constructor (activity_id, activity_name, class_id, instructions, open_time, close_time) {

@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast'
 import api from '../api'
-import errorHandler from '../error'
+import { errorHandler } from '../error'
 
 export class Room {
     constructor (room_id, room_name, owner_id) {

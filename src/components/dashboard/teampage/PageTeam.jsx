@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { BsTrash  } from 'react-icons/bs';
 import { LuPencilLine } from 'react-icons/lu';
 import { MdLoop } from 'react-icons/md';
@@ -12,6 +12,7 @@ import AddMember from './AddMember';
 
 function PageTeam() {
   const { team_id } = useParams();
+  const navigate = useNavigate();
   const [auth, getAuth] = useState(getToken(Cookies.get('token')));
   const [user, setUser ] = useState(getClass(auth, auth.position));
   const [team, setTeam] = useState(null);
@@ -21,6 +22,7 @@ function PageTeam() {
   const [permitted, setPermitted] = useState(true);
   const [course_code, setCourseCode] = useState(null);
   const [section, setSection] = useState(null);
+
 
 
   useEffect(() => {
@@ -68,7 +70,7 @@ function PageTeam() {
         const deleted = await team.deleteTeam();
 
         if (deleted) {
-          window.location.href = '/dashboard';
+          navigate(`/dashboard/${team.class_id}/all`);
         }
       }
     }
@@ -156,6 +158,14 @@ function PageTeam() {
                     </tr>
                   )
                 })}
+                {team && team.members.length === 0 &&
+                  <tr className='team-member'>
+                    <td className='col-1'>
+                       This team has no members.
+                    </td>
+                  </tr>
+
+                }
                 </tbody>
               </table>
               {permitted &&

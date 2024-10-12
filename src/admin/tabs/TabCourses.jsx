@@ -185,7 +185,7 @@ function TabCourses({ admin }) {
   }
 
   return (
-    <>
+    <div id='manage-content'>
       <div id='admin-loading-container'>
         {loading &&
           <div className='loading-line'>
@@ -231,14 +231,6 @@ function TabCourses({ admin }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
-        {state &&
-          <div className='origin-div items-center'> 
-              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
-              <div className='items-center'>
-                <button className='back' onClick={() => navigate(-1)}>Back</button>
-              </div>
-          </div>
-        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -260,16 +252,14 @@ function TabCourses({ admin }) {
         </table>
         {results && results.length < 1 &&
           <div className='no-results'>
-            <label>No results found for {new URLSearchParams(query).get('q')}.</label>
+            <label>No results found for "{new URLSearchParams(query).get('q')}".</label>
           </div>
         }
       </div>
       }
       <div id='admin-table-buttons' className='long'>
         {selectedRef.current &&
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`, 
-            { state: { origin_id: selectedRef.current.course_code, origin_name: `${selectedRef.current.course_code} - ${selectedRef.current.course_title}`, origin_path: 'Course' } }
-          )}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`)}>
             View Classes Within this Course
           </button>
         }
@@ -316,7 +306,7 @@ function TabCourses({ admin }) {
           <button className='file-cancel-btn' type='button' onClick={() => setShowForm(false)}>Cancel</button>
         </div>
       </form>
-    </>
+    </div>
   )
 }
 

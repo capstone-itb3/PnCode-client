@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import Cookies from 'js-cookie';
+import checkTimeframe from './utils/checkTimeframe';
 
-function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, setEditorTheme, outputRef, setAddNewFile, setDeleteFile, runOutput}) {
+function Options({type, room, user, socket, open_time, close_time, setLeftDisplay, setRightDisplay, setEditorTheme, outputRef, setAddNewFile, setDeleteFile, runOutput}) {
+    const isOnTimeRef = useRef(checkTimeframe(open_time, close_time));
     const [isChecked, setIsChecked] = useState(() => {
         if (Cookies.get('theme') === 'dark' || !Cookies.get('theme')) {
             return true;
@@ -11,11 +13,16 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
     });
 
     function openMenu(clicked) {
+        if (clicked === 'files') {
+            isOnTimeRef.current = checkTimeframe(open_time, close_time);
+        }
         const option = document.getElementById(`${clicked}-menu`);
-        option.classList.toggle('hidden');
+        if (option) {
+            option?.classList?.toggle('hidden');
+        }
 
         document.querySelectorAll('.options-menu').forEach((menu) => {
-            if (menu.id !== option.id && !menu.classList.contains('hidden')) {
+            if (menu.id !== option?.id && !menu.classList.contains('hidden')) {
                 menu.classList.add('hidden');
             }
         });
@@ -89,25 +96,27 @@ function Options({type, room, user, socket, setLeftDisplay, setRightDisplay, set
     return (
         <>
             {type === 'assigned' &&
-            <>
+            <>              
                 <button className='room-header-options' onClick={() => openMenu('files')}>
                     Files
                 </button>
-                <div id='files-menu' className='flex-column options-menu hidden'>
-                    {user.position === 'Student' &&
-                        <div className='item items-center'  onClick={addFile}>
-                            <label>Add File</label><span>Alt + A</span>
+                {isOnTimeRef.current &&
+                    <div id='files-menu' className='flex-column options-menu hidden'>
+                        {user.position === 'Student' &&
+                            <div className='item items-center'  onClick={addFile}>
+                                <label>Add File</label><span>Alt + A</span>
+                            </div>
+                        }
+                        <div className='item items-center'  onClick={openFile}>
+                            <label>Open File</label><span>Alt + (#)</span>
                         </div>
-                    }
-                    <div className='item items-center'  onClick={openFile}>
-                        <label>Open File</label><span>Alt + (#)</span>
+                        {user.position === 'Student' &&
+                            <div className='item items-center' onClick={deleteFile}>
+                                <label>Delete File</label><span>Alt + X</span>
+                            </div>
+                        }
                     </div>
-                    {user.position === 'Student' &&
-                        <div className='item items-center' onClick={deleteFile}>
-                            <label>Delete File</label><span>Alt + X</span>
-                        </div>
-                    }
-                </div>
+                }
             </>
             }
             {type === 'assigned' &&

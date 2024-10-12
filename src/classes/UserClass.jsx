@@ -4,7 +4,7 @@ import Activity from './ActivityClass';
 import { SoloRoom, AssignedRoom } from './RoomClass';
 import api from '../api';
 import Cookies from 'js-cookie';
-import errorHandler from '../error';
+import { errorHandler } from '../error';
 
 export class User {
     constructor(uid, first_name, last_name, position) {

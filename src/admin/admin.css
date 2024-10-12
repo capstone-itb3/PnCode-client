@@ -26,14 +26,6 @@ header.admin {
     border: 0;
 }
 
-#admin-main {
-    position: absolute;
-    top: 60px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
 /* MANAGES TAB  */
 
  #manages-tab {
@@ -50,6 +42,11 @@ header.admin {
     transition: 0.3s ease;
     border-bottom: 1px solid var(--gray-light);
     box-shadow: 0 2px 2px var(--gray-light);
+}
+
+#manages-tab.hidden {
+    height: 0;
+    transition: 0s;
 }
 
 .manage-scroll {
@@ -100,10 +97,16 @@ header.admin {
 
 #manage-content {
     position: absolute;
-    top: 50px;
+    top: 110px;
     left: 0;
     right: 0;
     overflow: auto;
+    transition: 0.3s ease;
+}
+
+#manage-content.sub {
+    top: 60px;
+    /* transition: 0s; */
 }
 
 #manage-content .manage-header {
@@ -117,36 +120,19 @@ header.admin {
 }
 
 .origin-div {
-    /* border-radius: 10px; */
-    margin: 10px 0px;
+    margin: 10px 20px 5px 20px;
 }
 .origin-div b {
-    margin: 0 5px;
+    font-weight: normal;
+    margin-left: 5px; 
 }
-.origin-div span {
-    color: var(--gray)
+.origin-div label {
+    margin: 8px;
 }
-
-.origin-div button {
-    border: 0;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    padding: 0;
-    font-size: 16px;
-    margin-left: 10px;
-    background-color: transparent;
+.origin-div a {
+    font-weight: bold;
+    color: var(--base)
 }
-
-.origin-div button.delete {
-    color: red;
-}
-.origin-div button.add {
-    color: #0066ff;
-}
-.origin-div button.back {
-    color: #0066ff;
-}
-
 
 #admin-table {
     font-size: 17px;
@@ -296,6 +282,9 @@ header.admin {
 #admin-form .flex-row .flex-column {
     width: 100%;
 }
+#admin-form b {
+    padding-top: 4px;
+}
 
 
 #admin-form .flex-row .flex-column:nth-child(1) {
@@ -311,6 +300,14 @@ header.admin {
 
 #admin-form h4{
     color: var(--gray-dark);
+}
+
+#admin-form h4 span {
+    font-weight: normal;
+}
+
+#admin-form .form-space {
+    margin: 5px 0;
 }
 
 #admin-form .input-data, #admin-form select, .sub-admin-form .input-data {
@@ -452,8 +449,11 @@ header.admin {
     box-shadow:  0 0 3px var(--gray-dark);
 }
 
-#manage-content footer {
-    margin: 0 20px 50px 20px;
+.admin-dashboard footer {
+    position: absolute;
+    overflow: scroll;
+    bottom: 0;
+    margin: 20px 20px 50px 20px;
 }
 
 #manage-content footer button{

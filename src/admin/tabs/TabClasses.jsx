@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -19,7 +19,6 @@ function TabClasses({ admin, showId, setShowId }) {
   
   const navigate = useNavigate();
   const { query } = useParams();
-  const { state } = useLocation();
 
   const [showForm, setShowForm] = useState(null);
   const [showStudentList, setShowStudentList] = useState(false);
@@ -318,7 +317,7 @@ function TabClasses({ admin, showId, setShowId }) {
   }
 
   return (
-    <>
+    <div id='manage-content'>
       <div id='admin-loading-container'>
         {loading &&
           <div className='loading-line'>
@@ -369,14 +368,6 @@ function TabClasses({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
-        {state &&
-          <div className='origin-div items-center'> 
-              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
-              <div className='items-center'>
-                <button className='back' onClick={() => navigate(-1)}>Back</button>
-              </div>
-          </div>
-        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -406,7 +397,7 @@ function TabClasses({ admin, showId, setShowId }) {
         </table>
         {results && results.length < 1 &&
           <div className='no-results'>
-            <label>No results found for {new URLSearchParams(query).get('q')}.</label>
+            <label>No results found for "{new URLSearchParams(query).get('q')}".</label>
           </div>
         }
       </div>
@@ -414,23 +405,17 @@ function TabClasses({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => 
-            navigate(`/admin/dashboard/teams/q=${selectedRef.current.class_id} ${selectedRef.current.course_code} ${selectedRef.current.section}&f=class`, 
-            { state: { origin_id: selectedRef.current.class_id, origin_name: `${selectedRef.current.course_code} ${selectedRef.current.section}`, origin_path: 'Class' } }
-          )}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/${selectedRef.current.class_id}/teams/q=&f=`)}>
             View Teams
           </button>
-          <button className='admin-view' onClick={() =>
-            navigate(`/admin/dashboard/activities/q=${selectedRef.current.class_id} ${selectedRef.current.course_code} ${selectedRef.current.section}&f=class`, 
-              { state: { origin_id: selectedRef.current.class_id, origin_name: `${selectedRef.current.course_code} ${selectedRef.current.section}`, origin_path: 'Class' } }    
-            )}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/${selectedRef.current.class_id}/activities/q=&f=`)}>
             View Activities
           </button>
           <button className='admin-manage' onClick={() => manageList('students')}>
             Manage Students
           </button>
           <button className='admin-manage' onClick={() => manageList('requests')}>
-            Manage Requests
+            Manage Requests 
           </button>
           <button className='admin-edit' onClick={showEditForm}>
             Edit Class
@@ -565,7 +550,7 @@ function TabClasses({ admin, showId, setShowId }) {
           </div>
         </div>
       }
-    </>
+    </div>
   )
 }
 

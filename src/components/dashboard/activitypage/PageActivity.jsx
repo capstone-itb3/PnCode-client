@@ -158,7 +158,7 @@ function PageActivity() {
                     <ManageDates activity={activity} renderActivity={renderActivity}/>
 
                     <div id='activity-footer'>
-                    <a href={`/dashboard/${activity.course_code}/${activity.section}/all`}>&lt; BACK</a>
+                    <a href={`/dashboard/${activity.class_id}/all`}>&lt; BACK</a>
                         <button id='delete-btn' onClick={deleteActivity}><BsTrash size={20}/><label>Delete Activity</label></button>
                     </div>
                 </div>

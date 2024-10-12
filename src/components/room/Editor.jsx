@@ -15,9 +15,10 @@ import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
 import jsLint from './utils/JSesLint'
+import checkTimeframe from './utils/checkTimeframe'
 import _ from 'lodash'
 
-function Editor({ user, cursorColor, file, socket, open_time, close_time, setSaved, editorUsers, setEditorUsers, editorTheme, setWarning}) {
+function Editor({ user, cursorColor, file, socket, open_time, close_time, setSaved, editorTheme, warning, setWarning}) {
   const { room_id } = useParams();
   const editorRef = useRef(null);
   const providerRef = useRef(null);
@@ -30,45 +31,58 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
   let storeInHistory = false;
 
   const editorListener = (event) => {
+    try {
+      const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
+      const onTime = checkTimeframe(openTimeRef.current, closeTimeRef.current);    
 
-    const isModifierKey = event.altKey || event.ctrlKey || event.metaKey;
-    const isNavigationKey = event.key.startsWith('Arrow') || event.key === 'Home' || event.key === 'End' || event.key === 'PageUp' || event.key === 'PageDown';
-    const isFunctionKey = event.key.startsWith('F') && event.key.length > 1;
-    const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
-    
-    if (!isModifierKey && !isNavigationKey && !isFunctionKey && (event.key.length === 1 || isEditingKey)) {
-      if (user?.position === 'Student') {
-        const timeframe = checkAccessDates(openTimeRef.current, closeTimeRef.current);
-        // console.log(checkAccessDates(openTimeRef.current, closeTimeRef.current));
-        // console.log(openTimeRef.current, closeTimeRef.current);
-        // console.log(new Date().toTimeString());
+      //Ctrl + S to save the code
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();
+        onTime ? updateCode(editorRef.current) : null;
 
-        if (!inSameLineRef.current) {
-          editorRef.current?.dispatch({
-            effects: readOnlyCompartmentRef.current.reconfigure([
-              EditorState.readOnly.of(!timeframe)
-            ])
-          });
-        } else {
-          editorRef.current?.dispatch({
-            effects: readOnlyCompartmentRef.current.reconfigure([
-              EditorState.readOnly.of(true)
-            ])
-          });          
+        return;
+      }    
+
+      if (event.key.length === 1 || isEditingKey) {
+        if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Enter') {
+          updateAwareness();
         }
-        if (timeframe === false) {
-          setWarning(2);
-          return;
 
-        } else {
-          setWarning(0);
+        //check the readOnly config and will be used to minimize the number of times the editor
+        //...is updated so it can only be updated when readOnly must be in opposite state
+        const currentConfig = readOnlyCompartmentRef.current.get(editorRef.current.state)[0].value;
+
+        //first checks if the cursor is not the same line as other user's cursor and
+        //...the current time is within the open and close time
+        if (!inSameLineRef.current && onTime) {
+          //if yes, it then checks if the current config of readOnly is true 
+          if (currentConfig === true){
+            //if currently true, it then modifies the readOnly state of the editor to false
+            editorRef.current?.dispatch({
+              effects: readOnlyCompartmentRef.current.reconfigure([
+                EditorState.readOnly.of(false)
+              ])
+            });
+          }
+          warning !== 0 ? setWarning(0) : null;
           debounceUserType(user.uid);
+
+        } else if (inSameLineRef.current || !onTime) {
+          //if in same line or not on time, it then checks if the current config of readOnly is false
+          if (currentConfig === false) {
+            //if currently false, it then modifies the readOnly state of the editor to true
+            editorRef.current?.dispatch({
+              effects: readOnlyCompartmentRef.current.reconfigure([
+                EditorState.readOnly.of(true)
+              ])
+            });
+          }
+          onTime && inSameLineRef.current && warning !== 3 ? setWarning(3) : null;
+          !onTime && warning !== 2 ? setWarning(2) : null;
         }
-      }
-    } 
-  if (event.ctrlKey && event.key === 's') {
-      event.preventDefault();
-      updateCode(editorRef.current);
+      } 
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -79,10 +93,57 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         user_id: editing_user_id,
       });
 
-      // console.log(editorRef.current.state.doc.toString());
       updateCode(editorRef.current);
     }
   }, 200);
+
+  const updateAwareness = () => {
+    if (!providerRef.current || !editorRef.current) {
+      return;
+    }
+
+    try {
+      const local_line = editorRef.current?.state?.doc.lineAt(editorRef.current?.state?.selection?.main?.head)?.number;
+
+      let allOtherUsers = Array.from(providerRef.current.awareness.getStates().values())
+                                .map(state => state.user);
+  
+      allOtherUsers = allOtherUsers.filter((u) => {
+        const notUndefined = u !== undefined;
+        const notMe = u?.userId !== user.uid;
+        const notLineOne = Number(u?.line) > 1;
+        const isStudent = u?.position === 'Student';
+  
+        return notUndefined && notMe && notLineOne && isStudent;
+      });
+      
+      let hasSameLine = false;
+  
+      for (let i = 0; i < allOtherUsers.length; i++) {
+        if (allOtherUsers[i].line.toString() === local_line.toString()) {
+          hasSameLine = true;
+          break;
+        }
+      }
+  
+      if (hasSameLine) {
+        providerRef.current.awareness.setLocalStateField('user', {
+          ...providerRef.current.awareness.getLocalState().user,
+          line: 0,
+        });  
+        inSameLineRef.current = true;
+  
+      } else {
+        providerRef.current.awareness.setLocalStateField('user', {
+          ...providerRef.current.awareness.getLocalState().user,
+          line: local_line,
+        });
+        inSameLineRef.current = false;
+      }        
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     editorRef.current ? editorRef.current.destroy() : null;
@@ -92,140 +153,105 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
       return;
     }
 
-    async function init() {
-      return new Promise((resolve) => {
-        socket.emit('join_editor', {
-          file_id: file.file_id,
-          user_id: user.uid,
+    try {
+      async function init() {
+        const ydoc = new Y.Doc();
+        
+        providerRef.current = new WebsocketProvider(import.meta.env.VITE_APP_WEBSOCKET, 
+          `${file.file_id}`, 
+          ydoc
+        );
+        
+        providerRef.current.awareness.setLocalStateField('user', {
+          userId: user.uid,
+          name: user.last_name + ', ' + user.first_name,
+          color: cursorColor.color,
+          light: cursorColor.light,
+          line: 0,
+          position: user.position,
         });
-    
-        socket.on('editor_users_updated', ({ users }) => {
-          setEditorUsers(users);
-          resolve(users);
-        });
-      });
-    }
-    init().then((users) => {
-      const ydoc = new Y.Doc();
       
-      providerRef.current = new WebsocketProvider(import.meta.env.VITE_APP_WEBSOCKET, 
-        `${file.file_id}`, 
-        ydoc
-      );
-      
-      providerRef.current.awareness.setLocalStateField('user', {
-        userId: user.uid,
-        name: user.last_name + ', ' + user.first_name,
-        color: cursorColor.color,
-        light: cursorColor.light,
-        line: 0,
-        position: user.position,
-      });
-    
-      const type = () => {
-        if      (file.name.endsWith('.html')) return html(); 
-        else if (file.name.endsWith('.css'))  return css();
-        else if (file.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
-      }
-      const theme = editorTheme === 'dark' ? oneDark : clouds;
-      
-      const access = () => {
-        if (user?.position === 'Student') {
-          return EditorState.readOnly.of(!checkAccessDates(openTimeRef.current, closeTimeRef.current));
-        } else if (user?.position === 'Professor') {
-          return EditorState.readOnly.of(true);
-        }          
-      }
+        const type = () => {
+          if      (file.name.endsWith('.html')) return html(); 
+          else if (file.name.endsWith('.css'))  return css();
+          else if (file.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
+        }
+        const theme = editorTheme === 'dark' ? oneDark : clouds;
+        
+        const access = () => {
+          if (user?.position === 'Student') {
+            return EditorState.readOnly.of(!checkTimeframe(openTimeRef.current, closeTimeRef.current));
+          } else if (user?.position === 'Professor') {
+            return EditorState.readOnly.of(true);
+          }          
+        }
 
-      if (checkAccessDates(openTimeRef.current, closeTimeRef.current) === false) {
-        setWarning(2);
-      }
-      
-      providerRef.current.on('synced', () => {
-        const ytext = ydoc.getText('codemirror');
-        let initialContent = ytext.toString();
-        if (((initialContent === '' || initialContent === null) && users.length === 1)) {
-          ydoc.transact(() => {
-            ytext.insert(0, file.content);
-          });
-          initialContent = file.content;
+        if (checkTimeframe(openTimeRef.current, closeTimeRef.current) === false) {
+          setWarning(2);
         }
         
-        const state = EditorState.create({
-          doc: initialContent,
-          extensions: [
-            keymap.of([...yUndoManagerKeymap, indentWithTab]),
-            type(),
-            basicSetup,
-            readOnlyCompartmentRef.current.of([access()]),
-            themeCompartmentRef.current.of([theme]),
-            yCollab(ytext, providerRef.current.awareness),
-            lintGutter(),
-            EditorView.theme({
-              '.cm-ySelectionInfo': {
-                top: '-6px !important',
-                display: 'inline-block !important',
-                opacity: '1 !important',
-                padding: '2px !important',
-                transition: 'none !important'
-              },
-              '.cm-line': {
-                position: 'relative'
-              }
-            }),
-          ]
-        });
-        
-        const editor_div = document.getElementById('editor-div');
-        editor_div.innerHTML = '';
-        
-        editorRef.current = new EditorView({ state, parent: (editor_div) });
-        editor_div.addEventListener('keydown', editorListener);
+        providerRef.current.on('synced', () => {
+          const users_length = Array.from(providerRef.current.awareness.getStates().values()).length;
 
-        providerRef.current.awareness.on('change', ({ added, removed, updated }) => {  
-          const local_line = editorRef.current?.state?.doc.lineAt(editorRef.current?.state?.selection?.main?.head)?.number;
-
-          let allOtherUsers = Array.from(providerRef.current.awareness.getStates().values())
-                                    .map(state => state.user)
-
-          allOtherUsers = allOtherUsers.filter((u) => {
-            const notUndefined = u !== undefined;
-            const notMe = u?.userId !== user.uid;
-            const notLineOne = Number(u?.line) > 1;
-            const isStudent = u?.position === 'Student';
-
-            return notUndefined && notMe && notLineOne && isStudent;
+          const ytext = ydoc.getText('codemirror');
+          let initialContent = ytext.toString();
+          if (((initialContent === '' || initialContent === null) && users_length === 1)) {
+            ydoc.transact(() => {
+              ytext.insert(0, file.content);
+            });
+            initialContent = file.content;
+          }
+          
+          const state = EditorState.create({
+            doc: initialContent,
+            extensions: [
+              keymap.of([...yUndoManagerKeymap, indentWithTab]),
+              type(),
+              basicSetup,
+              readOnlyCompartmentRef.current.of([access()]),
+              themeCompartmentRef.current.of([theme]),
+              yCollab(ytext, providerRef.current.awareness),
+              lintGutter(),
+              EditorView.theme({
+                '.cm-ySelectionInfo': {
+                  top: '-6px !important',
+                  display: 'inline-block !important',
+                  opacity: '1 !important',
+                  padding: '2px !important',
+                  transition: 'none !important'
+                },
+                '.cm-line': {
+                  position: 'relative'
+                }
+              }),
+            ]
           });
           
-          let hasSameLine = false;
-
-          for (let i = 0; i < allOtherUsers.length; i++) {
-            if (allOtherUsers[i].line.toString() === local_line.toString()) {
-              hasSameLine = true;
-              break;
-            }
+          const editor_div = document.getElementById('editor-div');
+          editor_div.innerHTML = '';
+          
+          editorRef.current = new EditorView({ state, parent: (editor_div) });
+          if (user.position === 'Student') {
+            editor_div.addEventListener('keydown', editorListener);
           }
 
-          if (hasSameLine) {
-            providerRef.current.awareness.setLocalStateField('user', {
-              ...providerRef.current.awareness.getLocalState().user,
-              line: 0,
-            });  
-            
-            inSameLineRef.current = true;
-            
-          } else {
-            providerRef.current.awareness.setLocalStateField('user', {
-              ...providerRef.current.awareness.getLocalState().user,
-              line: local_line,
-            });  
-
-            inSameLineRef.current = false;
-          }
+          providerRef.current.awareness.on('change', () => {  
+            updateAwareness();
+          });
         });
-      });
+      };
+      init();
+
+    } catch (e) {
+      alert('Connection to websocket has failed. Please refresh the page.');
+    }
+      
+    socket.emit('join_editor', {
+      room_id,
+      file_id: file.file_id,
+      user_id: user.uid
     });
-    
+
     socket.on('update_result', ({ status }) => {
       if (status === 'ok') {
         setSaved( <label className='items-center' id='saved'>
@@ -247,22 +273,23 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
       if (editorRef.current && user.position === 'Student') {
         editorRef.current.dispatch({
           effects: readOnlyCompartmentRef.current.reconfigure([
-              EditorState.readOnly.of(!checkAccessDates(new_open_time, new_close_time))
+              EditorState.readOnly.of(!checkTimeframe(new_open_time, new_close_time))
             ])
         });
-      }
-
-      console.log('dates_updated', new_open_time, new_close_time);
-      
+      }      
     });
 
-
     return () => {
-      document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
-      socket.off('editor_users_updated');
       socket.off('update_result');
-      socket.off('add_edit_count_result');
+      socket.off('dates_updated');
+      socket.off('editor_users_updated');
 
+      if (file) {
+        socket.emit('leave_editor', {file_id: file?.file_id })
+      }
+      if (user.position === 'Student') {
+        document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
+      }
       if (editorRef.current) {
         editorRef.current.destroy();
         editorRef.current = null;
@@ -284,9 +311,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
   }, [editorTheme]);
       
   useEffect(() => {
-    if (editorRef.current) {
-      storeInHistory = true;
-    }
+    storeInHistory = true;
     
     const interval = setInterval(() => {
       storeInHistory = true;
@@ -301,7 +326,6 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
     let line_number = 1;
     if (e.state && e.state.selection) {
       line_number = e.state.doc.lineAt(e.state.selection.main.head).number;
-      console.log(line_number);
     }
 
     let isEmpty = e.state.doc.toString() === '' && e.state.doc === null;
@@ -323,19 +347,6 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
     } else if ( isEmpty || allSpaces) {
       setWarning(1);
     }
-  }
-
-  function checkAccessDates(open_time, close_time) {
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-  
-    const [openHours, openMinutes] = open_time.split(':').map(Number);
-    const [closeHours, closeMinutes] = close_time.split(':').map(Number);
-  
-    const openTimeMinutes = openHours * 60 + openMinutes;
-    const closeTimeMinutes = closeHours * 60 + closeMinutes;
-  
-    return currentTime >= openTimeMinutes && currentTime <= closeTimeMinutes;
   }
   
   return (

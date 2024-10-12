@@ -89,13 +89,15 @@ function AssignedRoom() {
         socketRef.current.emit('join_room', { 
           room_id, 
           user_id: user.uid,
+          first_name: user.first_name,
+          last_name: user.last_name,
           position: user.position
         })
   
         socketRef.current.on('room_users_updated', ({ users }) => {
           setRoomUsers(users);
           setCursorColor(users.find((u) => u.user_id === user.uid)?.cursor);
-        })
+        })  
   
         socketRef.current.on('found_file', ({ file }) => {
           setActiveFile(file);
@@ -120,6 +122,18 @@ function AssignedRoom() {
       }
     }
   }, [room_id]);
+
+  useEffect(() => {
+    if (socketRef.current) {
+      socketRef.current.on('editor_users_updated', ({ editors }) => {
+        setEditorUsers(editors);
+      });
+  
+      return () => {
+        socketRef.current.off('editor_users_updated');
+      };
+    }
+  }, [activeFile]);  
 
   useEffect(() => {
     manageResizes(leftDisplay, rightDisplay);
@@ -243,6 +257,8 @@ function AssignedRoom() {
               room={room} 
               user={user}
               socket={socketRef.current}
+              open_time={activity.open_time}
+              close_time={activity.close_time}
               setLeftDisplay={setLeftDisplay}
               setRightDisplay={setRightDisplay}
               reloadFile={() => displayFile(activeFile)}
@@ -298,13 +314,14 @@ function AssignedRoom() {
                   addNewFile={addNewFile}
                   setAddNewFile={setAddNewFile}
                   deleteFile={deleteFile}
-                  setDeleteFile={setDeleteFile}/>
+                  setDeleteFile={setDeleteFile}
+                  editorUsers={editorUsers}
+                  roomUsers={roomUsers}/>
               }
-              {editorUsers.length > 0 && leftDisplay === 'notepad' &&
+              {leftDisplay === 'notepad' &&
                 <Notepad 
                   room={room} 
                   user={user} 
-                  editorUsers={editorUsers}
                   socket={socketRef.current}
                   cursorColor={cursorColor}/>
               }
@@ -327,8 +344,6 @@ function AssignedRoom() {
                 open_time={open_time}
                 close_time={close_time}
                 activeFile={activeFile}
-                editorUsers={editorUsers}
-                setEditorUsers={setEditorUsers}
                 editorTheme={editorTheme}/>
               <div className={`flex-column ${rightDisplay === '' && 'none'}`} id='right-body'>
                 <div className='side-tab-buttons flex-row'>

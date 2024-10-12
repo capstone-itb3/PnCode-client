@@ -1417,8 +1417,8 @@ header {
     top: 34px;
     overflow: hidden;
     transition: 0.5s;
-    width: 220px;
-    min-width: 220px;
+    width: 250px;
+    min-width: 250px;
     margin-right: 7px;
 }
 
@@ -1477,6 +1477,7 @@ header {
 
 #file-drawer {
     padding: 10px;
+    width: calc(100% - 20px);
 }
 
 #note-container {
@@ -1501,10 +1502,15 @@ header {
 }
 
 #file-drawer .head span {
-    margin-right: 7px;
+    margin-right: 8px;
 }
 #file-drawer .item span {
     margin-right: 8px;
+}
+
+#file-drawer .item .single-line {
+    margin-left: 8px;    
+    max-width: 140px;
 }
 
 #file-drawer .item *{
@@ -1527,7 +1533,7 @@ header {
 #file-drawer .item .file-delete {
     width: 25px;
     color: var(--error-color);
-    background-color: white;
+    background-color: transparent;
     border-radius: 10px;
 }
 
@@ -1537,10 +1543,6 @@ header {
 }
 #file-drawer .item:not(.active-file):hover {
     background-color: rgba(224, 224, 224, 0.6);
-}
-
-#file-drawer .item label {
-    padding-left: 10px;
 }
 
 #file-drawer .item.active-file {
@@ -1554,6 +1556,21 @@ header {
 
 #file-drawer .item.active-file .file-delete {
     background-color: var(--gray-light);
+}
+
+#file-drawer .user-count {
+    position: relative;
+    cursor: pointer;
+    justify-content: center;
+    width: 15px;
+    margin-right: 5px;
+    border-radius: 50%;
+    font-size: 14px;
+    background-color: var(--base-blue);
+    border: 3px solid var(--base-blue-light);
+    border-left: 5px solid var(--base-blue-light);
+    border-right: 5px solid var(--base-blue-light);
+    color: var(--near-white);
 }
 
 .file-form {
@@ -1865,7 +1882,7 @@ header {
     color: var(--gray-dark);
     font-size: 15px;
     white-space: pre-wrap;  
-    margin: 10px 4px; 
+    margin: 10px 4px 5px 4px; 
     padding: 0 7px;
     overflow-wrap: break-word;
     word-wrap: break-word;
@@ -1915,8 +1932,9 @@ header {
 .feedback-item .react-div {
     position: relative;
     justify-content: flex-end;
-    margin: 0 10px 5px 0;
+    margin: 0 15px 10px 0;
     color: var(--gray);
+    font-size: 14px;
 }
 
 .react-div .react {
@@ -1929,7 +1947,7 @@ header {
     display: flex;
     justify-content: center;
 }
-.react-div .reacted-list {
+.reacted-list {
     background-color: white;
     position: absolute;
     bottom: 100%;
@@ -1939,17 +1957,45 @@ header {
     background-color: rgba(22, 7, 0, 0.7);
     margin-bottom: 3px;
     color: var(--near-white);
-    font-size: 11px;
+    font-size: 10px;
     display: none;
-    transition: 5px;
+    transition: .5s;
 }
 
-.react-div .count:hover .reacted-list {
+#file-drawer .user-count .reacted-list {
+    bottom: unset;
+    right: 100%;
+    margin-right: 10px;
+    border-radius: 0;
+    font-size: 13px;
+    align-items: flex-start;
+    transition: .5s;
+    padding: unset;
+    background-color: unset;
+    box-shadow: 0 0 3px var(--gray-dark); 
+}
+
+#file-drawer .user-count .reacted-user {
+    color: var(--gray-dark);
+    background-color: white;
+    width: calc(100% - 29px);
+    padding: 2px 12px;
+}
+#file-drawer .user-count .reacted-user:nth-child(even) {
+    background-color: rgb(232, 232, 232);
+}
+
+#file-drawer .user-count .reacted-user.gray {
+    border-left: var(--gray-dark) 5px solid !important;
+    color: var(--gray-light);
+    background-color: rgba(128,128,128, 1);
+}
+
+.react-div .count:hover .reacted-list, .user-count:hover .reacted-list {
     display: flex;
 }
 
-.react-div .reacted-user {
-    /* //prevent word break */
+.reacted-list .reacted-user {
     white-space: nowrap;
 }
 

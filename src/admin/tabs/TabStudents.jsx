@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -16,7 +16,6 @@ function TabStudents({ admin, showId, setShowId }) {
   
   const navigate = useNavigate();
   const { query } = useParams();
-  const { state } = useLocation();
 
   const [showForm, setShowForm] = useState(null);
   const [email, setEmail] = useState('');
@@ -36,7 +35,6 @@ function TabStudents({ admin, showId, setShowId }) {
     setLoading(true);
     const data = await admin.getAllStudents();
     setStudents(data);
-    setResults(data);
 
     doSearch(data);
   }
@@ -46,6 +44,7 @@ function TabStudents({ admin, showId, setShowId }) {
     const f = new URLSearchParams(query).get('f');
 
     if (q === null || !list) {
+      navigate('/admin/dashboard/students/q=&f=');
       return;
     }
 
@@ -183,7 +182,7 @@ function TabStudents({ admin, showId, setShowId }) {
   }
 
   return (
-    <>
+    <div id='manage-content'>
       <div id='admin-loading-container'>
         {loading &&
           <div className='loading-line'>
@@ -232,14 +231,6 @@ function TabStudents({ admin, showId, setShowId }) {
       </div>
       {showForm !== 'create' &&
       <div id='admin-table-container'>
-        {state &&
-          <div className='origin-div items-center'> 
-              <label><b>Origin:</b>{state.origin_name} <span>({state.origin_path})</span></label>
-              <div className='items-center'>
-                <button className='back' onClick={() => navigate(-1)}>Back</button>
-              </div>
-          </div>
-        }
         <table id='admin-table'>
           <thead>
             <tr>
@@ -265,25 +256,16 @@ function TabStudents({ admin, showId, setShowId }) {
         </table>
         {results && results.length < 1 &&
           <div className='no-results'>
-            <label>No results found for {new URLSearchParams(query).get('q')}.</label>
+            <label>No results found for "{new URLSearchParams(query).get('q')}".</label>
           </div>
         }
       </div>
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/teams/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=member`,
-            { state: { origin_id: selectedRef.current.uid, origin_name: selectedRef.current.first_name + ' ' + selectedRef.current.last_name, origin_path: 'student' } }
-          )}>
-            View Student's Teams
-          </button>
-        }
-        {selectedRef.current &&
           <button 
             className='admin-view' 
-            onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=student`, 
-              { state: { origin_id: selectedRef.current.uid, origin_name: selectedRef.current.first_name + ' ' + selectedRef.current.last_name, origin_path: 'student' } }
-            )}>
+            onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=student`)}>
             View Student's Classes
           </button>
         }
@@ -365,7 +347,7 @@ function TabStudents({ admin, showId, setShowId }) {
           <button className='file-cancel-btn' type='button' onClick={() => setShowForm(false)}>Cancel</button>
         </div>
       </form>
-    </>
+    </div>
   )
 }
 

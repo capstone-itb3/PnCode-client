@@ -7,10 +7,29 @@ import { EditorState } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import _ from 'lodash'
 
-function Notepad({room, user, socket, editorUsers, cursorColor}) {
+function Notepad({room, user, socket, cursorColor}) {
     const notepadRef = useRef(null);
     const providerRef = useRef(null);
   
+    const notepadListener = (event) => {
+        const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
+        
+        try {  
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault();
+                updateNotes();
+
+                return;
+            }
+
+            if (event.key.length === 1 || isEditingKey) {
+                updateNotes();
+            }
+        } catch (e) {
+          console.error(e);
+        }
+      };    
+
     useEffect(() => {
         notepadRef.current ? notepadRef.current?.destroy() : null;
         providerRef.current ? providerRef.current?.destroy() : null;
@@ -51,7 +70,7 @@ function Notepad({room, user, socket, editorUsers, cursorColor}) {
             providerRef.current.on('synced', () => {
                 const ytext = ydoc.getText('codemirror');
                 let initialContent = ytext.toString();
-                if (((initialContent === '' || initialContent === null) && editorUsers.length === 1)) {
+                if (((initialContent === '' || initialContent === null) && providerRef.current.awareness.getStates()?.size === 1)) {
                     ydoc.transact(() => {
                         ytext.insert(0, notes);
                     });
@@ -69,36 +88,45 @@ function Notepad({room, user, socket, editorUsers, cursorColor}) {
                         setup(),
                         yCollab(ytext, providerRef.current.awareness),
                         EditorView.lineWrapping,
-                        EditorView.updateListener.of(e => {
-                            if (e.docChanged) {
-                                socket.emit('save_notepad', {
-                                    room_id: room.room_id,
-                                    content: e.state.doc.toString(),
-                                });
-                            }
-                        }),
                     ]
                 });
 
                 const notepad = document.getElementById('notepad');
                 notepad.innerHTML = '';
-
                 notepadRef.current = new EditorView({ state, parent: (notepad) });
-                notepadRef.current.focus();
+
+                if (user?.position === 'Student') {
+                    notepadRef.current.focus();
+
+                    notepad.addEventListener('keydown', notepadListener);
+                }
             });
         })
-      
 
         return () => {
+            if (user?.position === 'Student') {
+                document.getElementById('notepad')?.removeEventListener('keydown', notepadListener);
+            }
             providerRef.current ? providerRef.current?.destroy() : null;
             notepadRef.current ? notepadRef.current?.destroy() : null;
             socket.off('notepad_loaded');
         };
     }, [room, user, socket, cursorColor]);
 
-    return <div id='note-container'>
-        <div id='notepad'/>
-    </div>;
+    const updateNotes = _.debounce(() => {
+        if (notepadRef.current) {
+            socket.emit('save_notepad', {
+                room_id: room.room_id,
+                content: notepadRef.current.state.doc.toString(),
+            });
+        }
+    }, 200);
+
+    return (    
+        <div id='note-container'>
+            <div id='notepad'/>
+        </div>
+    )
 }
 
 export default Notepad;

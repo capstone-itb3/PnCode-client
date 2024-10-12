@@ -35,7 +35,6 @@ function App() {
       <Route path = '/view/:room_id/:file_name' element={ <FullView/> }/>
       <Route path = '/error/404' element={ <NotFound/> }/>
       <Route path =  '/admin/login' element={ <AdminLogin/> }/>
-      <Route path = '/admin/dashboard' element={ <AdminDashboard/> }/>
       <Route path = '/admin/dashboard/:collection' element={ <AdminDashboard/> }/>
       <Route path = '/admin/dashboard/:collection/:query' element={ <AdminDashboard/> }/>
       <Route path = '/admin/dashboard/:foreign_name/:foreign_key/:collection/:query' element={ <AdminDashboard/> }/>

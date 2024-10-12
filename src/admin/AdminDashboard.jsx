@@ -45,46 +45,54 @@ function AdminDashboard() {
   const [showId, setShowId] = useState(false);
   const { collection } = useParams();
   const navigate = useNavigate();
+
+  function rowDate(date) {
+    date = new Date(date);
+
+    const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+    const month = date.toLocaleString('default', { month: 'short' });
+    const year = date.getFullYear();
+    const hours = ((date.getHours() % 12) || 12) < 10 ? '0' + ((date.getHours() % 12) || 12) : ((date.getHours() % 12) || 12);
+    const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+    const ampm = date.getHours() < 12 ? 'AM' : 'PM';
+    return `${day}, ${month} ${year} ${hours}:${minutes} ${ampm}`;
+  }
   
   return (
     <div className='admin-dashboard'>
       <Header admin={admin}/>
-      <ManageTabs collection={collection}/>
-      <div id='admin-main'> 
-        <div id='manage-content'>
-          {collection === 'students' &&
-            <TabStudents admin={admin} showId={showId} setShowId={setShowId} />
-          }
-          {collection === 'professors' &&
-            <TabProfessors admin={admin} showId={showId} setShowId={setShowId} />
-          }
-          {collection === 'courses' &&
-            <TabCourses admin={admin} />
-          }
-          {collection === 'classes' &&
-            <TabClasses admin={admin} showId={showId} setShowId={setShowId} />
-          }
-          {collection === 'teams' &&
-            <TabTeams admin={admin} showId={showId} setShowId={setShowId}/>
-          }
-          {collection === 'activities' && 
-            <TabActivities admin={admin} showId={showId} setShowId={setShowId}/>
-          }
-          {collection === 'solo-rooms' &&
-            <TabSoloRooms admin={admin} showId={showId} setShowId={setShowId}/>
-          }
-          {collection === 'assigned-rooms' && 
-            <TabAssignedRooms admin={admin} showId={showId} setShowId={setShowId}/>
-          }
-          {collection === 'files' &&
-            <TabFiles admin={admin} showId={showId} setShowId={setShowId}/>
-          }
-          <footer>
-              <button className='items-center' onClick={() => navigate(-1)}><MdKeyboardBackspace size={20}/> BACK</button>
-          </footer>
-        </div>
+        <ManageTabs collection={collection}/>
+        {collection === 'students' &&
+          <TabStudents admin={admin} showId={showId} setShowId={setShowId} />
+        }
+        {collection === 'professors' &&
+          <TabProfessors admin={admin} showId={showId} setShowId={setShowId} />
+        }
+        {collection === 'courses' &&
+          <TabCourses admin={admin} />
+        }
+        {collection === 'classes' &&
+          <TabClasses admin={admin} showId={showId} setShowId={setShowId} />
+        }
+        {collection === 'teams' &&
+          <TabTeams admin={admin} showId={showId} setShowId={setShowId}/>
+        }
+        {collection === 'activities' && 
+          <TabActivities admin={admin} showId={showId} setShowId={setShowId}/>
+        }
+        {collection === 'solo-rooms' &&
+          <TabSoloRooms admin={admin} showId={showId} setShowId={setShowId}/>
+        }
+        {collection === 'assigned-rooms' && 
+          <TabAssignedRooms admin={admin} showId={showId} setShowId={setShowId} rowDate={rowDate}/>
+        }
+        {collection === 'files' &&
+          <TabFiles admin={admin} showId={showId} setShowId={setShowId}/>
+        }
+        {/* <footer>
+            <button className='items-center' onClick={() => navigate(-1)}><MdKeyboardBackspace size={20}/> BACK</button>
+        </footer> */}
       </div>
-    </div>
   )
 }
 

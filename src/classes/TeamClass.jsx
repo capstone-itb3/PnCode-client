@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast';
 import api from '../api';
-import errorHandler from '../error';
+import { errorHandler } from '../error';
 
 export default class Team {
     constructor (team_id, team_name, class_id, members) {

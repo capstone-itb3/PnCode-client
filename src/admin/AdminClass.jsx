@@ -1,7 +1,7 @@
 import toast from 'react-hot-toast';
 import api from '../api';
 import Cookies from 'js-cookie';
-import errorHandler from '../error';
+import { errorHandler, errorHandlerForms } from '../error';
 
 export default class Admin {
     constructor(admin_uid, first_name, last_name) {
@@ -74,14 +74,19 @@ export default class Admin {
         }
     }
 
-    async getAllTeams() {
+    async getAllTeams(class_id) {
         try {
-            const response = await api.post('/api/admin/teams');
+            const response = await api.post('/api/admin/teams', {
+                class_id
+            });
 
             const data = response.data;
 
             if (data.status === 'ok') {
-                return data.teams;
+                return {
+                    teams: data.teams,
+                    class: data.parent_class
+                };
             }
             return null;
         } catch (e) {
@@ -90,14 +95,21 @@ export default class Admin {
         }
     }
 
-    async getAllActivities() {
+    async getAllActivities(class_id) {
         try {
-            const response = await api.get('/api/admin/activities');
+            const response = await api.get('/api/admin/activities', {
+                params: {
+                    class_id
+                }
+            });
 
             const data = response.data;
 
             if (data.status === 'ok') {
-                return data.activities;
+                return {
+                    activities: data.activities,
+                    class: data.parent_class
+                }
             }
             return null;
         } catch (e) {
@@ -106,37 +118,31 @@ export default class Admin {
         }
     }
 
-    // async getAllSoloRooms() {
-    //     try {
-    //         const response = await api.get('/api/admin/solo-rooms');
+    async getAllAssignedRooms(foreign_name, foreign_key) {
+        console.log(foreign_name, foreign_key);
+        try {
+            const response = await api.get('/api/admin/assigned-rooms', {
+                params: {
+                    foreign_name,
+                    foreign_key
+                }
+            });
+            const data = response.data;
 
-    //         const data = response.data;
-
-    //         if (data.status === 'ok') {
-    //             return data.solo_rooms;
-    //         }
-    // return null;
-    //     } catch (e) {
-    //         errorHandler(e);
-    //         return null;
-    //     }
-    // }
-
-    // async getAllAssignedRooms() {
-    //     try {
-    //         const response = await api.get('/api/admin/assigned-rooms');
-
-    //         const data = response.data;
-
-    //         if (data.status === 'ok') {
-    //             return data.assigned_rooms;
-    //         }
-    // return null;
-    //     } catch (e) {
-    //         errorHandler(e);
-    //         return null;
-    //     }
-    // }
+            if (data.status === 'ok') {
+                return {
+                    rooms: data.assigned_rooms,
+                    activity: data.parent_activity,
+                    team: data.parent_team,
+                    class: data.parent_class
+                }
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
 
     // async getAllFiles() {
     //     try {
@@ -146,6 +152,22 @@ export default class Admin {
 
     //         if (data.status === 'ok') {
     //             return data.files;
+    //         }
+    // return null;
+    //     } catch (e) {
+    //         errorHandler(e);
+    //         return null;
+    //     }
+    // }
+
+    // async getAllSoloRooms() {
+    //     try {
+    //         const response = await api.get('/api/admin/solo-rooms');
+
+    //         const data = response.data;
+
+    //         if (data.status === 'ok') {
+    //             return data.solo_rooms;
     //         }
     // return null;
     //     } catch (e) {
@@ -187,7 +209,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -209,7 +231,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -230,7 +252,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -252,7 +274,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -270,7 +292,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -289,7 +311,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -308,7 +330,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -328,7 +350,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -347,7 +369,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -366,7 +388,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -385,7 +407,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -422,7 +444,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -440,7 +462,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -477,7 +499,7 @@ export default class Admin {
             }
             return null;
         } catch(e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -518,7 +540,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -540,8 +562,8 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-                errorHandler(e);
-                return null;
+            errorHandlerForms(e);
+            return null;
         }
     }
 

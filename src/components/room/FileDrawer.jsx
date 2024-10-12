@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaHtml5, FaCss3, FaJs } from 'react-icons/fa';
 import { BsTrash } from 'react-icons/bs';
-function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile, deleteFile, setDeleteFile}) {
+
+function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile, deleteFile, setDeleteFile, editorUsers, roomUsers}) {
     const [new_file_name, setNewFileName] = useState('');
     const [new_file_type, setNewFileType] = useState('html');
     const [warning, setWarning] = useState(null);
@@ -92,21 +93,52 @@ function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, d
             <div id='file-drawer'>
                 <label className='head'>
                     <span>#</span>
-                    <span>Type</span>
+                    <span>Icon</span>
                     <span>Name</span>
                 </label>
                 {room_files.map((file, index) => {
+                    const user_count = editorUsers.find(edt => edt.id === file.file_id)?.users;
+
                     return (
                         <button className={`${activeFile && file.file_id === activeFile?.file_id ? 'active-file' : ''} items-center flex-row item`} 
                             key={index} 
                             onClick={() => useFile(file)}>
-                            <div className='items-center'>
-                                <span>{index + 1}</span>
-                                { file.type === 'html' && <FaHtml5 size={22}/> }
-                                { file.type === 'css' && <FaCss3 size={22}/> }
-                                { file.type === 'js' && <FaJs size={22}/> }
-                                <label className='single-line'>{file.name}</label>
+                            <div className='items-center file-name'>
+                                <div className='items-center'>
+                                    <span>{index + 1}</span>
+                                    { file.type === 'html' && <FaHtml5 size={22}/> }
+                                    { file.type === 'css' && <FaCss3 size={22}/> }
+                                    { file.type === 'js' && <FaJs size={22}/> }
+                                </div>
+                                <div className='text items-center'>
+                                    <label className='single-line'>{file.name}</label>
+                                </div>
                             </div>
+                            {!deleteFile && user_count && user_count?.length > 0 &&
+                                <div className='user-count items-center'>
+                                    {user_count.length}
+                                    {roomUsers &&
+                                        <div className='reacted-list flex-column'>
+                                        {user_count.slice(0,4).map((u, index) => {
+                                            const file_user = roomUsers.find(m => m.user_id === u.user_id);
+                                            return file_user ?
+                                                <label
+                                                    key={index} 
+                                                    className={`reacted-user ${file_user.position !== 'Student' && 'gray' }`} 
+                                                    style={{ borderLeft: `${file_user.cursor.color} 5px solid` }}>
+                                                    {file_user.last_name}
+                                                </label>
+                                            : null
+                                        })}
+                                        {user_count.length > 4 &&
+                                            <label className='reacted-user'>
+                                                + {roomUsers.length - 4}
+                                            </label>
+                                        }
+                                        </div>
+                                    }
+                                </div>
+                            }
                             {deleteFile &&
                                 <label className='file-delete items-center'> 
                                     <BsTrash size={18}/>
