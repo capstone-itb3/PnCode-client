@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RiArrowLeftSLine, RiArrowRightSLine } from 'react-icons/ri';
 
-function ManageTabs({ collection }) {
+function CollectionTabs({ collection }) {
     const [showArrows, setShowArrows] = useState(false);
     const scrollContainerRef = useRef(null);
     const navigate = useNavigate();
@@ -78,4 +78,4 @@ function ManageTabs({ collection }) {
     )
 }
 
-export default ManageTabs
+export default CollectionTabs

@@ -14,6 +14,7 @@ import FullView from './components/room/FullView';
 import NotFound from './components/NotFound';
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
+import AdminRoom from './admin/AdminRoom'
 
 function App() {
 
@@ -38,6 +39,7 @@ function App() {
       <Route path = '/admin/dashboard/:collection' element={ <AdminDashboard/> }/>
       <Route path = '/admin/dashboard/:collection/:query' element={ <AdminDashboard/> }/>
       <Route path = '/admin/dashboard/:foreign_name/:foreign_key/:collection/:query' element={ <AdminDashboard/> }/>
+      <Route path = '/admin/room/:room_id' element={ <AdminRoom/> }/>
       <Route path = '*' element={ <NotFound/> }/>
     </Routes>
     </>

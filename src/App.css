@@ -2134,11 +2134,21 @@ header {
     display: flex;
     flex-direction: row;
     padding: 5px 0;
-
+    width: 100%;
 }
+
+.chat-content {
+    width: 100%;
+}
+
 .chat-box-message.self {
     flex-direction: row-reverse;
 }
+.self .chat-content {
+    flex-direction: row-reverse;
+}
+
+
 
 .chat-box-message-avatar {
     margin: 0 10px;
@@ -2152,15 +2162,39 @@ header {
 
 .chat-box-message-text .chat_body {
     margin: 0;
-    font-size: 14px;
-    width: 150px;
+    font-size: 13px;
+    width: 100%;
     color: var(--near-white);
     word-break: break-word; 
     overflow-wrap: break-word; 
-    letter-spacing: 0.4px;
+    /* letter-spacing: 0.4px; */
 }
+
 .self .chat-box-message-text {
     text-align: right;
+    align-items: flex-end;
+}
+
+.chat-box-message.self:hover {
+    background-color: var(--gray);
+}
+
+.chat-buttons {
+    margin: 0 10px;
+    width: 30px;
+}
+
+.chat-buttons button {
+    display: none;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    color: var(--gray-dark);
+}
+
+
+.chat-box-message:hover .chat-buttons button {
+    display: flex;
 }
 
 #chat-box-footer {

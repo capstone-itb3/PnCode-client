@@ -2,6 +2,7 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import Cookies from 'js-cookie';
 import { errorHandler, errorHandlerForms } from '../error';
+import { errorHandlerAdmin } from './utils/adminError';
 
 export default class Admin {
     constructor(admin_uid, first_name, last_name) {
@@ -21,7 +22,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerAdmin(e);
             return null;
         }
     }
@@ -37,7 +38,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerAdmin(e);
             return null;
         }
     }
@@ -53,7 +54,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerAdmin(e);
             return null;
         }
     }
@@ -69,7 +70,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerAdmin(e);
             return null;
         }
     }
@@ -90,7 +91,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerAdmin(e);
             return null;
         }
     }
@@ -113,7 +114,7 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerAdmin(e);
             return null;
         }
     }
@@ -139,59 +140,10 @@ export default class Admin {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerAdmin(e);
             return null;
         }
     }
-
-    // async getAllFiles() {
-    //     try {
-    //         const response = await api.get('/api/admin/files');
-
-    //         const data = response.data;
-
-    //         if (data.status === 'ok') {
-    //             return data.files;
-    //         }
-    // return null;
-    //     } catch (e) {
-    //         errorHandler(e);
-    //         return null;
-    //     }
-    // }
-
-    // async getAllSoloRooms() {
-    //     try {
-    //         const response = await api.get('/api/admin/solo-rooms');
-
-    //         const data = response.data;
-
-    //         if (data.status === 'ok') {
-    //             return data.solo_rooms;
-    //         }
-    // return null;
-    //     } catch (e) {
-    //         errorHandler(e);
-    //         return null;
-    //     }
-    // }
-
-    // async getAllAdmins() {
-    //     try {
-    //         const response = await api.get('/api/admin/admins');
-
-    //         const data = response.data;
-
-    //         if (data.status === 'ok') {
-    //             return data.admins;
-    //         }
-    // return null;
-    //     } catch (e) {
-    //         errorHandler(e);
-    //         return null;
-    //     }
-    // }
-    
 
     async createStudent(email, first_name, last_name, password, confirmPassword) {
         try {
@@ -563,6 +515,57 @@ export default class Admin {
             return null;
         } catch (e) {
             errorHandlerForms(e);
+            return null;
+        }
+    }
+
+    async createAssignedRoom(activity_id, team_id) {
+        try {
+            const response = await api.post('/api/admin/create-assigned-room', {
+                activity_id,
+                team_id,
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return data.room_id;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    }
+
+    async getAssignedRoomDetails(room_id) {
+        try {
+            const response = await api.post('/api/admin/get-assigned-room-details/', {
+                room_id
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                const info = data.room;
+
+                return { 
+                    room: new AssignedRoom(
+                        info.room_id,
+                        info.room_name,
+                        info.owner_id,
+                        info.activity_id,
+                    ), 
+                    files: data.files, 
+                    activity: data.activity, 
+                    members: data.members, 
+                };
+            } else {
+                window.location.href = '/error/404';
+                return null;
+            }
+        } catch (e) {
+            errorHandlerAdmin(e);
             return null;
         }
     }

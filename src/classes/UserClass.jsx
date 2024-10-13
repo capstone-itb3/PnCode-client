@@ -224,10 +224,8 @@ export class User {
                     members: data.members, 
                     access: data.access 
                 };
-            } else {
-                window.location.href = '/error/404';
-                return null;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;

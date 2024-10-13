@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { FaHtml5, FaCss3, FaJs } from 'react-icons/fa';
 import { BsTrash } from 'react-icons/bs';
 
-function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile, deleteFile, setDeleteFile, editorUsers, roomUsers}) {
+function FileDrawer({room, socket, room_files, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile, deleteFile, setDeleteFile, editorUsers, roomUsers}) {
     const [new_file_name, setNewFileName] = useState('');
     const [new_file_type, setNewFileType] = useState('html');
     const [warning, setWarning] = useState(null);
@@ -68,7 +68,6 @@ function FileDrawer({room, user, socket, room_files, setRoomFiles, activeFile, d
                 if (result2) {
                     socket.emit('delete_file', {
                         file_id: file.file_id,
-                        user_id: user.uid,
                         room_id: room.room_id,
                         active: activeFile?.file_id
                     });

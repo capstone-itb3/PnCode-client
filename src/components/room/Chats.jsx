@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Avatar from 'react-avatar';
 import { RiArrowDropDownLine, RiArrowLeftSLine } from 'react-icons/ri';
+import { FiMinusCircle } from 'react-icons/fi';
 
 function Chats({room, socket, user}) {
     const [chats, setChats] = useState(null);
@@ -29,9 +30,14 @@ function Chats({room, socket, user}) {
             },100);
         });
 
+        socket.on('message_deleted', ({ createdAt }) => {
+            setChats(prev => prev.filter(item => item.createdAt !== createdAt));
+        });
+
         return () => {
             socket.off('messages_loaded');
             socket.off('update_messages');
+            socket.off('message_deleted');
         }
     }, [room]);
 
@@ -46,8 +52,7 @@ function Chats({room, socket, user}) {
 
     function sendMessage(e) {
         e.preventDefault();
-        setMessage('');
-
+        
         socket.emit('send_message', {
             user_id: user.uid,
             first_name: user.first_name,
@@ -55,7 +60,20 @@ function Chats({room, socket, user}) {
             room_id: room.room_id,
             message: message,
         });
+        
+        setMessage('');
     }
+
+    function deleteMessage(createdAt) {
+        const res = confirm('Delete this message?');
+        if (res) {
+            socket.emit('delete_message', {
+                room_id: room.room_id,
+                createdAt: createdAt,
+            });
+        }
+    }
+
 
     return (
         <div className='flex-column' id='chat-box-container'>
@@ -76,16 +94,24 @@ function Chats({room, socket, user}) {
                         Start a conversation to your teammates within this room.
                     </label>
                     {chats && chats.map((chat, index) => {
-
+                        const self = chat.sender_uid === user.uid;
                         return (
-                            <div className={`chat-box-message ${chat.sender_uid === user.uid ? 'self': ''}`} 
-                                 key={index}>
-                                <div className='chat-box-message-avatar'>
-                                    <Avatar name={ `${chat.last_name}, ${chat.first_name.charAt(0)}`} size='23' round={true} />
+                            <div className={`chat-box-message ${self && 'self'}`} key={index}>
+                                <div className='chat-content items-center'>
+                                    <div className='chat-box-message-avatar'>
+                                        <Avatar name={`${chat.last_name} ${chat.first_name.charAt(0)}`} size='23' round={true} />
+                                    </div>
+                                    <div className='chat-box-message-text flex-column'>
+                                        <label className='single-line name'>{chat.first_name}</label>
+                                        <p className='chat_body'>{chat.chat_body}</p>
+                                    </div>                                            
                                 </div>
-                                <div className='chat-box-message-text flex-column'>
-                                    <label className='single-line name'>{`${chat.last_name}, ${chat.first_name}`}</label>
-                                    <p className='chat_body'>{chat.chat_body}</p>
+                                <div className='items-center chat-buttons'>
+                                    {self &&
+                                        <button className='items-center' onClick={() => deleteMessage(chat.createdAt)}>
+                                            <FiMinusCircle size={20} />
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         )

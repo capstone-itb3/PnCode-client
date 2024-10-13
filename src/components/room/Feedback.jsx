@@ -4,12 +4,11 @@ import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import converToReadable from './utils/convertToReadable';
 
 function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
-  const [feedback, setFeedback] = useState(null);
+  const [feedback, setFeedback] = useState([]);
   const [new_feedback, setNewFeedback] = useState('');
 
   useEffect(() => {  
     function getFeedback() {
-      
       socket.emit('load_feedback', {
         room_id: room.room_id,
       });

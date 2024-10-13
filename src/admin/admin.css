@@ -330,10 +330,13 @@ header.admin {
     border: 1px solid var(--base);
 }
 
-.admin-member-list-container {
+.admin-member-list-container, .components-container {
     position: relative;
     width: calc(100% - 40px);
     margin: 30px 20px;
+}
+
+.admin-member-list-container {
     box-shadow: 0 0 2px var(--gray-dark);
 }
 
@@ -386,6 +389,60 @@ header.admin {
     border-radius: 10px;
 }
 
+.components-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    justify-content: space-evenly;
+}
+
+.components-container h3 {
+    padding: 3px 7px;
+    border-bottom: 2px solid var(--gray);
+    margin: 0;
+}
+
+.admin-notepad, .admin-chat, .admin-feedback{
+    position: relative;
+    height: 383px;
+    border: 1px solid var(--gray);
+    min-width: 150px;
+    width: 100%;
+}
+.admin-chat, .admin-notepad {
+    max-width: 300px;
+}
+
+.admin-feedback {
+    max-width: 500px;
+}
+
+.components-container .scroll {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.admin-chat {
+    border: 0;
+    position: relative;
+    height: 383px;
+}
+
+.admin-chat #chat-box-container {
+    width: 100%;
+    height: calc(100% - 34px);
+    right: unset;
+}
+.admin-chat .chat-box-message:hover {
+    background-color: var(--gray);
+}
+
+.admin-chat h3 {
+    padding: 5px 7px;
+    color: var(--gray-light);
+    background-color: var(--base-blue);
+}
+
 .collection-search-div {
     background-color: white;
     position: absolute;
@@ -429,10 +486,6 @@ header.admin {
     background-color: var(--gray-light);
 }
 
-
-
-
-
 .show-id {
     margin-left: 10px;
     padding: 6px 15px;
@@ -469,7 +522,7 @@ header.admin {
 
 
 
-@media (width < 500px) {
+@media (width < 600px) {
     .search-div form, .sub-admin-form {
         flex-direction: column !important;
         align-items: flex-start !important;

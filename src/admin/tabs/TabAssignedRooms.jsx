@@ -6,9 +6,8 @@ import { FaChevronRight } from 'react-icons/fa';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
-import { initSocket } from '../../socket';
 
-function TabAssignedRooms({ admin, showId, setShowId, rowDate }) {
+function TabAssignedRooms({ admin, showId, setShowId }) {
   const [assigned_rooms, setAssignedRooms] = useState(null);
   const [parent_class, setParentClass] = useState(null);
   const [parent_activity, setParentActivity] = useState(null);
@@ -24,11 +23,10 @@ function TabAssignedRooms({ admin, showId, setShowId, rowDate }) {
   const { foreign_name, foreign_key, query } = useParams();
 
   const [showForm, setShowForm] = useState(null);
-  const [showComponents, setShowComponents] = useState(false);
 
   const [team_id, setTeamId] = useState('');
 
-  const [team_list, setTeamList] = useState(null);
+  const [team_list, setTeamList] = useState([]);
 
   const [loading, setLoading] = useState(true);
     
@@ -127,8 +125,16 @@ function TabAssignedRooms({ admin, showId, setShowId, rowDate }) {
       setLoading(false);
       return;
     }
+    console.log(parent_class.class_id)
 
-    setTeamList(await admin.getAllTeams());
+    const data = await admin.getAllTeams(parent_class.class_id);
+    if (data?.teams) {
+      setTeamList(data.teams);
+    } else {
+      toast.error('Retrieving class\' teams failed!');
+      setShowForm(null);
+    }
+
     setShowForm('create');
     setLoading(false);
     setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
@@ -176,6 +182,10 @@ function TabAssignedRooms({ admin, showId, setShowId, rowDate }) {
       }
     }
   }
+
+  useEffect(() => {
+    console.log(team_list)
+  }, [team_list]);
 
   return (
     <div id='manage-content' className='sub'>
@@ -295,20 +305,17 @@ function TabAssignedRooms({ admin, showId, setShowId, rowDate }) {
         {selectedRef.current &&
         <>
           {foreign_name === 'teams' &&
-            <button className='admin-view'>
+            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/${parent_team.class_id}/activities/q=${selectedRef.current.activity_id}&f=uid`)}>
               View Activity
             </button>
           }
           {foreign_name === 'activities' &&
-            <button className='admin-view'>
+            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/${parent_activity.class_id}/teams/q=${parent_activity.owner_id}&f=uid`)}>
               View Team
             </button>
           }
-          <button className='admin-view'>
-            View Files
-          </button>
-          <button className='admin-manage' onClick={() => setShowComponents(!showComponents)}>
-            Manage Components
+          <button className='admin-manage' onClick={() => navigate(`/admin/room/${selectedRef.current.room_id}`)}>
+            Manage Room
           </button>
           <button className='admin-delete' onClick={deleteAssignedRoom}>
             Delete Assigned Room
@@ -326,7 +333,7 @@ function TabAssignedRooms({ admin, showId, setShowId, rowDate }) {
               onChange={e => setTeamId(e.target.value)} 
               required>
               <option value=''>Select Team</option>
-              {team_list && team_list.map(tm => (
+              {team_list && Array.from(team_list).map(tm => (
                 <option 
                   key={tm.team_id} 
                   value={tm.team_id} 
@@ -343,134 +350,8 @@ function TabAssignedRooms({ admin, showId, setShowId, rowDate }) {
           <button className='file-cancel-btn' type='button' onClick={() => setShowForm(false)}>Cancel</button>
         </div>
       </form>
-      {showComponents && selectedRef.current &&
-        <div className='room-components-container flex-row'>
-          <RoomComponents room={selectedRef.current} admin={admin}/>
-        </div>
-      }
     </div>
   )
-}
-
-function RoomComponents({room, admin}) {
-  const socketRef = useRef(null);
-  const notepadRef = useRef(null);
-  const providerRef = useRef(null);
-  const [roomUsers, setRoomUsers] = useState(null);
-  const [cursorColor, setCursorColor] = useState(null);
-  const [feedback_list, setFeedbackList] = useState(null);
-  const [new_feedback, setNewFeedback] = useState('');
-
-  useEffect(() => {
-    async function init() {
-      socketRef.current = await initSocket();
-      socketRef.current.emit('join_room', { 
-        room_id: room.room_id, 
-        user_id: 101,
-        position: 'Admin'
-      })
-
-      socketRef.current.on('room_users_updated', ({ users }) => {
-        setRoomUsers(users);
-        setCursorColor(users.find((u) => u.user_id === 101)?.cursor);
-      });
-    }
-    init();
-    
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current.off('room_users_updated');
-      }
-    }
-  }, [room?.room_id]);
-
-  useEffect (() => {
-      notepadRef.current ? notepadRef.current?.destroy() : null;
-      providerRef.current ? providerRef.current?.destroy() : null;
-
-      if (socketRef.current && cursorColor && roomUsers) {
-        async function init() {
-          return new Promise((resolve) => {
-            socket.emit('load_notepad', {
-              room_id: room.room_id,
-            });
-        
-            socket.on('notepad_loaded', ({ notes }) => {
-              resolve(notes);
-            });
-          });
-
-          socket.emit('join_editor', {
-            file_id: file.file_id,
-            user_id: user.uid,
-          });
-      
-          socket.on('editor_users_updated', ({ users }) => {
-            setEditorUsers(users);
-            resolve(users);
-          });  
-        }
-        init().then((notes) => {
-          const ydoc = new Y.Doc();
-    
-          providerRef.current = new WebsocketProvider(import.meta.env.VITE_APP_WEBSOCKET, 
-            `${room.room_id}-notepad`, 
-            ydoc
-          );
-          
-          providerRef.current.awareness.setLocalStateField('user', {
-            userId: 101,
-            name: 'PnCode Admin',
-            color: cursorColor.color,
-          });
-    
-          providerRef.current.on('synced', () => {
-              const ytext = ydoc.getText('codemirror');
-              let initialContent = ytext.toString();
-              if (((initialContent === '' || initialContent === null) && editorUsers.length === 1)) {
-                  ydoc.transact(() => {
-                      ytext.insert(0, notes);
-                  });
-                  initialContent = notes;
-              }
-
-              const state = EditorState.create({
-                  doc: initialContent,
-                  extensions: [
-                      keymap.of([...yUndoManagerKeymap, { key: 'Enter', run: (view) => {
-                          view.dispatch(view.state.replaceSelection('\n'))
-                          return true
-                          }}
-                      ]),
-                      setup(),
-                      yCollab(ytext, providerRef.current.awareness),
-                      EditorView.lineWrapping,
-                      EditorView.updateListener.of(e => {
-                          if (e.docChanged) {
-                              socket.emit('save_notepad', {
-                                  room_id: room.room_id,
-                                  content: e.state.doc.toString(),
-                              });
-                          }
-                      }),
-                  ]
-              });
-
-              const notepad = document.getElementById('notepad');
-              notepad.innerHTML = '';
-
-              notepadRef.current = new EditorView({ state, parent: (notepad) });
-              notepadRef.current.focus();
-          });
-        })
-      }
-      return () => {
-        providerRef.current ? providerRef.current?.destroy() : null;
-        notepadRef.current ? notepadRef.current?.destroy() : null;
-        socket.off('notepad_loaded');
-    };
-  }, [room?.room_id, socketRef.current]);
 }
 
 export default TabAssignedRooms
