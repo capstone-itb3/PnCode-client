@@ -40,7 +40,7 @@ function TabTeams({ admin, showId, setShowId }) {
   async function getAllTeams() {
     setLoading(true);
 
-    if (foreign_name === 'classes' && foreign_key) {
+    if (foreign_name === 'class' && foreign_key) {
       const data = await admin.getAllTeams(foreign_key);
       setTeams(data.teams);      
       doSearch(data.teams);
@@ -51,11 +51,11 @@ function TabTeams({ admin, showId, setShowId }) {
     }
   }
 
-  function doSearch (list) {
-    const q = new URLSearchParams(query).get('q');
-    const f = new URLSearchParams(query).get('f');
+  function doSearch (list = []) {
+    const q = new URLSearchParams(query).get('q') || '';
+    const f = new URLSearchParams(query).get('f') || '';
 
-    if (q === null || !list) {
+    if (!list) {
       return;
     }
 
@@ -95,15 +95,22 @@ function TabTeams({ admin, showId, setShowId }) {
   } 
 
   useEffect(() => {
-    doSearch(teams);
-  }, [query]);
+    if (teams) {
+      doSearch(teams);
+    }
+  }, [teams, query]);
 
   function searchTeams(e) {
     e.preventDefault();
     setShowForm(null);
     selectedRef.current = null;
     setTeamMembers([]);
-    navigate(`/admin/dashboard/classes/${foreign_key}/teams/q=${search}&f=${filter}`);
+
+    if (search === '' && filter === 'team_id') {
+      navigate(`/admin/dashboard/class/${foreign_key}/teams/q=&f=`);
+      return;
+    }
+    navigate(`/admin/dashboard/class/${foreign_key}/teams/q=${search}&f=${filter}`);
   }
   
   function selectTeam(team) {
@@ -117,7 +124,7 @@ function TabTeams({ admin, showId, setShowId }) {
     
     selectedRef.current = team;
     setTeamMembers(team.members);      
-    navigate(`/admin/dashboard/classes/${foreign_key}/teams/q=${team.team_id}&f=team_id`);
+    navigate(`/admin/dashboard/class/${foreign_key}/teams/q=${team.team_id}&f=team_id`);
   }
 
   async function showCreateForm() {
@@ -203,7 +210,7 @@ function TabTeams({ admin, showId, setShowId }) {
     await reloadData();
     selectedRef.current = null; 
     setTeamMembers([]);
-    navigate(`/admin/dashboard/classes/${foreign_key}/teams/q=&f=`);
+    navigate(`/admin/dashboard/class/${foreign_key}/teams/q=&f=`);
   }
 
   
@@ -216,7 +223,7 @@ function TabTeams({ admin, showId, setShowId }) {
       if (res) {
         toast.success('Team created successfully!');
         await reloadData();
-        navigate(`/admin/dashboard/classes/${foreign_key}/teams/q=&f=`);
+        navigate(`/admin/dashboard/class/${foreign_key}/teams/q=&f=`);
       } else {
         setLoading(false);
       }
@@ -237,7 +244,7 @@ function TabTeams({ admin, showId, setShowId }) {
   async function deleteTeam() {
     if (confirm('Are you sure you want to delete this team?')) {
       setLoading(true);
-      const res = await admin.deleteTeam(selectedRef.current.team_id);
+      const res = await admin.deleteTeam(selectedRef.current.team_id, selectedRef.current.team_name);
 
       if (res) {
         toast.success('Team deleted successfully!');
@@ -292,7 +299,6 @@ function TabTeams({ admin, showId, setShowId }) {
               <option value=''>All</option>
               <option value='team_id'>Team ID</option>
               <option value='team_name'>Team Name</option>
-              <option value='class'>Class</option>
               <option value='member'>Member</option>
             </select>
           </div>
@@ -354,7 +360,7 @@ function TabTeams({ admin, showId, setShowId }) {
           <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${foreign_key}&f=class_id`)}>
             View Class
           </button>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/teams/${selectedRef.current.team_id}/assigned-rooms/q=&f=`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/team/${selectedRef.current.team_id}/assigned-rooms/q=&f=`)}>
             View Assigned Rooms
           </button>
           <button className='admin-manage' onClick={manageList}>

@@ -8,37 +8,51 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
   const [new_feedback, setNewFeedback] = useState('');
 
   useEffect(() => {  
-    function getFeedback() {
-      socket.emit('load_feedback', {
-        room_id: room.room_id,
-      });
-    }
-    getFeedback();
-
-    socket.on('feedback_loaded', ({ feedback }) => {
-      setFeedback(feedback);
-
-      if (feedback.length !== 0) {
-        setRightDisplay('feedback');
+    try {
+      function getFeedback() {
+        socket.emit('load_feedback', {
+            room_id: room.room_id,
+        });
       }
-    });
-
-    socket.on('submit_feedback_result', ({ status, action }) => {
       getFeedback();
 
-      if (status === 'ok' && action === 'add') {
+      socket.on('feedback_loaded', ({ feedback }) => {
+        setFeedback(feedback);
+
+        if (feedback.length > 0) {
+          setRightDisplay('feedback');
+        }
+      });
+
+      socket.on('submit_feedback_result', ({new_feedback}) => {
+        setFeedback((prev) => {
+          const new_feedback_list = [...prev, new_feedback];
+          return new_feedback_list.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+        });
+
         setRightDisplay('feedback');
-      }
-    });
+      });
+
+      socket.on('delete_feedback_result', ({createdAt}) => {
+        setFeedback(prev => prev.filter(item => item.createdAt !== createdAt));
+      });
+    } catch (e) {
+      alert('An error occured while rendering feedback.');
+      console.error(e);
+    }
 
     return () => {
       socket.off('feedback_loaded');
       socket.off('submit_feedback_result');
+      socket.off('delete_feedback_result');
     }
   }, []);
 
   function submitFeedback(e) {
     e.preventDefault();
+
 
     room.submitFeedback(socket, new_feedback, user.uid);
     setNewFeedback('');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { BsTrash, BsPlus } from 'react-icons/bs';
 import { toast } from 'react-hot-toast';
 import Cookies from 'js-cookie';
@@ -158,7 +158,7 @@ function PageActivity() {
                     <ManageDates activity={activity} renderActivity={renderActivity}/>
 
                     <div id='activity-footer'>
-                    <a href={`/dashboard/${activity.class_id}/all`}>&lt; BACK</a>
+                    <a><Link to={`/dashboard/${activity.class_id}/all`}>&lt; BACK TO DASHBOARD</Link></a>
                         <button id='delete-btn' onClick={deleteActivity}><BsTrash size={20}/><label>Delete Activity</label></button>
                     </div>
                 </div>

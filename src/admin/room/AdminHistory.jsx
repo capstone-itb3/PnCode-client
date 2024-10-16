@@ -114,7 +114,7 @@ function History({ file, socket, rightDisplay }) {
               )
             })}
             {history && history?.length === 0 &&
-              <label className='length-0'>Code history will appear here as students code.</label>
+              <div className='length-0'>Code history will appear here as students code over time.</div>
             }
           </div>
         </>

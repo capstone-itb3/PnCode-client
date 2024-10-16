@@ -39,16 +39,11 @@ function TabStudents({ admin, showId, setShowId }) {
     doSearch(data);
   }
 
-  function doSearch(list) {
-    const q = new URLSearchParams(query).get('q');
-    const f = new URLSearchParams(query).get('f');
+  function doSearch(list = []) {
+    const q = new URLSearchParams(query).get('q') || '';
+    const f = new URLSearchParams(query).get('f') || '';
 
-    if (q === null || !list) {
-      navigate('/admin/dashboard/students/q=&f=');
-      return;
-    }
-
-    if (!(f === 'uid' || f === 'last_name' || f === 'first_name' || f === 'email' || f === '') === true) {
+    if (!(f === 'uid' || f === 'last_name' || f === 'first_name' || f === 'email' || f === '') === true || !list) {
       navigate('/admin/dashboard/students/q=&f=');
       return;
     }
@@ -74,7 +69,8 @@ function TabStudents({ admin, showId, setShowId }) {
         const lastToFirst = `${s.last_name} ${s.first_name}`.toLowerCase().includes(q.toLowerCase());
         const firstToLast = `${s.first_name} ${s.last_name}`.toLowerCase().includes(q.toLowerCase());
         const combined = `${s.uid} ${s.first_name} ${s.last_name}`.toLowerCase().includes(q.toLowerCase());
-        return (uid || lastToFirst || firstToLast || email || combined);
+        const rev_combined = `${s.uid} ${s.last_name}, ${s.first_name}`.toLowerCase().includes(q.toLowerCase());
+        return (uid || lastToFirst || firstToLast || email || combined || rev_combined);
       }
     })
 
@@ -85,13 +81,20 @@ function TabStudents({ admin, showId, setShowId }) {
   }
 
   useEffect(() => {
-    doSearch(students);
-  }, [query]);
+    if (students) {
+      doSearch(students);
+    }
+  }, [students, query]);
 
   function searchStudents(e) {
     e.preventDefault();
     setShowForm(null);
     selectedRef.current = null;
+
+    if (search === '' && filter === 'uid') {
+      navigate('/admin/dashboard/students/q=&f=');
+      return;
+    }
     navigate(`/admin/dashboard/students/q=${search}&f=${filter}`);
   }
   
@@ -181,6 +184,27 @@ function TabStudents({ admin, showId, setShowId }) {
     }
   }
 
+  async function deleteStudent() {
+    if (!selectedRef.current?.uid) {
+      return;
+    }
+
+    const res = confirm('Are you sure you want to delete this student? All data related to this student will be lost.');
+    if (res) {
+      setLoading(true);
+      const deleted = await admin.deleteStudent(selectedRef.current.uid);
+      
+      if (deleted) {
+        toast.success('Student deleted successfully!');
+        await reloadData();
+        selectedRef.current = null;
+        navigate('/admin/dashboard/students/q=&f=');
+      } else {
+        setLoading(false);
+      }
+    }
+  }
+
   return (
     <div id='manage-content'>
       <div id='admin-loading-container'>
@@ -263,21 +287,24 @@ function TabStudents({ admin, showId, setShowId }) {
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
-          <button 
-            className='admin-view' 
-            onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=student`)}>
-            View Student's Classes
-          </button>
-        }
-        {selectedRef.current &&
-          <button className='admin-edit' onClick={showEditForm}>
-            Edit Student
-          </button>
-        }
-        {selectedRef.current &&
-          <button className='admin-delete'>
-            Delete Student
-          </button>
+          <>
+            <button 
+              className='admin-view' 
+              onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=student`)}>
+              View Student's Classes
+            </button>
+            <button
+              className='admin-view'
+              onClick={() => navigate(`/admin/dashboard/student/${selectedRef.current.uid}/solo-rooms/q=&f=`)}>
+              View Solo Rooms
+            </button>
+            <button className='admin-edit' onClick={showEditForm}>
+              Edit Student
+            </button>
+            <button className='admin-delete' onClick={deleteStudent}>
+              Delete Student
+            </button>
+          </>
         }
       </div>
       <form id='admin-form' className={`two-column-grid ${!showForm && 'none' }`} onSubmit={submitStudent}>

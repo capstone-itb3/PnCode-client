@@ -121,10 +121,10 @@ function History({ user, file, socket, rightDisplay }) {
               )
             })}
             {history && history?.length === 0 && user?.position === 'Student' &&
-              <label className='length-0'>Code history will appear here as you progress.</label>
+              <div className='length-0'>Code history will appear here as you progress.</div>
             }
             {history && history?.length === 0 && user?.position === 'Professor' &&
-              <label className='length-0'>Code history will appear here as they code.</label>
+              <div className='length-0'>Code history will appear here as students code over time.</div>
             }
           </div>
         </>

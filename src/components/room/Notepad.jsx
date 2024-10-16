@@ -6,30 +6,12 @@ import { EditorView } from 'codemirror'
 import { EditorState } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import _ from 'lodash'
+import notepadListener from './utils/notepadListener'
 
 function Notepad({room, user, socket, cursorColor}) {
     const notepadRef = useRef(null);
     const providerRef = useRef(null);
   
-    const notepadListener = (event) => {
-        const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
-        
-        try {  
-            if (event.ctrlKey && event.key === 's') {
-                event.preventDefault();
-                updateNotes();
-
-                return;
-            }
-
-            if (event.key.length === 1 || isEditingKey) {
-                updateNotes();
-            }
-        } catch (e) {
-          console.error(e);
-        }
-      };    
-
     useEffect(() => {
         notepadRef.current ? notepadRef.current?.destroy() : null;
         providerRef.current ? providerRef.current?.destroy() : null;
@@ -98,7 +80,7 @@ function Notepad({room, user, socket, cursorColor}) {
                 if (user?.position === 'Student') {
                     notepadRef.current.focus();
 
-                    notepad.addEventListener('keydown', notepadListener);
+                    notepad.addEventListener('keydown', e => notepadListener(e, updateNotes));
                 }
             });
         })

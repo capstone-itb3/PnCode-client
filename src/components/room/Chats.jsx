@@ -2,37 +2,43 @@ import React, { useState, useEffect } from 'react'
 import Avatar from 'react-avatar';
 import { RiArrowDropDownLine, RiArrowLeftSLine } from 'react-icons/ri';
 import { FiMinusCircle } from 'react-icons/fi';
+import { positionChat, minimizeChat } from './utils/toggleChat';
 
 function Chats({room, socket, user}) {
     const [chats, setChats] = useState(null);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        socket.emit('load_messages', {
-            room_id: room.room_id,
-        });
-
-        socket.on('messages_loaded', ({chat_data}) => {
-            setChats(chat_data);
-
-            setTimeout(() => {
-                const scroll = document.getElementById('chat-box-scroll');
-                scroll.scrollTop = scroll.scrollHeight;
-            },100);
-        })
-
-        socket.on('update_messages', ({new_message}) => {
-            setChats(prev => [...prev, new_message]);
-
-            setTimeout(() => {
-                const scroll = document.getElementById('chat-box-scroll');
-                scroll.scrollTop = scroll.scrollHeight;
-            },100);
-        });
-
-        socket.on('message_deleted', ({ createdAt }) => {
-            setChats(prev => prev.filter(item => item.createdAt !== createdAt));
-        });
+        try {
+            socket.emit('load_messages', {
+                room_id: room.room_id,
+            });
+    
+            socket.on('messages_loaded', ({chat_data}) => {
+                setChats(chat_data);
+    
+                setTimeout(() => {
+                    const scroll = document.getElementById('chat-box-scroll');
+                    scroll.scrollTop = scroll.scrollHeight;
+                },100);
+            })
+    
+            socket.on('update_messages', ({new_message}) => {
+                setChats(prev => [...prev, new_message]);
+    
+                setTimeout(() => {
+                    const scroll = document.getElementById('chat-box-scroll');
+                    scroll.scrollTop = scroll.scrollHeight;
+                },100);
+            });
+    
+            socket.on('message_deleted', ({ createdAt }) => {
+                setChats(prev => prev.filter(item => item.createdAt !== createdAt));
+            });
+        } catch (e) {
+            alert('An error occured while rendering chats');
+            console.error(e);
+        }
 
         return () => {
             socket.off('messages_loaded');
@@ -40,15 +46,6 @@ function Chats({room, socket, user}) {
             socket.off('message_deleted');
         }
     }, [room]);
-
-    function positionChat() {
-        const chatBox = document.getElementById('chat-box-container');
-        chatBox.classList.toggle('left');
-    } 
-    function minimizeChat() {
-        const chatBox = document.getElementById('chat-box-container');
-        chatBox.classList.toggle('hidden');
-    }
 
     function sendMessage(e) {
         e.preventDefault();

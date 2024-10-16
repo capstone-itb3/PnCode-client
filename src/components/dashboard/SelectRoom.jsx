@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
+import { BsTrash, BsPencilSquare } from 'react-icons/bs';
+import { useNavigate } from 'react-router-dom';
+import { SoloRoom } from '../../classes/RoomClass';
+import toast from 'react-hot-toast';
 
-function SelectRoom({ room, index, type }) {
-  const [display, setDisplay] = useState(() => {
+function SelectRoom({ room, index, displayInfo }) {
+  const room_class = new SoloRoom(room.room_id, room.room_name);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [new_room_name, setNewRoomName] = useState(room_class.room_name);
+
+  const updatedAt = () => {
     const date = new Date(room.updatedAt);
 
     const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
-    const month = date.toLocaleString('default', { month: 'long' }).slice(0, 3);
+    const month = date.getMonth() < 10 ? '0' + date.getMonth() : date.getMonth();
     const year = date.getFullYear();
     const hours = date.getHours();
     const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
@@ -13,21 +21,57 @@ function SelectRoom({ room, index, type }) {
     const formattedHours = hours % 12 || 12;
     const paddedHours = formattedHours < 10 ? '0' + formattedHours : formattedHours;
 
-    room.updatedAt = `${day} ${month} ${year} ${paddedHours}:${minutes} ${ampm}`;
-    return room;
-  });
-  
-  if (type === 'solo') {
-    return (
-      <tr className='list-item' onClick={() => { window.location.href = `/solo/${display.room_id}` }}>
-        <td className='td-1'>{index + 1}</td>
-        <td className='td-2'>{display.room_name}</td>
-        <td className='td-3'>{display.updatedAt}</td>
-      </tr>
-    );
-  } else {
-    return null
+    return `${day}/${month}/${year} ${paddedHours}:${minutes} ${ampm}`;
+  };
+  const navigate = useNavigate();
+
+  async function updateRoom(e) {
+    e.preventDefault()
+    const res = await room_class.updateRoomName(new_room_name);
+
+    if (res) {
+      toast.success('Room name is updated successfully.');
+      displayInfo();
+    }
   }
+
+  async function deleteRoom() {
+    if (confirm('Are you sure you want to delete this room?')) {
+      const res = await room_class.deleteRoom();
+  
+      if (res) {
+        toast.success('Room is deleted successfully.');
+        displayInfo();
+      }
+    }
+  }
+
+  return (
+    <tr className='list-item'>
+      <td className='td-1' onClick={() => navigate(`/solo/${room_class.room_id}`)}>
+        {index + 1}
+      </td>
+      <td className='td-2' onClick={() => !isUpdating ? navigate(`/solo/${room_class.room_id}`) : null}>
+        {!isUpdating && room_class.room_name}
+        {isUpdating &&
+          <form autoComplete='false' onSubmit={(e) => updateRoom(e)}>
+            <input  type='text' 
+                    value={new_room_name}
+                    onChange={(e) => setNewRoomName(e.target.value)}
+                    />
+            <button className='file-cancel-btn' onClick={() => setIsUpdating(false)} type='button'>Cancel</button>
+          </form>
+        }
+      </td>
+      <td className='td-3' onClick={() => { navigate(`/solo/${room_class.room_id}`) }}>
+        {updatedAt()}
+      </td>
+      <td className='td-4 items-center'>
+        <button className='items-center none' onClick={() => setIsUpdating(true)}><BsPencilSquare size={20}/></button>
+        <button className='items-center none' onClick={deleteRoom}><BsTrash size={20}/></button>
+      </td>
+    </tr>
+  );
 }
 
 export default SelectRoom;

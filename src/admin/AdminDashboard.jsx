@@ -4,7 +4,7 @@ import { MdKeyboardBackspace } from "react-icons/md";
 import './admin.css';
 import getAdminClass from './utils/adminValidator';
 import Header from './Header';
-import CollectionTabs from './CollectionTabs';
+import ManageTabs from './ManageTabs';
 import TabStudents from './tabs/TabStudents';
 import TabProfessors from './tabs/TabProfessors';
 import TabCourses from './tabs/TabCourses';
@@ -36,7 +36,7 @@ function AdminDashboard() {
   return (
     <div className='admin-dashboard'>
       <Header admin={admin}/>
-        <CollectionTabs collection={collection}/>
+        <ManageTabs collection={collection}/>
         {collection === 'students' &&
           <TabStudents admin={admin} showId={showId} setShowId={setShowId} />
         }
@@ -60,9 +60,6 @@ function AdminDashboard() {
         }
         {collection === 'assigned-rooms' && 
           <TabAssignedRooms admin={admin} showId={showId} setShowId={setShowId} rowDate={rowDate}/>
-        }
-        {collection === 'files' &&
-          <TabFiles admin={admin} showId={showId} setShowId={setShowId}/>
         }
         <footer>
             <button className='items-center' onClick={() => navigate(-1)}><MdKeyboardBackspace size={20}/> BACK</button>

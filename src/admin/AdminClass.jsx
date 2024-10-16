@@ -120,7 +120,6 @@ export default class Admin {
     }
 
     async getAllAssignedRooms(foreign_name, foreign_key) {
-        console.log(foreign_name, foreign_key);
         try {
             const response = await api.get('/api/admin/assigned-rooms', {
                 params: {
@@ -136,6 +135,28 @@ export default class Admin {
                     activity: data.parent_activity,
                     team: data.parent_team,
                     class: data.parent_class
+                }
+            }
+            return null;
+        } catch (e) {
+            errorHandlerAdmin(e);
+            return null;
+        }
+    }
+
+    async getAllSoloRooms(foreign_name, foreign_key) {
+        try {
+            const response = await api.get('/api/admin/solo-rooms', {
+                params: {
+                    foreign_name,
+                    foreign_key
+                }
+            });
+            const data = response.data;
+            if (data.status === 'ok') {
+                return {
+                    rooms: data.solo_rooms,
+                    owner: data.parent_user
                 }
             }
             return null;
@@ -540,22 +561,18 @@ export default class Admin {
 
     async getAssignedRoomDetails(room_id) {
         try {
-            const response = await api.post('/api/admin/get-assigned-room-details/', {
-                room_id
+            const response = await api.get('/api/admin/get-assigned-room-details/', {
+                params: {
+                    room_id
+                }
             });
 
             const data = response.data;
 
             if (data.status === 'ok') {
-                const info = data.room;
 
                 return { 
-                    room: new AssignedRoom(
-                        info.room_id,
-                        info.room_name,
-                        info.owner_id,
-                        info.activity_id,
-                    ), 
+                    room: data.room,
                     files: data.files, 
                     activity: data.activity, 
                     members: data.members, 
@@ -566,6 +583,79 @@ export default class Admin {
             }
         } catch (e) {
             errorHandlerAdmin(e);
+            return null;
+        }
+    }
+
+    async createSoloRoom(position, uid) {
+        try {
+            const response = await api.post('/api/admin/create-solo-room', {
+                position, 
+                uid
+            });
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return data.room_id;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    }
+
+    async updateSoloRoomName(room_id, new_room_name) {
+        try {
+            const response = await api.post('/api/admin/update-solo-room-name', {
+                room_id,
+                new_room_name
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    }
+
+    async deleteStudent(uid) {
+        try {
+            const response = await api.post('/api/admin/delete-student', {
+                uid
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async deleteProfessor(uid) {
+        try {
+            const response = await api.post('/api/admin/delete-professor', {
+                uid
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
             return null;
         }
     }
@@ -606,14 +696,68 @@ export default class Admin {
         }
     }
 
-    async deleteTeam(team_id) {
+    async deleteTeam(team_id, team_name) {
         try {
             const response = await api.post('/api/admin/delete-team', {
-                team_id
+                team_id,
+                team_name
             });
 
             const data = response.data;
 
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async deleteActivity(activity_id) {
+        try {
+            const response = await api.post('/api/admin/delete-activity', {
+                activity_id
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async deleteAssignedRoom(room_id) {
+        try {
+            const response = await api.post('/api/admin/delete-assigned-room', {
+                room_id
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async deleteSoloRoom(room_id) {
+        try {
+            const response = await api.post('/api/admin/delete-solo-room', {
+                room_id
+            });
+
+            const data = response.data;
             if (data.status === 'ok') {
                 return true;
             }

@@ -158,6 +158,11 @@ header.admin {
     cursor: pointer;
     padding: 20px 10px;
 }
+#admin-table .num-td {
+    width: 50px;
+    text-align: center;
+}
+
 #admin-table th {
     border-right: 1px solid var(--gray);
     border-top: 0;
@@ -278,6 +283,9 @@ header.admin {
     margin: 30px 20px 200px 20px;
     background-color: var(--near-white);
 }
+#admin-form-buttons {
+    padding-top: 10px; 
+}
 
 #admin-form .flex-row .flex-column {
     width: 100%;
@@ -300,6 +308,7 @@ header.admin {
 
 #admin-form h4{
     color: var(--gray-dark);
+    margin-bottom: 10px;
 }
 
 #admin-form h4 span {
@@ -330,7 +339,7 @@ header.admin {
     border: 1px solid var(--base);
 }
 
-.admin-member-list-container, .components-container {
+.admin-member-list-container {
     position: relative;
     width: calc(100% - 40px);
     margin: 30px 20px;
@@ -388,59 +397,8 @@ header.admin {
     width: 100%;
     border-radius: 10px;
 }
-
-.components-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 25px;
-    justify-content: space-evenly;
-}
-
-.components-container h3 {
-    padding: 3px 7px;
-    border-bottom: 2px solid var(--gray);
-    margin: 0;
-}
-
-.admin-notepad, .admin-chat, .admin-feedback{
-    position: relative;
-    height: 383px;
-    border: 1px solid var(--gray);
-    min-width: 150px;
-    width: 100%;
-}
-.admin-chat, .admin-notepad {
-    max-width: 300px;
-}
-
-.admin-feedback {
-    max-width: 500px;
-}
-
-.components-container .scroll {
-    max-height: 350px;
-    overflow-y: auto;
-}
-
-.admin-chat {
-    border: 0;
-    position: relative;
-    height: 383px;
-}
-
-.admin-chat #chat-box-container {
-    width: 100%;
-    height: calc(100% - 34px);
-    right: unset;
-}
-.admin-chat .chat-box-message:hover {
+.admin .chat-box-message:hover {
     background-color: var(--gray);
-}
-
-.admin-chat h3 {
-    padding: 5px 7px;
-    color: var(--gray-light);
-    background-color: var(--base-blue);
 }
 
 .collection-search-div {

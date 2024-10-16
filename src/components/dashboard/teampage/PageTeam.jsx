@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { BsTrash  } from 'react-icons/bs';
 import { LuPencilLine } from 'react-icons/lu';
 import { MdLoop } from 'react-icons/md';
@@ -177,7 +177,7 @@ function PageTeam() {
             </div>
             <div id='team-footer'>
               
-              <a href={`/dashboard/${team.class_id}/all`}>&lt; BACK</a>
+              <a><Link to={`/dashboard/${team.class_id}/all`}>&lt; BACK TO DASHBOARD</Link></a>
               {permitted && user.position === 'Professor' &&
                 <button id='delete-btn' onClick={deleteTeam}><BsTrash size={20}/><label>Delete Team</label></button>
               }

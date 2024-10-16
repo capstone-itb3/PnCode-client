@@ -38,15 +38,11 @@ function TabCourses({ admin }) {
     doSearch(data);
   }
 
-  function doSearch(list) {
-    const q = new URLSearchParams(query).get('q');
-    const f = new URLSearchParams(query).get('f');
+  function doSearch(list = []) {
+    const q = new URLSearchParams(query).get('q') || '';
+    const f = new URLSearchParams(query).get('f') || '';
 
-    if (q === null || !list) {
-      return;
-    }
-
-    if (!(f === 'course_code' || f === 'course_title' || f === '') === true) {
+    if (!(f === 'course_code' || f === 'course_title' || f === '') === true || !list) {
       navigate('/admin/dashboard/courses/q=&f=');
       return;
     }
@@ -76,13 +72,16 @@ function TabCourses({ admin }) {
 
 
   useEffect(() => {
-    doSearch(courses);
-  }, [query]);
+    if (courses) {
+      doSearch(courses);
+    }
+  }, [courses, query]);
 
   function searchCourses(e) {
     e.preventDefault();
     setShowForm(null);
     selectedRef.current = null;
+
     navigate(`/admin/dashboard/courses/q=${search}&f=${filter}`);
   }
   
@@ -171,15 +170,19 @@ function TabCourses({ admin }) {
 
   async function deleteCourse() {
     if (confirm('Are you sure you want to delete this course?')) {   
-      setLoading(true); 
-      const res = await admin.deleteCourse(selectedRef.current.course_code);
-
-      if (res) {
-        toast.success('Course deleted successfully!');
-        setShowForm(null);
-        await reloadData();
-        navigate(-1);
-        selectedRef.current = null;
+      if (confirm('Deleting this course will result in deletion of all classes, teams, activities, rooms, and files related to this course. Do you want to continue?')) {
+        setLoading(true); 
+        const res = await admin.deleteCourse(selectedRef.current.course_code);
+  
+        if (res) {
+          toast.success('Course deleted successfully!');
+          setShowForm(null);
+          await reloadData();
+          navigate(-1);
+          selectedRef.current = null;
+        } else {
+          setLoading(false);
+        }
       }
     }
   }

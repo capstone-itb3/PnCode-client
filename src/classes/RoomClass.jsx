@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast'
 import api from '../api'
-import { errorHandler } from '../error'
+import { errorHandler, errorHandlerForms } from '../error'
 
 export class Room {
     constructor (room_id, room_name, owner_id) {
@@ -8,13 +8,31 @@ export class Room {
         this.room_name = room_name;
         this.owner_id = owner_id;
     }
-
 }
 
 export class SoloRoom extends Room {
     constructor (room_id, room_name, owner_id, files) {
         super(room_id, room_name, owner_id);
         this.files = files;
+    }
+
+    async updateRoomName(new_room_name) {
+        try {
+            const response = await api.post('/api/update-room-solo/', {
+                room_id: this.room_id,
+                room_name: new_room_name,
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerForms(e);
+            return null;
+        }
     }
 
     async deleteRoom() {
@@ -26,10 +44,12 @@ export class SoloRoom extends Room {
             const data = response.data;
 
             if (data.status === 'ok') {
-                window.location.href = '/dashboard';
+                return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
+            return null;
         }
     }
 }

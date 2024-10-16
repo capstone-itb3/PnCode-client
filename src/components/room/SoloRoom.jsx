@@ -223,7 +223,7 @@ function AssignedRoom() {
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
-    window.location.href = '/dashboard';
+    navigate('/dashboard');
   }
 
   return (
@@ -285,7 +285,8 @@ function AssignedRoom() {
               </div>
               <Members 
                 members={[user]}
-                roomUsers={[{ user_id: user.uid, cursor: { color: 'red' } }]}/>
+                roomUsers={[{ user_id: user.uid, cursor: { color: 'red' } }]}
+                inSolo={true}/>
           </aside>
           <div className='flex-column' id='center-body'>
             <div className='flex-row' id='editor-section'>

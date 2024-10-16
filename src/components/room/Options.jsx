@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import checkTimeframe from './utils/checkTimeframe';
 
 function Options({type, room, user, socket, open_time, close_time, setLeftDisplay, setRightDisplay, setEditorTheme, outputRef, setAddNewFile, setDeleteFile, runOutput}) {
-    const isOnTimeRef = useRef(checkTimeframe(open_time, close_time));
+    const isOnTimeRef = useRef(type === 'assigned' ? checkTimeframe(open_time, close_time) : true);
     const [isChecked, setIsChecked] = useState(() => {
         if (Cookies.get('theme') === 'dark' || !Cookies.get('theme')) {
             return true;
@@ -13,7 +13,7 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
     });
 
     function openMenu(clicked) {
-        if (clicked === 'files') {
+        if (clicked === 'files' && type === 'assigned') {
             isOnTimeRef.current = checkTimeframe(open_time, close_time);
         }
         const option = document.getElementById(`${clicked}-menu`);
@@ -84,13 +84,6 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
         }
         const option = document.getElementById(`run-menu`);
         option.classList.toggle('hidden');
-    }
-
-    async function deleteSoloRoom() {
-        const result = confirm('Are you sure you want to delete this room?');
-        if (result) {
-            await room?.deleteRoom();
-        }
     }
 
     return (
@@ -173,11 +166,6 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
                     <label>Run in Full View</label>
                 </div>
             </div>
-            {type === 'solo' &&
-                <button className='room-header-options' onClick={() => deleteSoloRoom()}>
-                    Delete Room
-                </button>
-            }
         </>
     )
 }

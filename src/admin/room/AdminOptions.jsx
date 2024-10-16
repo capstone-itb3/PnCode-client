@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
 import Cookies from 'js-cookie';
-import checkTimeframe from '../../components/room/utils/checkTimeframe';
 
 function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditorTheme, outputRef, setAddNewFile, setDeleteFile, runOutput}) {
     const [isChecked, setIsChecked] = useState(() => {
@@ -12,9 +11,6 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
     });
 
     function openMenu(clicked) {
-        if (clicked === 'files') {
-            isOnTimeRef.current = checkTimeframe(open_time, close_time);
-        }
         const option = document.getElementById(`${clicked}-menu`);
         if (option) {
             option?.classList?.toggle('hidden');
@@ -71,7 +67,7 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
 
     function changeTheme(checked) {
         const theme = checked ? 'dark' : 'light';
-        user.changeTheme(theme);
+        Cookies.set('theme', theme);
         setIsChecked(checked);
         setEditorTheme(theme);
     }
@@ -100,19 +96,15 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
                     Files
                 </button>
                 <div id='files-menu' className='flex-column options-menu hidden'>
-                    {user.position === 'Student' &&
-                        <div className='item items-center'  onClick={addFile}>
-                            <label>Add File</label><span>Alt + A</span>
-                        </div>
-                    }
+                    <div className='item items-center'  onClick={addFile}>
+                        <label>Add File</label><span>Alt + A</span>
+                    </div>
                     <div className='item items-center'  onClick={openFile}>
                         <label>Open File</label><span>Alt + [#]</span>
                     </div>
-                    {user.position === 'Student' &&
-                        <div className='item items-center' onClick={deleteFile}>
-                            <label>Delete File</label><span>Alt + X</span>
-                        </div>
-                    }
+                    <div className='item items-center' onClick={deleteFile}>
+                        <label>Delete File</label><span>Alt + X</span>
+                    </div>
                 </div>
             </>
             }
@@ -121,7 +113,7 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
                 <button className='room-header-options' onClick={() => openMenu('view')}>
                     View
                 </button>
-                <div id='view-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
+                <div id='view-menu' className={`flex-column options-menu hidden`}>
                     <div className='item items-center' onClick={() => viewSection('files')}>
                         <label>Show Files</label><span>Alt + F</span>
                     </div>
@@ -144,7 +136,7 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
             <button className='room-header-options' onClick={() => openMenu('preferences')}>
                 Preferences
             </button>
-            <div id='preferences-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
+            <div id='preferences-menu' className={`flex-column options-menu hidden`}>
                 <div className='item items-center'>
                     <label>Editor Theme</label>
                     <div className='items-center'>
@@ -162,7 +154,7 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
             <button className='room-header-options' onClick={() => openMenu('run')}>
                 Run
             </button>
-            <div id='run-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
+            <div id='run-menu' className={`flex-column options-menu hidden`}>
                 <div className='item items-center' onClick={runCode}>
                     <label>Run</label> <span>Alt + R</span>
                 </div>

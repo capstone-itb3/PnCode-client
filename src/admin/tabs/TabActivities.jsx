@@ -35,7 +35,7 @@ function TabActivities({ admin, showId, setShowId }) {
   
   async function getAllActivities() {
     setLoading(true);
-    if (foreign_name === 'classes' && foreign_key) {
+    if (foreign_name === 'class' && foreign_key) {
       const data = await admin.getAllActivities(foreign_key);
       setActivities(data.activities);
       setParentClass(data.class);
@@ -46,15 +46,15 @@ function TabActivities({ admin, showId, setShowId }) {
   }
 
   function doSearch (list) {
-    const q = new URLSearchParams(query).get('q');
-    const f = new URLSearchParams(query).get('f');
+    const q = new URLSearchParams(query).get('q') || '';
+    const f = new URLSearchParams(query).get('f') || '';
 
-    if (q === null || !list) {
+    if (!list) {
       return;
     }
 
     if (!(f === 'activity_id' || f === 'activity_name' || f === 'instructions' || f === '') === true) {
-      navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=&f=`);
+      navigate(`/admin/dashboard/class/${foreign_key}/activities/q=&f=`);
       return;
     }
 
@@ -88,7 +88,11 @@ function TabActivities({ admin, showId, setShowId }) {
     e.preventDefault();
     setShowForm(null);
     selectedRef.current = null;
-    navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=${search}&f=${filter}`);
+    if (search === '' && filter === 'activity_id') {
+      navigate(`/admin/dashboard/class/${foreign_key}/activities/q=&f=`);
+      return;
+    } 
+    navigate(`/admin/dashboard/class/${foreign_key}/activities/q=${search}&f=${filter}`);
   }
   
   function selectActivity(activity) {
@@ -99,7 +103,7 @@ function TabActivities({ admin, showId, setShowId }) {
     }
 
     selectedRef.current = activity;
-    navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=${activity.activity_id}&f=activity_id`);
+    navigate(`/admin/dashboard/class/${foreign_key}/activities/q=${activity.activity_id}&f=activity_id`);
   }
 
   async function showCreateForm() {
@@ -145,8 +149,8 @@ function TabActivities({ admin, showId, setShowId }) {
 
   async function resetUI() {
     await reloadData();
-    selectedRef.current = null; 
-    navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=&f=`);
+    selectedRef.current = null;
+    navigate(`/admin/dashboard/class/${foreign_key}/activities/q=&f=`);
   }
 
   async function submitActivity(e) {
@@ -158,7 +162,7 @@ function TabActivities({ admin, showId, setShowId }) {
       if (res) {
         toast.success('Activity created successfully!');
         await reloadData();
-        navigate(`/admin/dashboard/classes/${foreign_key}/activities/q=${res}&f=activity_id`);
+        navigate(`/admin/dashboard/class/${foreign_key}/activities/q=${res}&f=activity_id`);
       } else {
         setLoading(false);
       }
@@ -303,10 +307,10 @@ function TabActivities({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${selectedRef.current.class_name}&f=`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${parent_class.course_code} ${parent_class.section}&f=`)}>
             View Class
           </button>
-          <button className='admin-view' onClick={() => navigate (`/admin/dashboard/activities/${selectedRef.current.activity_id}/assigned-rooms/q=&f=`)}>
+          <button className='admin-view' onClick={() => navigate (`/admin/dashboard/activity/${selectedRef.current.activity_id}/assigned-rooms/q=&f=`)}>
             View Assigned Rooms
           </button>
           <button className='admin-edit' onClick={showEditForm}>

@@ -7,7 +7,7 @@ export function errorHandlerAdmin(e) {
         toast.error(e.response.data?.message);
         
     } else if (e?.response && (e.response.status === 404 || e.response.status === 403)) {
-        alert('This page does not exist.');
+        alert(`404 Error. ${e.response.data?.message}`);
         window.history.back();
         
     } else if (e?.response && e.response.status === 401) {

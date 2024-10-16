@@ -39,7 +39,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
     setLoading(true);
 
     if (foreign_name && foreign_key) {
-      if (foreign_name === 'teams' || foreign_name === 'activities') {
+      if (foreign_name === 'team' || foreign_name === 'activity') {
         const data = await admin.getAllAssignedRooms(foreign_name, foreign_key);
         setAssignedRooms(data.rooms);
         doSearch(data.rooms);
@@ -55,22 +55,18 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
     }
   }
 
-  function doSearch (list) {
-    const q = new URLSearchParams(query).get('q');
-    const f = new URLSearchParams(query).get('f');
+  function doSearch (list = []) {
+    const q = new URLSearchParams(query).get('q') || '';
+    const f = new URLSearchParams(query).get('f') || '';
     
-    if (q === null || !list) {
-      return;
-    }
-
-    if (!(f === 'room_id' || f === 'activity' || f === 'team' || f === '') === true) {
+    if (!(f === 'room_id' || f === 'activity' || f === 'team' || f === '') === true || !list) {
       navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned-rooms/q=&f=`);
       return;
     }
 
     const filtered = list.filter((asr) => {
       const act_combined = `${asr?.activity_id} ${asr?.activity_name}`.toLowerCase().includes(q.toLowerCase());
-      const team_combined = `${asr.owner_id} ${asr.room_name}`.toLowerCase().includes(q.toLowerCase());
+      const team_combined = `${asr.owner_id !== '' ? asr.owner_id : 'None' } ${asr.room_name}`.toLowerCase().includes(q.toLowerCase());
 
       if (f === 'room_id') {
         return asr.room_id.toLowerCase().includes(q.toLowerCase());
@@ -101,6 +97,11 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
     e.preventDefault();
     setShowForm(null);
     selectedRef.current = null;
+
+    if (search === '' && filter === 'room_id') {
+      navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned-rooms/q=&f=`);
+      return;
+    } 
     navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned-rooms/q=${search}&f=${filter}`);
   }
   
@@ -168,7 +169,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
   }
 
   async function deleteAssignedRoom() {
-    if (confirm('Are you sure you want to delete this activity?')) {
+    if (confirm('Are you sure you want to delete this room?')) {
       setLoading(true);
       const res = await admin.deleteAssignedRoom(selectedRef.current.room_id);
 
@@ -182,10 +183,6 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
       }
     }
   }
-
-  useEffect(() => {
-    console.log(team_list)
-  }, [team_list]);
 
   return (
     <div id='manage-content' className='sub'>
@@ -204,18 +201,25 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
           <label className='items-center'><FaChevronRight size={17}/></label>
         </>
         }
-        {foreign_name === 'activities' && parent_activity &&
+        {foreign_name === 'activity' && parent_activity &&
           <>
             Activity:
-            <b><Link to={`/admin/dashboard/classes/${parent_activity.class_id}/activities/q=${parent_activity.activity_id}&f=`}>{parent_activity.activity_name}</Link></b>
+            <b><Link to={`/admin/dashboard/class/${parent_activity.class_id}/activities/q=${parent_activity.activity_id}&f=activity_id`}>{parent_activity.activity_name}</Link></b>
             <label className='items-center'><FaChevronRight size={17}/></label>
             Assigned Rooms
           </>
         }
-        {foreign_name === 'teams' && parent_team &&
+        {foreign_name === 'team' && parent_team &&
           <>
             Team: 
-            <b><Link to={`/admin/dashboard/classes/${parent_team.class_id}/teams/q=${parent_team.team_id}&f=`}>{parent_team.team_name}</Link></b>
+            <b>
+              {parent_team && parent_team.team_id &&
+                <Link to={`/admin/dashboard/class/${parent_team.class_id}/teams/q=${parent_team.team_id}&f=`}>{parent_team.team_name}</Link>
+              }
+              {parent_team && !parent_team.team_id &&
+                <>(team_deleted)</>
+              }
+            </b>
             <label className='items-center'><FaChevronRight size={17}/></label>
             Assigned Rooms
           </>
@@ -230,9 +234,11 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          <button className='admin-create items-center' onClick={showCreateForm}>
-            Create <FiPlus size={17}/>
-          </button>
+          {foreign_name === 'activity' &&
+            <button className='admin-create items-center' onClick={showCreateForm}>
+              Create <FiPlus size={17}/>
+            </button>
+          }
         </div>
       </div>
       <div className='search-div flex-row items-center'>
@@ -242,8 +248,8 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
             <select id='filter-drop' value={filter} onChange={e => setFilter(e.target.value)}>
               <option value=''>All</option>
               <option value='room_id'>Room ID</option>
-              {foreign_name === 'activities' && <option value='team'>Team</option>}
-              {foreign_name === 'teams' && <option value='activity'>Activity</option>}
+              {foreign_name === 'activity' && <option value='team'>Team</option>}
+              {foreign_name === 'team' && <option value='activity'>Activity</option>}
             </select>
           </div>
           <div className='flex-row width-100 items-center'>
@@ -266,8 +272,8 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
             <tr>
               {showId && <th>Room ID</th>}
               <th>Room Name</th>
-              {foreign_name === 'teams' && <th>Activity</th>}
-              {foreign_name === 'activities' && <th>Team</th>}
+              {foreign_name === 'team' && <th>Activity</th>}
+              {foreign_name === 'activity' && <th>Team</th>}
             </tr>
           </thead>
           <tbody>
@@ -279,8 +285,12 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
                 className={`${selectedRef.current?.room_id === res.room_id && 'selected'}`}>
                 {showId && <td>{res.room_id}</td>}
                 <td>{res.room_name}</td>
-                {foreign_name === 'teams' && <td>{res.activity_name}</td>}
-                {foreign_name === 'activities' && <td>{res.room_name.slice(0, -7)}</td>}
+                {foreign_name === 'team' && <td>{res.activity_name}</td>}
+                {foreign_name === 'activity' &&
+                  <td>
+                    {res.owner_id !== '' ? res.room_name.slice(0, -7) : <i>None</i>}
+                  </td>
+                }
               </tr>
             )})}
           </tbody>
@@ -304,13 +314,13 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          {foreign_name === 'teams' &&
-            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/${parent_team.class_id}/activities/q=${selectedRef.current.activity_id}&f=uid`)}>
+          {foreign_name === 'team' &&
+            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${parent_team.class_id}/activities/q=${selectedRef.current.activity_id}&f=activity_id`)}>
               View Activity
             </button>
           }
-          {foreign_name === 'activities' &&
-            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/${parent_activity.class_id}/teams/q=${parent_activity.owner_id}&f=uid`)}>
+          {foreign_name === 'activity' && selectedRef.current.owner_id !== '' &&
+            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${parent_activity.class_id}/teams/q=${selectedRef.current.owner_id}&f=team_id`)}>
               View Team
             </button>
           }

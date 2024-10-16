@@ -37,7 +37,6 @@ function BoardProfessor({ auth, setHeaderName }) {
 
     useEffect(() => {
         async function init() {
-            const rooms = await professor.getSoloRooms();
             const classes = await professor.getAssignedClasses();
             
             if (classes.length > 0 && !classes.some(c => c.class_id === class_id)) {
@@ -46,10 +45,7 @@ function BoardProfessor({ auth, setHeaderName }) {
             displayInformation(classes);
             setClassList(classes);
 
-
-            setListSolo(rooms);
-            setLoadingSolo(false);
-            setSoloCount(rooms.length);
+            displaySoloRooms();
         }
         init();
     }, []);
@@ -61,9 +57,6 @@ function BoardProfessor({ auth, setHeaderName }) {
     }, [class_id])
 
     async function displayInformation (classes = []) {
-        setLoadingTeams(true);
-        setLoadingActivities(true);
-
         if (classes.length > 0) {
             const info = classes.find((c) => c.class_id === class_id);
 
@@ -75,8 +68,8 @@ function BoardProfessor({ auth, setHeaderName }) {
                     section: info.section,
                 })    
 
-                displayTeams(await professor.getTeams(class_id));
-                displayActivities(await professor.getActivities(class_id));    
+                displayTeams(class_id);
+                displayActivities(class_id);    
 
                 setHeaderName(<>{info.course_code} {info.section}</>);
             } else {
@@ -88,16 +81,43 @@ function BoardProfessor({ auth, setHeaderName }) {
         }
     }
         
-    function displayTeams (teams = []) {
-        setListTeams(teams);
+    async function displaySoloRooms() {
+        setLoadingSolo(true);
+
+        const rooms = await professor.getSoloRooms();
+        if (rooms) {
+            setListSolo(rooms);
+            setSoloCount(rooms.length);
+        } else {
+            setListSolo(null);
+        }
+        setLoadingSolo(false);
+    }
+
+    async function displayTeams (class_id) {
+        setLoadingTeams(true);
+
+        const teams = await professor.getTeams(class_id);
+        if (teams) {
+            setListTeams(teams);
+            setTeamCount(teams.length);
+        } else {
+            setListTeams(null);
+        }
         setLoadingTeams(false); 
-        setTeamCount(teams.length);
     }
     
-    function displayActivities(activities = []) {
-        setListActivities(activities);
+    async function displayActivities(class_id) {
+        setLoadingActivities(true);
+        
+        const activities = await professor.getActivities(class_id)
+        if (activities) {
+            setListActivities(activities);
+            setActivityCount(activities.length);
+        } else {
+            setListActivities(null);
+        }
         setLoadingActivities(false); 
-        setActivityCount(activities.length);
     }
 
     async function createSoloRoom() {
@@ -155,23 +175,43 @@ function BoardProfessor({ auth, setHeaderName }) {
                                 <div className='section-title'>
                                     <label>Teams <span>({team_count})</span> </label>
                                 </div>
-                                {loading_teams 
-                                    ? <div className='in-retrieve'>Retrieving...</div>
-                                    : <TeamBoard uid={professor.uid} 
-                                                 teams={list_teams} 
-                                                 openTeamPopup={openTeamPopup}/>
+                                {loading_teams &&
+                                     <div className='in-retrieve'>Retrieving...</div>
+                                }
+                                {!loading_teams &&
+                                    <>
+                                    {list_teams &&
+                                        <TeamBoard  
+                                            uid={professor.uid} 
+                                            teams={list_teams} 
+                                            openTeamPopup={openTeamPopup}/>
+                                    }
+                                    {!list_teams &&
+                                     <div className='no-results'>Error. Failed Retrieving teams.</div>                                        
+                                    }
+                                    </>
                                 }
                             </div>
-                            <div className={`separator ${(select === 'teams' || select === 'solo') && 'none'}`} id='show-teams'>
+                            <div className={`separator ${(select === 'teams' || select === 'solo') && 'none'}`} id='show-activities'>
                                 <div className='section-title'>
                                     <label>Group Activities <span>({activity_count})</span></label>
                                 </div>
-                                {loading_activities
-                                    ? <div className='in-retrieve'>Retrieving...</div> 
-                                    : <ActivityBoard activities={list_activities}/>
-                                }
+                                {loading_activities &&
+                                    <div className='in-retrieve'>Retrieving...</div>
+                                } 
                                 {!loading_activities &&
-                                    <button className='create-btn' onClick={openActivityPopup}>Create Activity</button>
+                                    <>
+                                    {list_activities &&
+                                        <>
+                                            <ActivityBoard
+                                                activities={list_activities}/>
+                                            <button className='create-btn' onClick={openActivityPopup}>Create Activity</button>
+                                        </>
+                                    }
+                                    {!list_activities &&
+                                        <div className='no-results'>Error. Failed Retrieving activities.</div>      
+                                    }
+                                    </>
                                 }
                             </div>
                         </>
@@ -181,16 +221,30 @@ function BoardProfessor({ auth, setHeaderName }) {
                             <label>Ask the admin if you want to add a class.</label>
                         </div>
                     }
-                    <div className={`separator ${(select === 'activities' || select === 'teams') && 'none'}`} id='show-teams'>
+                    <div className={`separator ${(select === 'activities' || select === 'teams') && 'none'}`} id='show-solos'>
                         <div className='section-title'>
                             <label>Solo Rooms <span>({solo_count})</span></label>
                         </div>
-                        {loading_solo
-                            ? <div className='in-retrieve'>Retrieving...</div>
-                            : <SoloRoomBoard rooms={list_solo}/>
+                        {loading_solo &&
+                            <div className='in-retrieve'>Retrieving...</div>
                         }
-                        {!loading_solo && 
-                            <button className='create-btn' onClick={ createSoloRoom }>Create Solo Room</button>}
+                        {!loading_solo &&
+                            <>
+                            {list_solo &&
+                                <>
+                                    <SoloRoomBoard rooms={list_solo} displayInfo={displaySoloRooms}/>   
+                                    {list_solo.length !== 3 &&
+                                        <button className='create-btn' onClick={ createSoloRoom }>Create Solo Room</button>
+                                    }                             
+                                </>
+
+                            }
+                            {!list_solo &&
+                                <div className='no-results'>Error. Failed Retrieving solo rooms.</div>
+
+                            }
+                            </>
+                        }
                         </div>
                     </div>
                     {class_info &&
@@ -238,8 +292,10 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
 }
 
 function ActivityBoard({activities}) {
+    const navigate = useNavigate();
+
     function goToActivity(activity_id) {
-        window.location.href = `/activity/${activity_id}`;
+        navigate(`/activity/${activity_id}`);
     }
 
     if (activities.length === 0) {
@@ -261,7 +317,7 @@ function ActivityBoard({activities}) {
     }
 }
 
-function SoloRoomBoard({rooms}) {
+function SoloRoomBoard({rooms, displayInfo}) {
     if (rooms.length === 0) {
         return ( <div className='no-results'>
                     No room is created yet.
@@ -274,9 +330,14 @@ function SoloRoomBoard({rooms}) {
                             <th className='col-1'>#</th>
                             <th className='col-2'>Room Name</th>
                             <th className='col-3'>Date Updated</th>
+                            <th className='col-4'></th>
                         </tr>
                         {rooms.map((room, index) => (
-                            <SelectRoom key={room.room_id} type={'solo'} room={room} index={index} />
+                            <SelectRoom 
+                                key={room.room_id} 
+                                room={room} 
+                                index={index}
+                                displayInfo={displayInfo}/>
                         ))}
                         
                     </tbody>

@@ -96,7 +96,7 @@ function FileDrawer({room, socket, room_files, setRoomFiles, activeFile, display
                     <span>Name</span>
                 </label>
                 {room_files.map((file, index) => {
-                    const user_count = editorUsers.find(edt => edt.id === file.file_id)?.users;
+                    const user_count = editorUsers ? editorUsers.find(edt => edt.id === file.file_id)?.users : null;
 
                     return (
                         <button className={`${activeFile && file.file_id === activeFile?.file_id ? 'active-file' : ''} items-center flex-row item`} 

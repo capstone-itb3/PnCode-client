@@ -1,12 +1,12 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import img from '../../../assets/profile.png'
 
 function SelectTeam({uid, team}) {
     const navigate = useNavigate();
         
     return (
-        <div className='team-box flex-column' onClick={() => navigate(`/team/${team.team_id}`)}>
+        <Link className='team-box flex-column' to={`/team/${team.team_id}`}>
             {team.members.some(member => member.uid === uid) && 
                 <div className='my-team'>My Team</div>
             }
@@ -24,7 +24,7 @@ function SelectTeam({uid, team}) {
             </div>
             <label className='name'>{team.team_name}</label>
             <label className='members'>Members: {team.members.length}</label>
-        </div>
+        </Link>
     )
 }
 

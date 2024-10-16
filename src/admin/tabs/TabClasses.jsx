@@ -51,15 +51,11 @@ function TabClasses({ admin, showId, setShowId }) {
     doSearch(data);
   }
 
-  function doSearch (list) {
-    const q = new URLSearchParams(query).get('q');
-    const f = new URLSearchParams(query).get('f');
+  function doSearch (list = []) {
+    const q = new URLSearchParams(query).get('q') || '';
+    const f = new URLSearchParams(query).get('f') || '';
 
-    if (q === null || !list) {
-      return;
-    }
-
-    if (!(f === 'class_id' || f === 'course_code' || f === 'section' || f === 'professor' || f === 'student' || f === 'request' || f === '') === true) {
+    if (!(f === 'class_id' || f === 'course_code' || f === 'section' || f === 'professor' || f === 'student' || f === 'request' || f === '') === true || !list) {
       navigate('/admin/dashboard/classes/q=&f=');
       return;
     }
@@ -111,8 +107,10 @@ function TabClasses({ admin, showId, setShowId }) {
   } 
 
   useEffect(() => {
-    doSearch(classes);
-  }, [query]);
+    if (classes) {
+      doSearch(classes);
+    }
+  }, [classes, query]);
 
   function searchClasses(e) {
     e.preventDefault();
@@ -120,6 +118,11 @@ function TabClasses({ admin, showId, setShowId }) {
     selectedRef.current = null;
     setClassStudents([]);
     setClassRequests([]);
+
+    if (search === '' && filter === 'class_id') {
+      navigate('/admin/dashboard/classes/q=&f=');
+      return;
+    }
     navigate(`/admin/dashboard/classes/q=${search}&f=${filter}`);
   }
   
@@ -300,18 +303,21 @@ function TabClasses({ admin, showId, setShowId }) {
 
   async function deleteClass() {
     if (confirm('Are you sure you want to delete this class?')) {
-      setLoading(true);
-      const res = await admin.deleteClass(selectedRef.current.class_id);
 
-      if (res) {
-        toast.success('Class deleted successfully!');
-        await reloadData();
-        navigate(-1);
-        selectedRef.current = null;
-        setClassStudents([]);
-        setClassRequests([]);
-      } else {
-        setLoading(false);
+      if (confirm('Deleting this class will result in deletion of all teams, activities, rooms, and files related to this class. Do you want to continue?')) {
+        setLoading(true);
+        const res = await admin.deleteClass(selectedRef.current.class_id);
+  
+        if (res) {
+          toast.success('Class deleted successfully!');
+          await reloadData();
+          navigate(-1);
+          selectedRef.current = null;
+          setClassStudents([]);
+          setClassRequests([]);
+        } else {
+          setLoading(false);
+        }
       }
     }
   }
@@ -405,10 +411,10 @@ function TabClasses({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/${selectedRef.current.class_id}/teams/q=&f=`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${selectedRef.current.class_id}/teams/q=&f=`)}>
             View Teams
           </button>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/${selectedRef.current.class_id}/activities/q=&f=`)}>
+          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${selectedRef.current.class_id}/activities/q=&f=`)}>
             View Activities
           </button>
           <button className='admin-manage' onClick={() => manageList('students')}>

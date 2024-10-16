@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RiArrowLeftSLine, RiArrowRightSLine } from 'react-icons/ri';
 
-function CollectionTabs({ collection }) {
+function ManageTabs({ collection }) {
     const [showArrows, setShowArrows] = useState(false);
     const scrollContainerRef = useRef(null);
     const navigate = useNavigate();
@@ -23,7 +23,7 @@ function CollectionTabs({ collection }) {
         if (isDisplayed) {
             selected 
             ? selected.classList.add('selected') 
-            : navigate('/admin/dashboard/students/q=&f=');
+            : navigate('/admin/dashboard/students/');
         }
 
         return () => window.removeEventListener('resize', checkForArrows);  
@@ -49,7 +49,7 @@ function CollectionTabs({ collection }) {
     };
 
     const switchCollection = (collection) => {
-        navigate(`/admin/dashboard/${collection}/q=&f=`);
+        navigate(`/admin/dashboard/${collection}`);
     }
 
     return (
@@ -78,4 +78,4 @@ function CollectionTabs({ collection }) {
     )
 }
 
-export default CollectionTabs
+export default ManageTabs

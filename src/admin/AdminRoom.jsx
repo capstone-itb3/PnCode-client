@@ -4,8 +4,13 @@ import { initSocket } from '../socket';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsXLg } from 'react-icons/bs';
 import { VscDebugDisconnect } from 'react-icons/vsc';
+import getAdminClass from './utils/adminValidator';
 import { handleKeyDownAssigned } from '../components/room/utils/roomHandleKeyDown';
 import manageResizes from '../components/room/utils/manageResizes';
+import FileDrawer from '../components/room/FileDrawer';
+import TabOutput from '../components/room/TabOutput';
+import Members from '../components/room/Members';
+import Instructions from '../components/room/Instructions';
 import Options from './room/AdminOptions';
 import Notepad from './room/AdminNotepad';
 import EditorTab from './room/AdminEditorTab';
@@ -69,21 +74,21 @@ function AdminRoom() {
       setOpenTime(info.activity.open_time);
       setCloseTime(info.activity.close_time);
 
-      document.title = `PnCode Admin - info.activity.activity_name`;
+      document.title = `PnCode Admin - ${info.activity.activity_name}`;
 
       socketRef.current = await initSocket();
       
-      newSocket.emit('join_room', { 
-        room_id: room.room_id, 
+      socketRef.current.emit('join_room', { 
+        room_id: info.room.room_id, 
         user_id: 'user_admin',
         first_name: 'PnCode',
         last_name: 'Admin',
         position: 'Admin'
       })
 
-      newSocket.on('room_users_updated', ({ users }) => {
+      socketRef.current.on('room_users_updated', ({ users }) => {
           setRoomUsers(users);
-          setCursorColor(users.find((u) => u.user_id === 101)?.cursor);
+          setCursorColor(users.find((u) => u.user_id === 'user_admin')?.cursor || '#808080');
       });
   
       socketRef.current.on('found_file', ({ file }) => {
@@ -165,18 +170,17 @@ function AdminRoom() {
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
-    window.location.href = '/dashboard';
+      navigate(`/admin/dashboard/activities/${activity.activity_id}/assigned-rooms/${room.room_id}/`);
   }  
 
   return (
     <main className='room-main'>
       <div className='flex-row items-center' id='room-header'>
           <div className='items-center'>
-          {room && activity && members && socketRef.current &&
+          {room && activity && socketRef.current &&
             <Options 
               type={'assigned'} 
               room={room} 
-              user={admin}
               socket={socketRef.current}
               open_time={activity.open_time}
               close_time={activity.close_time}
@@ -190,23 +194,25 @@ function AdminRoom() {
               runOutput={runOutput}/>
           }
           </div>
-          {activity &&
+          {room && activity &&
+          <>
             <div className='items-center room-logo single-line'>
               {activity.activity_name}
             </div>
+            <div className='items-center'>
+              <button className='room-header-options items-center' onClick={ leaveRoom }>
+                <VscDebugDisconnect size={23} color={ '#f8f8f8' } /><span>Leave</span> 
+              </button>
+            </div>
+          </>
           }
-          <div className='items-center'>
-            <button className='room-header-options items-center' onClick={ leaveRoom }>
-              <VscDebugDisconnect size={23} color={ '#f8f8f8' } /><span>Leave</span> 
-            </button>
-          </div>
       </div>
-      {!(room && activity && members && socketRef.current) &&
+      {!(room && activity && socketRef.current) &&
           <div className='loading'>
             <div className='loading-spinner'/>
           </div>
       }
-      {room && activity && members && socketRef.current &&
+      {room && activity && socketRef.current &&
         <div id='editor-tab' className='flex-row'>
           <aside className={`flex-column ${leftDisplay === '' && 'none'}`} id='left-body'>
             <div className='flex-column side-tab top'>
@@ -241,7 +247,6 @@ function AdminRoom() {
               {leftDisplay === 'notepad' &&
                 <Notepad 
                   room={room} 
-                  user={admin} 
                   socket={socketRef.current}
                   cursorColor={cursorColor}/>
               }
@@ -293,7 +298,6 @@ function AdminRoom() {
                       file={activeFile}/>                         
                   }
                   <Feedback 
-                    user={admin}
                     room={room}
                     socket={socketRef.current}
                     rightDisplay={rightDisplay}

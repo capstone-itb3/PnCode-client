@@ -7,16 +7,20 @@ import { WebsocketProvider } from 'y-websocket'
 import { EditorView, basicSetup } from 'codemirror'
 import { EditorState, Compartment } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
+import { completeFromList } from '@codemirror/autocomplete'
 import { indentWithTab } from '@codemirror/commands'
 import { linter, lintGutter } from '@codemirror/lint' 
 import { javascript } from '@codemirror/lang-javascript'
-import { html } from '@codemirror/lang-html'
+import { html, htmlLanguage } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
 import jsLint from './utils/JSesLint'
+import { html5Snippet } from './utils/codeSnippets'
 import checkTimeframe from './utils/checkTimeframe'
+import changeTheme from './utils/changeTheme';
 import _ from 'lodash'
+// import VirtualFileSystem from '../virtualFileSystem'
 
 function Editor({ user, cursorColor, file, socket, open_time, close_time, setSaved, editorTheme, warning, setWarning}) {
   const { room_id } = useParams();
@@ -27,11 +31,14 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
   const themeCompartmentRef = useRef(new Compartment());
   const readOnlyCompartmentRef = useRef(new Compartment());
   const inSameLineRef = useRef(false);
-
   let storeInHistory = false;
 
   const editorListener = (event) => {
     try {
+      const isModifierKey = event.altKey || event.ctrlKey || event.metaKey;
+      const isNavigationKey = event.key.startsWith('Arrow') || event.key === 'Home' || event.key === 'End' || event.key === 'PageUp' || event.key === 'PageDown';
+      const isFunctionKey = event.key.startsWith('F') && event.key.length > 1;
+
       const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
       const onTime = checkTimeframe(openTimeRef.current, closeTimeRef.current);    
 
@@ -43,7 +50,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         return;
       }    
 
-      if (event.key.length === 1 || isEditingKey) {
+      if (!isModifierKey && !isNavigationKey && !isFunctionKey (event.key.length === 1 || isEditingKey)) {
         if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Enter') {
           updateAwareness();
         }
@@ -153,7 +160,11 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
       return;
     }
 
+
+
     try {
+
+
       async function init() {
         const ydoc = new Y.Doc();
         
@@ -172,7 +183,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         });
       
         const type = () => {
-          if      (file.name.endsWith('.html')) return html(); 
+          if      (file.name.endsWith('.html')) return [html(), htmlLanguage.data.of({ autocomplete: [html5Snippet] }),]; 
           else if (file.name.endsWith('.css'))  return css();
           else if (file.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
         }
@@ -302,12 +313,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
   }, [file]);
 
   useEffect(() => {
-    if (editorRef.current) {
-      const theme = editorTheme === 'dark' ? oneDark : clouds;
-      editorRef.current.dispatch({
-        effects: themeCompartmentRef.current.reconfigure([theme])
-      });
-    }
+    changeTheme(editorRef, editorTheme, themeCompartmentRef);
   }, [editorTheme]);
       
   useEffect(() => {
@@ -323,24 +329,20 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
   }, [file, editorRef.current]);
 
   function updateCode (e) {
-    let line_number = 1;
-    if (e.state && e.state.selection) {
-      line_number = e.state.doc.lineAt(e.state.selection.main.head).number;
-    }
-
     let isEmpty = e.state.doc.toString() === '' && e.state.doc === null;
     let allSpaces = new RegExp('^\\s*$').test(e.state.doc.toString());
 
     if (e.state.doc && !isEmpty && !allSpaces) {
       setSaved( <label id='saving'>Saving...</label>);
+      
+      const code = e.state.doc.toString();
 
       socket.emit('update_code', {
         file_id: file.file_id,
-        user_id: user.uid,
-        code: e.state.doc.toString(),
-        line: line_number,
+        code: code,
         store_history: storeInHistory,
       });
+
       storeInHistory = false;
 
       setWarning(0);

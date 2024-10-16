@@ -40,15 +40,11 @@ function TabProfessors({ admin, showId, setShowId }) {
     doSearch(data);
   }
 
-  function doSearch(list) {
-    const q = new URLSearchParams(query).get('q');
-    const f = new URLSearchParams(query).get('f');
+  function doSearch(list = []) {
+    const q = new URLSearchParams(query).get('q') || '';
+    const f = new URLSearchParams(query).get('f') || '';
 
-    if (q === null || !list) {
-      return;
-    }
-
-    if (!(f === 'uid' || f === 'last_name' || f === 'first_name' || f === 'email' || f === '') === true) {
+    if (!(f === 'uid' || f === 'last_name' || f === 'first_name' || f === 'email' || f === '') === true || !list) {
       navigate('/admin/dashboard/professors/q=&f=');
       return;
     }
@@ -74,7 +70,8 @@ function TabProfessors({ admin, showId, setShowId }) {
         const lastToFirst = `${p.uid} ${p.last_name} ${p.first_name} ${p.email}`.toLowerCase().includes(q.toLowerCase());
         const firstToLast = `${p.uid} ${p.first_name} ${p.last_name} ${p.email}`.toLowerCase().includes(q.toLowerCase());
         const combined = `${p.uid} ${p.first_name} ${p.last_name}`.toLowerCase().includes(q.toLowerCase());
-        return (uid || lastToFirst || firstToLast || email || combined);
+        const rev_combined = `${p.uid} ${p.last_name}, ${p.first_name}`.toLowerCase().includes(q.toLowerCase());
+        return (uid || lastToFirst || firstToLast || email || combined || rev_combined);
       }
     })
 
@@ -85,13 +82,20 @@ function TabProfessors({ admin, showId, setShowId }) {
   }
 
   useEffect(() => {
-    doSearch(professors);
-  }, [query]);
+    if (professors) {
+      doSearch(professors);
+    }
+  }, [professors, query]);
 
   function searchProfessors(e) {
     e.preventDefault();
     setShowForm(null);
     selectedRef.current = null;
+
+    if (search === '' && filter === 'uid') {
+      navigate('/admin/dashboard/professors/q=&f=');
+      return;
+    }
     navigate(`/admin/dashboard/professors/q=${search}&f=${filter}`);
   }
   
@@ -181,6 +185,29 @@ function TabProfessors({ admin, showId, setShowId }) {
     }
   }
 
+  async function deleteProfessor() {
+    if (!selectedRef.current?.uid) {
+      return;
+    }
+
+    const res = confirm('Are you sure you want to delete this professor? All data related to this professor will be lost.');
+    if (res) {
+      setLoading(true);
+      const deleted = await admin.deleteProfessor(selectedRef.current.uid);
+      
+      if (deleted) {
+        toast.success('Professor deleted successfully!');
+        await reloadData();
+        selectedRef.current = null;
+        navigate('/admin/dashboard/professors/q=&f=');
+      } else {
+        setLoading(false);
+      }
+    }
+
+
+  }
+
   return (
     <div id='manage-content'>
       <div id='admin-loading-container'>
@@ -263,19 +290,22 @@ function TabProfessors({ admin, showId, setShowId }) {
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
+        <>
           <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=professor`)}>
             View Professor's Classes
           </button>
-        }
-        {selectedRef.current &&
+          <button
+            className='admin-view'
+            onClick={() => navigate(`/admin/dashboard/professor/${selectedRef.current.uid}/solo-rooms/q=&f=`)}>
+            View Solo Rooms
+          </button>
           <button className='admin-edit' onClick={showEditForm}>
             Edit Professor
           </button>
-        }
-        {selectedRef.current &&
-          <button className='admin-delete'>
+          <button className='admin-delete' onClick={deleteProfessor}>
             Delete Professor
           </button>
+        </>
         }
       </div>
       <form id='admin-form' className={`two-column-grid ${!showForm && 'none' }`} onSubmit={submitProfessor}>

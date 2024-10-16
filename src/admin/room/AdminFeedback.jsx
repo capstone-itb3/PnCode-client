@@ -40,6 +40,7 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
       });
 
     } catch (e) {
+      alert('An error occured while rendering feedback');
       console.error(e);
     }
 
