@@ -22,6 +22,14 @@ import changeTheme from './utils/changeTheme';
 import _ from 'lodash'
 // import VirtualFileSystem from '../virtualFileSystem'
 
+function nonEditingKey(e) {
+  const isModifierKey = e.altKey || e.ctrlKey || e.metaKey;
+  const isNavigationKey = e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown';
+  const isFunctionKey = e.key.startsWith('F') && e.key.length > 1;
+
+  return isModifierKey || isNavigationKey || isFunctionKey;
+}
+
 function Editor({ user, cursorColor, file, socket, open_time, close_time, setSaved, editorTheme, warning, setWarning}) {
   const { room_id } = useParams();
   const editorRef = useRef(null);
@@ -35,10 +43,6 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
 
   const editorListener = (event) => {
     try {
-      const isModifierKey = event.altKey || event.ctrlKey || event.metaKey;
-      const isNavigationKey = event.key.startsWith('Arrow') || event.key === 'Home' || event.key === 'End' || event.key === 'PageUp' || event.key === 'PageDown';
-      const isFunctionKey = event.key.startsWith('F') && event.key.length > 1;
-
       const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
       const onTime = checkTimeframe(openTimeRef.current, closeTimeRef.current);    
 
@@ -50,7 +54,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         return;
       }    
 
-      if (!isModifierKey && !isNavigationKey && !isFunctionKey (event.key.length === 1 || isEditingKey)) {
+      if (!nonEditingKey(event) && (event.key.length === 1 || isEditingKey)) {
         if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Enter') {
           updateAwareness();
         }
@@ -74,7 +78,8 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
           warning !== 0 ? setWarning(0) : null;
           debounceUserType(user.uid);
 
-        } else if (inSameLineRef.current || !onTime) {
+        // } else if (inSameLineRef.current || !onTime) {
+        } else if (!onTime) {
           //if in same line or not on time, it then checks if the current config of readOnly is false
           if (currentConfig === false) {
             //if currently false, it then modifies the readOnly state of the editor to true
@@ -223,6 +228,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
               themeCompartmentRef.current.of([theme]),
               yCollab(ytext, providerRef.current.awareness),
               lintGutter(),
+              EditorView.lineWrapping,
               EditorView.theme({
                 '.cm-ySelectionInfo': {
                   top: '-6px !important',

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsListUl } from 'react-icons/bs';
 import toast from 'react-hot-toast';
+import Header from './Header';
 import Sidebar from './Sidebar';
 import SelectRoom from './SelectRoom';
 import SelectTeam from './SelectTeam';
@@ -11,7 +12,7 @@ import CreateActivity from './CreateActivity';
 import StudentList from './StudentList';
 import { getClass } from '../validator'
 
-function BoardProfessor({ auth, setHeaderName }) {
+function BoardProfessor({ auth }) {
     const [professor, setProfessor] = useState(getClass(auth, 'Professor'));
 
     const { class_id, select } = useParams();
@@ -70,8 +71,6 @@ function BoardProfessor({ auth, setHeaderName }) {
 
                 displayTeams(class_id);
                 displayActivities(class_id);    
-
-                setHeaderName(<>{info.course_code} {info.section}</>);
             } else {
                 navigate(`/dashboard/${classes[0].class_id}/${select ? select : 'all'}`);
             }
@@ -142,6 +141,8 @@ function BoardProfessor({ auth, setHeaderName }) {
     }
 
     return (
+        <>
+        <Header auth={professor} base={'Dashboard'} name={`${class_info?.course_code !== undefined ? class_info.course_code : ''} ${class_info?.section !== undefined ? class_info?.section : ''}`} />
         <main id='dashboard-main'>
             <Sidebar user={professor} courses={class_list} setShowStudents={setShowStudents}/>
             <section className='dash-section flex-column'>
@@ -270,6 +271,7 @@ function BoardProfessor({ auth, setHeaderName }) {
                 }
             </section>
         </main>
+        </>
     )
 }
 

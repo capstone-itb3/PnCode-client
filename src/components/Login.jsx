@@ -9,31 +9,38 @@ function Login() {
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
     const navigate = useNavigate();
+    const [ warning, setWarning ] = useState(null);
 
     async function loginAccount(event) {
         event.preventDefault();
+        try {
+            setWarning(null);
 
-        const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'   
-            },
-            body: JSON.stringify({
-                email,
-                password,
+            const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'   
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                })
             })
-        })
+    
+            const data = await response.json(); 
+            
+            if (data.status === 'ok' && data.token) {
+                Cookies.set('token', data.token, { expires : 90 });
+                navigate(`/dashboard/`);
+                
+            } else if (data.message) {
+                setWarning(data.message);
+            }
+        } catch (e) {
+            setWarning('An error occured while logging in. Please try again.');
+            console.error(e);
+        }
 
-        const data = await response.json(); 
-        alert (data.message);
-
-        if (data.status === 'ok' && data.token) {
-            Cookies.set('token', data.token, { expires : 90 });
-            navigate(`/dashboard/`);
-
-        } else {
-            console.log(data.message);
-        } 
     };
 
     return (
@@ -50,6 +57,11 @@ function Login() {
                     <section className='head items-center login'>
                         <label>Log-in to </label><img src={full_logo} alt='full-logo'/>
                     </section>
+                    <div className='account-warning'>
+                    {warning && 
+                        <label className='label-warning'>{warning}</label>
+                    }
+                    </div>
                     <div className='input-form login'>
                         <div className='input-div'>
                             <label>Email</label>

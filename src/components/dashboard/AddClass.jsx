@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { BsXLg } from 'react-icons/bs';
-import toast from 'react-hot-toast';
+import { showAlertPopup } from '../reactPopupService';
 
 
 function AddClass({user, exit}) {
@@ -14,7 +14,13 @@ function AddClass({user, exit}) {
 
     if (request) {
       exit();
-      toast.success('Wait for your professor to accept your request.');
+
+      showAlertPopup({
+        title: 'Request Sent!',
+        message: 'Your request has been sent to the class professor.',
+        type: 'success',
+        okay_text: 'Okay',
+      });
     }
   }
 

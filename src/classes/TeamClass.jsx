@@ -22,6 +22,7 @@ export default class Team {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -42,6 +43,7 @@ export default class Team {
                 toast.success(`Student successfully added to ${this.team_name}.`);
                 return true;
             }
+            return false;
         } catch (e) {
             errorHandler(e);
             return null;            
@@ -61,7 +63,6 @@ export default class Team {
             if (data.status === 'ok') {
                 toast.success(data.message);
             }
-
         } catch (e) {
             errorHandler(e);
         }
@@ -71,7 +72,7 @@ export default class Team {
         try {
             const response = await api.post('/api/delete-team', {
                 team_id: this.team_id,
-                class_id: this.class_id,
+                team_name: this.team_name,
             });
 
             const data = response.data;
@@ -79,6 +80,7 @@ export default class Team {
             if (data.status === 'ok') {
                 return true;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;

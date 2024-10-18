@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsListUl } from 'react-icons/bs';
 import toast from 'react-hot-toast';
+import Header from './Header';
 import Sidebar from './Sidebar';
 import SelectRoom from './SelectRoom';
 import SelectTeam from './SelectTeam';
@@ -10,7 +11,7 @@ import CreateTeam from './CreateTeam';
 import AddClass from './AddClass';
 import { getClass } from '../validator';
 
-function BoardStudent({ auth, setHeaderName }) {
+function BoardStudent({ auth }) {
     const [student, setStudent ] = useState(getClass(auth, 'Student'));
 
     const { class_id, select } = useParams();
@@ -43,6 +44,7 @@ function BoardStudent({ auth, setHeaderName }) {
             setClassList(classes);
             displayInformation(classes);
 
+            setLoadingSolo(true);
             displaySoloRooms();
         }
         init();
@@ -68,8 +70,6 @@ function BoardStudent({ auth, setHeaderName }) {
 
                 displayTeams(class_id);
                 displayActivities(class_id);    
-                
-                setHeaderName(`${info.course_code}`);
             } else {
                 navigate(`/dashboard/${classes[0].class_id}/${select ? select : 'all'}`);   
             }
@@ -80,7 +80,6 @@ function BoardStudent({ auth, setHeaderName }) {
     };
     
     async function displaySoloRooms() {
-        setLoadingSolo(true);
 
         const rooms = await student.getSoloRooms();
         if (rooms) {
@@ -136,8 +135,10 @@ function BoardStudent({ auth, setHeaderName }) {
     }
 
     return (
+        <>
+        <Header auth={student} base={'Dashboard'} name={class_info?.course_code} />
         <main id='dashboard-main'>
-                <Sidebar user={student} courses={class_list} setShowAddClass={setShowAddClass} />
+            <Sidebar user={student} courses={class_list} setShowAddClass={setShowAddClass} />
             <section className='dash-section flex-column'>
                 <button id='dash-burger' className='items-center' onClick={ showSidebar }><BsListUl size={ 30 }/></button>
                 <div className='display-content flex-column'>
@@ -241,6 +242,7 @@ function BoardStudent({ auth, setHeaderName }) {
             
             </section>
         </main>
+        </>
     )
 }
 
@@ -280,9 +282,15 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
 }
 
 function ActivityBoard({activities, student, class_id}) {
-    function goToAssignedRoom(activity_id) {
-        console.log(class_id);
-        student.visitActivity(activity_id, class_id);
+    const navigate = useNavigate();
+
+    async function goToAssignedRoom(activity_id) {
+        const room_id = await student.visitActivity(activity_id, class_id);
+
+        if (room_id) {
+            toast.success('Redirecting you to your team\'s assigned room...');
+            navigate(`/room/${room_id}`);
+        }
     }
 
     if (activities.length === 0) {

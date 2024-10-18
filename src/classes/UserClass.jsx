@@ -289,11 +289,12 @@ export class Student extends User {
             const data = response.data;
             
             if (data.status === 'ok') {
-                toast.success('Redirecting you to your team\'s assigned room...');
-                window.location.href = `/room/${data.room_id}`;
+                return data.room_id;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
+            return null;
         }
     }    
 

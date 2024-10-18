@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { BsExclamationCircleFill } from 'react-icons/bs';
 import UserAvatar from '../../UserAvatar';
+import { showConfirmPopup } from '../../reactPopupService'
 
 function AddMember({team, user, renderTeam}) {
     const [search, setSearch] = useState('');
@@ -35,20 +35,27 @@ function AddMember({team, user, renderTeam}) {
     }
 
     async function addStudentToTeam(student) {
-        const added = await team.addMember(student);
-        setSearch('');
-        
-        if (added) {
-            team.members.push({
-                uid: student.uid,
-                first_name: student.first_name,
-                last_name: student.last_name
-            });
-            renderTeam();
-        } else {
+        const confirmed = await showConfirmPopup({
+            title: 'Add Student To Team',
+            message: `Are you sure you want to add ${student.first_name} ${student.last_name} to team ${team.team_name}?`,
+            confirm_text: 'Add Student',
+            cancel_text: 'Cancel'
+        })
 
+        if (confirmed) {
+            const added = await team.addMember(student);
+            setSearch('');
+            
+            if (added) {
+                team.members.push({
+                    uid: student.uid,
+                    first_name: student.first_name,
+                    last_name: student.last_name
+                });
+                renderTeam();
+            }
+            showSearchResults(false);
         }
-        showSearchResults(false);
     }
 
     return (

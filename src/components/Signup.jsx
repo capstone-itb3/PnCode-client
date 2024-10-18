@@ -11,11 +11,14 @@ function Signup() {
     const [ last_name, setLastName ] = useState('');
     const [ password, setPassword ] = useState('');
     const [ conf_password, setConfPassword ] = useState('');
+    const [ warning, setWarning ] = useState(null);
     const navigate = useNavigate();
 
     async function signupAccount(event) {
         event.preventDefault();
         try {
+            setWarning(null);
+
             const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/register', {
                 method: 'POST',
                 headers: {
@@ -30,15 +33,16 @@ function Signup() {
                 })
             });
             const data = await response.json();
-            alert(data.message);
     
             if(data.status === 'ok') {
+                alert('Sign up successful! You can now login.');
                 navigate('/login');
-            } else {
-                console.error(data.message);
-            }    
+
+            } else if (data.message) {
+                setWarning(data.message);
+            }
         } catch (e) {
-            alert('Error signing up. Please try again.');
+            setWarning('Error occured while processing sign up. Please try again.');
             console.error(e);
         }
     };
@@ -117,6 +121,11 @@ function Signup() {
                                 required
                             /> 
                         </div>
+                    </div>
+                    <div className='account-warning'>
+                    {warning && 
+                        <label className='label-warning'>{warning}</label>
+                    }
                     </div>
                     <div className='input-btn'>
                         <input type='submit' value='Create Account'/>

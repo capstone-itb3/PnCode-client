@@ -170,6 +170,19 @@ input:checked + .slider:before {
     color: var(--gray-dark);
 }
 
+.account-warning{
+    height: 20px;
+}
+
+.login .account-warning {
+    display: flex;
+    justify-content: center;
+}
+.signup .account-warning {
+    margin-left: 20px;
+}
+
+
 .extra-info {
     font-size: 14px !important;
     color: var(--gray) !important;
@@ -182,9 +195,9 @@ input:checked + .slider:before {
     display: flex;
     align-items: flex-end;
     margin-bottom: 7px;
-    font-size: 13px !important;
+    font-size: 14px !important;
     font-weight: normal !important;
-    color: rgba(250, 48, 48, 0.8) !important;
+    color: rgb(250, 48, 48) !important;
 }
 
 .create-btn, .cancel-btn {
@@ -233,7 +246,7 @@ input:checked + .slider:before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.3);
     z-index: 100;
     display: flex;
     padding-top: 30px;
@@ -241,6 +254,9 @@ input:checked + .slider:before {
     justify-content: center;
     transition: 0.5s ease;
 }
+
+
+
 
 #popup-gray-background:first-child {
     z-index: 200;
@@ -393,6 +409,7 @@ input:checked + .slider:before {
 
 .input-form.login {
     grid-template-columns: auto;
+    margin-bottom: 10px;
 }
 
 .input-div {
@@ -413,7 +430,7 @@ input:checked + .slider:before {
 }
 
 .input-btn {
-    margin-top: 40px;
+    margin-top: 30px;
     text-align: center;
 }
 
@@ -735,7 +752,7 @@ header {
 
 .list-item:hover {
     color: #fff;
-    background-color: var(--base-light);
+    background-color: rgba(128, 189, 255, .5);
 }
 
 .list-item .td-4 {
@@ -745,7 +762,6 @@ header {
 }
 
 .list-item:hover .td-4 button {
-    color: var(--gray-dark);
     background-color: transparent;
     border: 0;
     padding: 0 5px;
@@ -754,6 +770,7 @@ header {
     height: 35px;
     border-radius: 50%;
     transition: 0.3s;
+    color: var(--gray-dark);
 }
 .list-item:hover  .td-4 button:hover {
     background-color: rgba(210, 210, 210, .7);
@@ -828,6 +845,7 @@ header {
 .student-list tbody tr {
     border-top: 0;
     color: var(--gray-dark);
+    box-shadow: 0 0 1px var(--gray);
 }
 
 .student-list td:not(.tbl-btn){
@@ -835,7 +853,7 @@ header {
 }
 
 .student-list tbody tr:nth-child(odd) {
-    background-color: var(--base-light);
+    background-color: rgba(128, 189, 255, .5);
 }
 
 .tbl-btn {
@@ -925,15 +943,39 @@ header {
 }
 
 #create-popup .footer {
-    margin-top: 20px;
+    padding-top: 20px;
 }
 
 #create-popup.course .flex-column {
     width: 90%;
 }
 
+#create-popup.window {
+    justify-content: center;
+    transform: scale(0);
+    transition: 0.05s ease;
+    padding: 10px 25px 15px 25px;
+    width: 50%;
+}
+#create-popup.window .head{
+    padding: 5px 10px;
+    border-bottom: var(--base) 2px solid;
+}
+#create-popup.window .content {
+    padding: 7px 0 20px 0;
+    text-align: center;
+    justify-content: center;
+}
+#create-popup.window .alert-icon {
+    padding-right: 10px;
+}
 
-
+#create-popup.window .footer {
+    border-top: var(--base) 2px solid;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 10px 0 0 0;
+}
 
 /* TEAM SELECTION */
 
@@ -1435,7 +1477,7 @@ header {
     right: 0;
     bottom: 0;
     transition: 0.5s;   
-    margin: 7px;
+    margin: 5px;
 }
 
 #left-body {
@@ -1445,13 +1487,13 @@ header {
     transition: 0.5s;
     width: 250px;
     min-width: 250px;
-    margin-right: 7px;
+    margin-right: 5px;
 }
 
 .side-tab {
     padding: 10px;
     border: 2px solid var(--gray-dark);
-    height: calc(50% - 18px);
+    height: calc(50% - 17px);
 }
 
 .side-tab.top {
@@ -2438,22 +2480,34 @@ header {
     }
 }   
 
-/* @media (width < 750px) {
+@media (width < 750px) {
+    /* #editor-tab {
+        margin: 0;
+    }    
+    #left-body {
+        margin: 0;
+    } */
+
     #editor-section {
         flex-direction: column;
     }
 
     #editor-container {
         width: 100% !important;
-        max-height: 100% !important;
+        max-height: 50% !important;
     }
-    
+
+    #editor-div {
+        max-width: 100% !important;
+    }
+
     #right-body {
+        border-left: 0;
         border-top: 2px var(--gray-dark) solid;
         width: 100% !important;
         height: 100% !important;
     }
-} */
+}
 
 @media (width < 600px) {
     .two-column-grid {

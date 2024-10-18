@@ -9,6 +9,7 @@ import { getToken, getClass } from '../../validator';
 import Header from '../Header';
 import UserAvatar from '../../UserAvatar';
 import AddMember from './AddMember';
+import { showConfirmPopup } from '../../reactPopupService'
 
 function PageTeam() {
   const { team_id } = useParams();
@@ -61,12 +62,22 @@ function PageTeam() {
   }
 
   async function deleteTeam() {
-    const result1 = confirm('Are you sure you want to delete this team?');
-
-    if (result1) {
-      const result2 = confirm('Deleting a team is irreversible and its members will lose a team. Are you sure you want to delete this team?');
-     
-      if (result2) {
+    const confirm1 = await showConfirmPopup({
+      title: 'Delete A Team',
+      message: `Are you sure you want to delete the team ${team.team_name}?`,
+      confirm_text: 'Delete',
+      cancel_text: 'Cancel',
+    });
+  
+    if (confirm1) {
+      const confirm2 = await showConfirmPopup({
+        title: 'Delete A Team',
+        message: `Deleting this team is irreversible and its members will lose a team. Do you want to continue?`,
+        confirm_text: 'Continue Deleting',
+        cancel_text: 'Cancel',
+      });
+    
+      if (confirm2) {
         const deleted = await team.deleteTeam();
 
         if (deleted) {
@@ -76,7 +87,8 @@ function PageTeam() {
     }
   }
 
-  async function saveTeamName() {
+  async function saveTeamName(e) {
+    e.preventDefault();
     if (showTeamNameInputs) {
       const result = await team.updateTeamName(team_name);
 
@@ -111,31 +123,33 @@ function PageTeam() {
         <div id='team-main'> 
           <div id='team-container' className='flex-column'>
             <div id='team-header'>
-            <div className='flex-row items-center'>
-              {!showTeamNameInputs &&
-                <h2>{team.team_name}</h2>
-              }
-              {showTeamNameInputs &&
-                <form>
-                  <input 
-                    type='text' 
-                    className='page-name-input' 
-                    value={team_name} 
-                    onChange={(e) => setTeamName(e.target.value)} 
-                    required/>
-                </form>
-              }
-                <button className='reload-btn items-center' onClick={() => saveTeamName()}>
+              <div className='flex-row items-center'>
+                {!showTeamNameInputs &&
+                  <h2>{team.team_name}</h2>
+                }
+                {showTeamNameInputs &&
+                  <form onSubmit={e => saveTeamName(e)}>
+                    <input 
+                      type='text' 
+                      className='page-name-input' 
+                      value={team_name} 
+                      onChange={(e) => setTeamName(e.target.value)} 
+                      required/>
+                  </form>
+                }
+                {user.position === 'Professor' &&
+                <button className='reload-btn items-center' onClick={(e) => saveTeamName(e)}>
                     <LuPencilLine size={24} />
                 </button>
+                }
                 <button className='reload-btn items-center' onClick={renderTeam}>
-                    <MdLoop size={24} />
+                  <MdLoop size={24} />
                 </button>
-                </div>
-                <div className='two-column-grid'>
-                  <label>Course: <b>{course_code}</b></label>
-                  <label>Section: <b>{section}</b></label>
-                </div>
+              </div>
+              <div className='two-column-grid'>
+                <label>Course: <b>{course_code}</b></label>
+                <label>Section: <b>{section}</b></label>
+              </div>
             </div>
             <div id='team-members-list'>
               <h3>Members</h3>
@@ -177,7 +191,7 @@ function PageTeam() {
             </div>
             <div id='team-footer'>
               
-              <a><Link to={`/dashboard/${team.class_id}/all`}>&lt; BACK TO DASHBOARD</Link></a>
+              <Link to={`/dashboard/${team.class_id}/all`}>&lt; BACK TO DASHBOARD</Link>
               {permitted && user.position === 'Professor' &&
                 <button id='delete-btn' onClick={deleteTeam}><BsTrash size={20}/><label>Delete Team</label></button>
               }

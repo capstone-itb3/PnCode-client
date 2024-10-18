@@ -3,6 +3,7 @@ import { BsTrash, BsPencilSquare } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { SoloRoom } from '../../classes/RoomClass';
 import toast from 'react-hot-toast';
+import { showConfirmPopup } from '../reactPopupService'
 
 function SelectRoom({ room, index, displayInfo }) {
   const room_class = new SoloRoom(room.room_id, room.room_name);
@@ -32,19 +33,26 @@ function SelectRoom({ room, index, displayInfo }) {
     if (res) {
       toast.success('Room name is updated successfully.');
       displayInfo();
+      setIsUpdating(false);
     }
   }
 
-  async function deleteRoom() {
-    if (confirm('Are you sure you want to delete this room?')) {
-      const res = await room_class.deleteRoom();
-  
-      if (res) {
-        toast.success('Room is deleted successfully.');
-        displayInfo();
+    async function deleteRoom() {
+      const confirm = await showConfirmPopup({
+        title: 'Delete A Solo Room',
+        message: `Are you sure you want to delete ${room_class.room_name}?`,
+        confirm_text: 'Delete',
+        cancel_text: 'Cancel',
+      });
+    
+      if (confirm) {
+        const res = await room_class.deleteRoom();
+        if (res) {
+          toast.success('Room is deleted successfully.');
+          displayInfo();
+        }
       }
     }
-  }
 
   return (
     <tr className='list-item'>

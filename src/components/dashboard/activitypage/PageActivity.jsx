@@ -7,6 +7,7 @@ import Header from '../Header';
 import { getToken, getClass } from '../../validator';
 import ManageDates from './ManageDates';
 import { MdLoop } from 'react-icons/md';
+import { showConfirmPopup } from '../../reactPopupService'
 
 function PageActivity() {
     const { activity_id } = useParams();
@@ -71,10 +72,22 @@ function PageActivity() {
 
 
     async function deleteActivity () {
-        const result1 = confirm('Are you sure you want to delete this activity?');
-        if (result1) {
-            const result2 = confirm('Deleting an activity is irreversible and the students will lose their work. Are you sure you want to delete this activity?');
-            if (result2) {
+        const confirm1 = await showConfirmPopup({
+            title: 'Delete An Activity',
+            message: `Are you sure you want to delete the activity ${activity.activity_name}?`,
+            confirm_text: 'Delete',
+            cancel_text: 'Cancel',
+        });
+        
+        if (confirm1) {
+            const confirm2 = await showConfirmPopup({
+                title: 'Delete An Activity',
+                message: `Deleting this activity is irreversible and students will lose their work. Do you want to continue?`,
+                confirm_text: 'Continue Deleting',
+                cancel_text: 'Cancel',
+            });
+        
+            if (confirm2) {
                 const deleted = await activity.deleteActivity();
                 if (deleted) {
                     navigate(`/dashboard/${activity.class_id}/all`);
@@ -158,7 +171,7 @@ function PageActivity() {
                     <ManageDates activity={activity} renderActivity={renderActivity}/>
 
                     <div id='activity-footer'>
-                    <a><Link to={`/dashboard/${activity.class_id}/all`}>&lt; BACK TO DASHBOARD</Link></a>
+                    <Link to={`/dashboard/${activity.class_id}/all`}>&lt; BACK TO DASHBOARD</Link>
                         <button id='delete-btn' onClick={deleteActivity}><BsTrash size={20}/><label>Delete Activity</label></button>
                     </div>
                 </div>
