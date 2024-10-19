@@ -119,7 +119,7 @@ function PageTeam() {
     {team &&
     (
       <>
-        <Header auth={auth} base={'Team'} name={team.team_name} />
+        <Header user={user} base={'Team'} name={team.team_name} />
         <div id='team-main'> 
           <div id='team-container' className='flex-column'>
             <div id='team-header'>

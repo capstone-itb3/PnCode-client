@@ -3,27 +3,28 @@
 body {
     font-family: 'Calibri', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
+    color: var(--near-black);
 }
 
 :root {
-    /*Color*/
-    --base-dark: rgb(158, 63, 0);
+
+    /*Theme*/
     --base: rgb(255, 102, 0);
     --base-light: rgb(255, 189, 68);
+    /* --base-dark: rgb(158, 63, 0); */
     --base-blue: rgb(26, 122, 247);
     --base-blue-light: rgb(128, 189, 255) ;
     /* rgb(194, 241, 253) */
-    --dark: rgb(25, 25, 25);
 
     /*Text*/
     --near-black: rgb(30, 30, 30);
     --gray-dark: rgb(70, 70, 70);
     --gray: rgb(128, 128, 128);
     --gray-light: rgb(224, 224, 224);
-    --near-white: rgb(248, 248, 248);
+    --near-white: rgb(244, 244, 244);
 
-    --warn-color: rgb(255, 196, 0);
-    
+    /* Misc */
+    --warn-color: rgb(255, 196, 0);    
     --error-color: rgb(255, 51, 51);
     
 }
@@ -267,12 +268,8 @@ input:checked + .slider:before {
     position: absolute;
     top: 0;
     right: 0;
-    height: 15px;
-    width: 15px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 5px 0;
+    padding: 5px;
     cursor: pointer;
     border-radius : 30px;
     transition: 0.2s;
@@ -280,7 +277,7 @@ input:checked + .slider:before {
 }
 
 #popup-close:hover {
-    box-shadow: 0 0 5px var(--gray-dark);
+    background-color: var(--gray-light);
 }
 
 #popup-submit, #popup-cancel {
@@ -499,26 +496,87 @@ header {
     font-size: 16px;
 }
 
-.right-nav button {
+.right-nav .btn-icons {
     background-color: transparent;
     border: 0;
     color: var(--gray);
     padding-left: 30px;
 }
 
-#signout-btn {
+#signout-btn, #notification {
     position: absolute;
     top: 50px;
-    right: 15px;
-    padding: 8px 20px 8px 30px;
-    font-size: 16px;
     background-color: white;
     box-shadow: 0 0 2px var(--gray-dark);
+}
+
+#signout-btn {
+    font-size: 16px;
+    padding: 8px 20px 8px 30px;
+    right: 15px;
+    border: 0;
 }
 #signout-btn:hover {
     background-color: var(--near-white);
 }
 
+#notification {
+    right: 70px;
+    width: 260px;
+    font-size: 14px;
+}
+
+.notification-header {
+    padding: 3px 10px;
+    font-weight: bold;
+    color: var(--gray-dark);
+    border-bottom: 1px var(--gray) solid;
+}
+
+.notification-container {
+    height: 280px;
+    background-color: var(--near-white);
+    overflow-y: auto;
+}
+
+.notification-item {
+    background-color: white;
+    padding: 10px;
+    border-bottom: 1px var(--gray) solid;
+}
+.notification-item * {
+    cursor: pointer;
+}
+.notification-item:hover {
+    background-color: var(--gray-light);
+}
+#notification .no-unread {
+    color: var(--gray);
+    margin-top: 50px;
+    height: 100px;
+    justify-content: space-around;
+
+}
+
+.mark-all-notif {
+    border-top: 1px var(--gray) solid !important;
+    width: 100%;
+    font-size: 15px;
+    padding: 3px 0;
+    border: 0;
+    background-color: white;
+    justify-content: center;
+    transition: .1s;
+}
+.mark-all-notif:not(.gray):hover{
+    background-color: var(--near-white);
+}
+.mark-all-notif.gray {
+    color: var(--gray-dark);
+}
+.mark-all-notif .check {
+    margin-left: 5px;
+}
 /*?  SIDEBAR  ?*/
 
 #sidebar-main {
@@ -1094,7 +1152,7 @@ header {
     padding: 1px;
     border: 2px var(--gray-light) solid;
     box-shadow: 0 0 3px var(--gray-dark);
-    transition: .2s ease;
+    transition: .1s ease;
 }
 .activity-box:hover {
     background-color: var(--near-white);

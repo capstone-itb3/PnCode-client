@@ -24,6 +24,10 @@ export function showConfirmPopup(props) {
           destroy();
           resolve(false);
         }}
+        onExit={() => {
+          destroy();
+          resolve(null);
+        }}
       />
     );
   });

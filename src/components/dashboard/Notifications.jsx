@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { showConfirmPopup } from '../reactPopupService'
+import { TbClockCheck } from "react-icons/tb";
+import { BsCheck2All } from "react-icons/bs";
+import { showAlertPopup, showConfirmPopup } from '../reactPopupService'
 
 const createdAt = (notif) => {
   const diff = new Date() - new Date(notif.createdAt);
@@ -22,25 +24,35 @@ const createdAt = (notif) => {
   return 'just now';        
 }
 
-function Notifications({ user, notifications }) {
-  const [notification, setNotification] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [loading, setLoading] = useState(true);
+function Notifications({ user, notifications, setNotifications }) {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setLoading(true);
-
-    async function init () {
-      const data = await user.getUserNotifications(notifications);
-      setNotification(data);
-      setLoading(false);
-    }
-    init();
-  }, [notifications]);
+  const [noUnread, setNoUnread] = useState(false);
   
+  useEffect(() => {
+      if (notifications?.length > 0) {
+        setNoUnread(false);
+      } else {
+        setNoUnread(true);
+      }
+  }, [notifications]);
+
   async function clickTeamNotif(notif) {
     navigate(`/team/${notif.subject_id}`);
+
+    filterOut(notif.notif_id);
+  }
+
+  async function clickClassNotif(notif) {
+    if (notif.for === 'accepted') {
+      navigate(`/class/${notif.subject_id}`);
+
+    } else if (notif.for === 'rejected') {
+      await showAlertPopup({
+        title: 'Joining Class Rejected',
+        message: `${notif.source} has ${notif.for} your request to join ${notif.subject_name}. If this is a mistake, you can request again and contact your professor to accept you.`,
+        okay_text: 'Okay'
+      })
+    }
 
     filterOut(notif.notif_id);
   }  
@@ -73,68 +85,104 @@ function Notifications({ user, notifications }) {
     filterOut(notif.notif_id);
   }
 
-  async function clickRequestNotif(notif) {
+  async function clickInviteNotif(notif) {
     const confirmed = await showConfirmPopup({
       title: 'Team Invite',
-      message: notif.additional,
+      message: `${notif.source} invites you to join the team: ${notif.subject_name}. Will you accept?`,
       confirm_text: 'Accept',
       cancel_text: 'Reject',
     });
 
-    if (confirmed) {
-      const res = await user.answerTeamInvite(notif.subject_id, notif.notif_id, true);
+    if (confirmed === true) {
+      const res = await user.acceptTeamInvite(notif.subject_id);
 
       if (res) {
-        toast.success('Team invite accepted.');
+        toast.success('Team invite accepted!');
         navigate(`/team/${notif.subject_id}`);
       }
-    } else {
-      const res = await user.answerTeamInvite(notif.subject_id, notif.notif_id, false);
-      if (res) {
-        toast.success('Team invite rejected.');
-      }
+      filterOut(notif.notif_id);
+      
+    } else if (confirmed === false) {
+      toast.success('You have rejected the team invite.');
+      filterOut(notif.notif_id);
     }
-    filterOut(notif.notif_id);
   }
 
   async function filterOut(notif_id) {
-    setNotification(notification.filter(n => n.notif_id !== notif_id));
-    await user.updateNotifications(notif_id);
+    setNotifications(notifications.filter(n => n.notif_id !== notif_id));
+    await user.updateNotifications([notif_id]);
   }
 
+  async function markAllAsRead() {
+    setNotifications([]);
+    console.log(notifications.map(n => n.notif_id));
+    await user.updateNotifications(notifications.map(n => n.notif_id));
+  }
+
+
   return (
-    <div id='notifications'>
-      <div className='notifications-header'>
+    <div id='notification'>
+      <div className='notification-header'>
           Notifications
       </div>
-      <div className='notifications-container'>
-        {loading &&
-          <div className='loading'>
-            <div className='loading-spinner'/>
-          </div>
-        }
-        {!loading && notifications &&
+      <div className='notification-container flex-column'>
+        {notifications &&
           <>
             {notifications.map((notif, index) => {
               return (
-                  <div className='notification-item flex-column' 
-                    {...(notif.subject_name === 'team' && { onClick: () => clickTeamNotif(notif) })}
-                    {...(notif.subject_name === 'activity' && { onClick: () => clickActivityNotif(notif) })}
-                    {...(notif.subject_name === 'room' && { onClick: () => clickRoomNotif(notif) })}
-                    {...(notif.subject_name === 'request' && { onClick: () => clickRequestNotif(notif) })}
-                    key={index}>
-                    <div className='content'>
-                      {notif.message}
-                    </div>
-                    <div>
-                      {createdAt(notif)}
-                    </div>
+                <div className='notification-item flex-column' 
+                  {...(notif.type === 'team' && { onClick: () => clickTeamNotif(notif) })}
+                  {...(notif.type === 'class' && { onClick: () => clickClassNotif(notif) })}
+                  {...(notif.type === 'activity' && { onClick: () => clickActivityNotif(notif) })}
+                  {...(notif.type === 'room' && { onClick: () => clickRoomNotif(notif) })}
+                  {...(notif.type === 'invite' && { onClick: () => clickInviteNotif(notif) })}
+                  key={index}>
+                  <div className='content'>
+                    {notif.type === 'team' &&
+                      <label><b>{notif.source}</b> {notif.for} the team <b>{notif.subject_name}</b>.</label>
+                    }
+                    {notif.type === 'class' &&
+                      <label><b>{notif.source}</b> has <b>{notif.for}</b> your request to join <b>{notif.subject_name}</b>.</label>
+                    }
+                    {notif.type === 'activity' &&
+                      <label><b>{notif.source}</b> has created a new activity in {notif.for}: <b>{notif.subject_name}.</b></label>
+                    }
+                    {notif.type === 'room' &&
+                      <label><b>{notif.source}</b> made a new room for your team <b>{notif.for}</b> in <b>{notif.subject_name}</b>.</label>
+                    }
+                    {notif.type === 'invite' &&
+                      <label><b>{notif.source}</b> invites you to join the team: <b>{notif.subject_name}</b>.</label>
+                    }
                   </div>
+                  <div className='time'>
+                    {createdAt(notif)}
+                  </div>
+                </div>
               )
             })}
+            {noUnread &&
+            <div className='no-unread items-center flex-column'>
+              <TbClockCheck size={60}/>
+              <label>No unread notifications.</label>
+            </div>
+            }
           </>
         }
       </div>
+      {notifications &&
+        <>
+        {!noUnread &&
+          <button className='mark-all-notif items-center' onClick={markAllAsRead}>
+            Mark All As Read 
+          </button>
+        }          
+        {noUnread &&
+          <button className='mark-all-notif items-center gray'>
+            Marked All As Read <BsCheck2All className='check' size={18}/>
+          </button>
+        }
+        </>
+      }
     </div>
   )
 }

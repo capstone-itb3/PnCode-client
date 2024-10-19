@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast';
 import api from '../api';
-import { errorHandler } from '../error';
+import { errorHandler, errorHandlerForms } from '../error';
 
 export default class Team {
     constructor (team_id, team_name, class_id, members) {
@@ -24,28 +24,48 @@ export default class Team {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
 
-    async addMember(student) {
+    async checkStudentAvailability(uid) {
         try {
-            const response = await api.post('/api/add-member', {
+            const response = await api.get('/api/check-student-availability', {
+                params: {
+                    team_id: this.team_id,
+                    uid: uid,
+                }
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    }
+
+    async inviteStudent(uid) {
+        try {
+            const response = await api.post('/api/invite-student', {
                 team_id: this.team_id,
-                student_uid: student.uid,
+                uid: uid,
                 class_id: this.class_id,
             });
 
             const data = response.data;
 
             if (data.status === 'ok') {
-                toast.success(`Student successfully added to ${this.team_name}.`);
                 return true;
             }
-            return false;
+            return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;            
         }
     }

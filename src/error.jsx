@@ -23,11 +23,16 @@ export async function errorHandler(e) {
     }
 }
 
-export function errorHandlerForms(e) {
+export async function errorHandlerForms(e) {
     console.error(e.message);
 
     if (e?.response && e.response.status === 404) {
-        toast.error(e.response.data?.message);
+        await showAlertPopup({
+            title: 'Resource Not Found',
+            message: e.response.data?.message,
+            type: 'error',
+            okay_text: 'Okay'
+        });
     
     } else if (e?.response && e.response.status === 401) {
         window.location.href = '/';

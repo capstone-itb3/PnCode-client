@@ -38,7 +38,7 @@ function BoardStudent({ auth }) {
         async function init() {
             const classes = await student.getEnrolledClasses();
             
-            if (classes.length > 0 && !classes.some(c => c.class_id === class_id)) {
+            if (classes && classes.length > 0 && !classes.some(c => c.class_id === class_id)) {
                 navigate(`/dashboard/${classes[0].class_id}/${select ? select : 'all'}`);
             }
             setClassList(classes);
@@ -136,7 +136,7 @@ function BoardStudent({ auth }) {
 
     return (
         <>
-        <Header auth={student} base={'Dashboard'} name={class_info?.course_code} />
+        <Header user={student} base={'Dashboard'} name={class_info?.course_code} />
         <main id='dashboard-main'>
             <Sidebar user={student} courses={class_list} setShowAddClass={setShowAddClass} />
             <section className='dash-section flex-column'>
@@ -285,7 +285,7 @@ function ActivityBoard({activities, student, class_id}) {
     const navigate = useNavigate();
 
     async function goToAssignedRoom(activity_id) {
-        const room_id = await student.visitActivity(activity_id, class_id);
+        const room_id = await student.visitActivity(activity_id);
 
         if (room_id) {
             toast.success('Redirecting you to your team\'s assigned room...');

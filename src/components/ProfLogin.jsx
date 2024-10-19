@@ -26,14 +26,14 @@ function ProfLogin() {
         })
 
         const data = await response.json(); 
-        alert (data.message);
-
+        
         if (data.status === 'ok' && data.token) {
             Cookies.set('token', data.token, { expires : 90 });
             navigate(`/dashboard/`);
-
+            
         } else {
-            console.log(data.message);
+            alert (data.message);
+            console.error(data.message);
         } 
     };
 

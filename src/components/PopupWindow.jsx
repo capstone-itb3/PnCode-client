@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react'
 import { VscError } from 'react-icons/vsc';
-import { BsCheckCircle } from 'react-icons/bs';
+import { BsCheckCircle, BsXLg } from 'react-icons/bs';
 
-export function ConfirmPopup({title, message, onConfirm, confirm_text, onCancel, cancel_text}) {
+export function ConfirmPopup({title, message, onConfirm, confirm_text, onCancel, cancel_text, onExit}) {
     const confirmPopupRef = useRef(null);
     const submitRef = useRef(null);
 
@@ -23,11 +23,15 @@ export function ConfirmPopup({title, message, onConfirm, confirm_text, onCancel,
         }, 50)
     }
 
-    function handleCancel() {
+    function handleCancel(clicked) {
         confirmPopupRef.current.style.transform = 'scale(0.3)';
 
         setTimeout(() => {
-            onCancel();
+            if (clicked === 'cancel') {
+                onCancel();
+            } else if (clicked === 'exit') {
+                onExit();
+            }
         }, 50)
     }
 
@@ -35,13 +39,16 @@ export function ConfirmPopup({title, message, onConfirm, confirm_text, onCancel,
         <div id='popup-gray-background' className='items-start'>
             <div id='create-popup' ref={confirmPopupRef} className='window flex-column'>
                 <div className='scroll'>
+                <div id='popup-close'onClick={() => handleCancel('exit')} >
+                    <BsXLg size={ 15 }/>
+                </div>
                     <h4 className='head'>{title}</h4>
                     <div className='content'>
                         {message}
                     </div>
                     <div className='flex-row footer'>
                         <button id='popup-submit' ref={submitRef} onClick={handleConfirm}>{confirm_text}</button>
-                        <button id='popup-cancel' onClick={handleCancel}>{cancel_text}</button>
+                        <button id='popup-cancel' onClick={() => handleCancel('cancel')}>{cancel_text}</button>
                     </div>
                 </div>
             </div>

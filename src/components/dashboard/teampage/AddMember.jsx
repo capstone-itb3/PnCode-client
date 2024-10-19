@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import UserAvatar from '../../UserAvatar';
-import { showConfirmPopup } from '../../reactPopupService'
+import { showConfirmPopup, showAlertPopup } from '../../reactPopupService'
 
 function AddMember({team, user, renderTeam}) {
     const [search, setSearch] = useState('');
@@ -35,26 +35,33 @@ function AddMember({team, user, renderTeam}) {
     }
 
     async function addStudentToTeam(student) {
+        setSearch(`${student.first_name} ${student.last_name}`);
+        showSearchResults(false);
+
+        const isAvailable = await team.checkStudentAvailability(student.uid);
+
+        if (!isAvailable) {
+            return;
+        }
+
         const confirmed = await showConfirmPopup({
             title: 'Add Student To Team',
-            message: `Are you sure you want to add ${student.first_name} ${student.last_name} to team ${team.team_name}?`,
+            message: `Do you want to add ${student.first_name} ${student.last_name} to team ${team.team_name}?`,
             confirm_text: 'Add Student',
             cancel_text: 'Cancel'
         })
 
         if (confirmed) {
-            const added = await team.addMember(student);
-            setSearch('');
+            const invited = await team.inviteStudent(student.uid);
             
-            if (added) {
-                team.members.push({
-                    uid: student.uid,
-                    first_name: student.first_name,
-                    last_name: student.last_name
-                });
-                renderTeam();
+            if (invited) {
+                await showAlertPopup({
+                    title: 'Student Invited!',
+                    message: `A team invite has been sent to ${student.first_name} ${student.last_name}.`,
+                    okay_text: 'Okay'
+                })
+                setSearch('');
             }
-            showSearchResults(false);
         }
     }
 

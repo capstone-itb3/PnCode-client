@@ -4,7 +4,8 @@ import Activity from './ActivityClass';
 import { SoloRoom, AssignedRoom } from './RoomClass';
 import api from '../api';
 import Cookies from 'js-cookie';
-import { errorHandler } from '../error';
+import { errorHandler, errorHandlerForms } from '../error';
+import { showAlertPopup } from '../components/reactPopupService';
 
 export class User {
     constructor(uid, first_name, last_name, position) {
@@ -27,8 +28,10 @@ export class User {
             if (data.status === 'ok') {
                 return data;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
+            return null;
         }
     }
 
@@ -45,6 +48,7 @@ export class User {
             } else if (data.status === 'ok' && list === 'all') {
                 return { students: data.students, requests: data.requests };
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -64,6 +68,7 @@ export class User {
             if (data.status === 'ok') {
                 return data.teams;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -83,9 +88,10 @@ export class User {
             if (data.status === 'ok') {
                 return data.activities;
             }
-            
+            return null;
         } catch (e) {
             errorHandler(e);
+            return null;
         }
     }
 
@@ -102,6 +108,7 @@ export class User {
             if (data.status === 'ok') {
                 return data.solo_rooms;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -110,8 +117,6 @@ export class User {
 
     async createTeam(team_name, class_id) {
         try {
-            console.log(class_id);
-
             const response = await api.post('/api/create-team', {
                 name: team_name,
                 class_id
@@ -122,11 +127,16 @@ export class User {
             if (data.status === 'ok') {
                 return data.team_id;
             } else if (data.reload) {
-                toast.error('You have already been on a team.');
+                await showAlertPopup({
+                    title: 'Create Team Error',
+                    message: 'You have already been on a team.',
+                    okay_text: 'Okay'
+                })
                 window.location.reload();
             }
+            return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
         }
     }
 
@@ -139,8 +149,9 @@ export class User {
             if (data.status === 'ok') {                
                 return data.room_id;
             }
+            return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }
@@ -167,11 +178,11 @@ export class User {
                             section: data.section,
                         };
 
-            } else {
-                window.location.href = '/error/404';
             }
+            return null;
         } catch (e) {
             errorHandler(e);
+            return null;
         }
     }
 
@@ -195,6 +206,7 @@ export class User {
                     info.files
                 );
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -246,6 +258,7 @@ export class User {
             if (data.status === 'ok') {
                 return { files: data.files, active: data.active };
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -254,6 +267,32 @@ export class User {
 
     changeTheme(theme) {
         Cookies.set('theme', theme);
+    }
+
+    async getUserNotifications() {
+        try {
+            const response = await api.get('/api/get-user-notifications');
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return data.notifications;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async updateNotifications(read_notifs) {
+        try {
+            const response = await api.post('/api/update-notifications', {
+                read_notifs,
+            });
+        } catch (e) {
+            errorHandler(e);
+        }
     }
 }
 
@@ -271,18 +310,18 @@ export class Student extends User {
             if (data.status === 'ok') {
                 return data.classes;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
         }
     }
 
-    async visitActivity(activity_id, class_id) {
+    async visitActivity(activity_id) {
         try {
             const response = await api.get('/api/visit-activity', {
                 params: {
                     activity_id,
-                    class_id
                 }
             });
 
@@ -315,6 +354,24 @@ export class Student extends User {
             return null
         }
     }
+
+    async acceptTeamInvite(team_id) {
+        try {
+            const response = await api.post('/api/accept-team-invite', {
+                team_id,
+            });
+
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    }
 }
 
 export class Professor extends User {
@@ -329,9 +386,9 @@ export class Professor extends User {
             const data = response.data;
 
             if (data.status === 'ok') {
-                console.log(data.classes);
                 return data.classes;
             }
+            return null;
         } catch (e) {
             errorHandler(e);
             return null;
@@ -410,7 +467,7 @@ export class Professor extends User {
                 return data.activity_id;
             }
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
         }
     }
 

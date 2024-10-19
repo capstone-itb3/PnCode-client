@@ -102,7 +102,7 @@ function PageActivity() {
         {activity && room_list &&
         (
         <>
-            <Header auth={auth} base={'Activity'} name={activity.activity_name}/>
+            <Header user={professor} base={'Activity'} name={activity.activity_name}/>
             <div id='activity-main'> 
                 <div id='activity-container' className='flex-column'>
                     <div id='activity-header'>

@@ -78,8 +78,8 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
           warning !== 0 ? setWarning(0) : null;
           debounceUserType(user.uid);
 
-        // } else if (inSameLineRef.current || !onTime) {
-        } else if (!onTime) {
+        } else if (inSameLineRef.current || !onTime) {
+        // } else if (!onTime) {
           //if in same line or not on time, it then checks if the current config of readOnly is false
           if (currentConfig === false) {
             //if currently false, it then modifies the readOnly state of the editor to true

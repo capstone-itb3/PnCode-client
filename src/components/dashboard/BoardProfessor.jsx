@@ -142,7 +142,7 @@ function BoardProfessor({ auth }) {
 
     return (
         <>
-        <Header auth={professor} base={'Dashboard'} name={`${class_info?.course_code !== undefined ? class_info.course_code : ''} ${class_info?.section !== undefined ? class_info?.section : ''}`} />
+        <Header user={professor} base={'Dashboard'} name={`${class_info?.course_code !== undefined ? class_info.course_code : ''} ${class_info?.section !== undefined ? class_info?.section : ''}`} />
         <main id='dashboard-main'>
             <Sidebar user={professor} courses={class_list} setShowStudents={setShowStudents}/>
             <section className='dash-section flex-column'>
