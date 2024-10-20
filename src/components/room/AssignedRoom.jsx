@@ -17,6 +17,7 @@ import TabOutput from './TabOutput';
 import History from './History';
 import Chats from './Chats';
 import Feedback from './Feedback';
+import Switch from './Switch';
 
 function AssignedRoom() {  
   const { room_id } = useParams();
@@ -48,22 +49,10 @@ function AssignedRoom() {
   const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
   
   useEffect(() => {    
-    // setRoom(null);
-    // setRoomFiles([]);
-    // setActivity(null);
-    // setMembers([]);
-    // setAccess(null);
-    // setActiveFile(null);
-    // setCursorColor(null);
-    // setRoomUsers([]);
-    // setEditorUsers([]);
-    // setEditorTheme(user?.preferences.theme);
-    // socketRef.current = null;
-
-    if (!window.location.pathname.endsWith('/')) {
-      const added_slash = `${window.location.pathname}/`;
-      navigate(added_slash);
-    }
+    // if (!window.location.pathname.endsWith('/')) {
+    //   const added_slash = `${window.location.pathname}/`;
+    //   navigate(added_slash);
+    // }
 
     if (user?.position === 'Student') {
       disableCopyPaste();
@@ -116,10 +105,22 @@ function AssignedRoom() {
       if (socketRef.current) {
         socketRef.current.off('found_file');
         socketRef.current.off('room_users_updated');
-        socketRef.current.off('editor_users_updated');  
-        socketRef.current.off('update_token');
+        socketRef.current.off('editor_users_updated');
         socketRef.current.disconnect();
       }
+
+      setRoom(null);
+      setRoomFiles([]);
+      setMembers([]);
+      setAccess(null);
+      setActivity(null);
+      setActiveFile(null);
+      setCursorColor(null);
+      setRoomUsers([]);
+      setEditorUsers([]);
+      setAddNewFile(false);
+      setDeleteFile(false);
+      socketRef.current = null;
     }
   }, [room_id]);
 
@@ -128,11 +129,12 @@ function AssignedRoom() {
       socketRef.current.on('editor_users_updated', ({ editors }) => {
         setEditorUsers(editors);
       });
-  
-      return () => {
-        socketRef.current.off('editor_users_updated');
-      };
     }
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('editor_users_updated');
+      } 
+    };
   }, [activeFile]);  
 
   useEffect(() => {
@@ -183,6 +185,21 @@ function AssignedRoom() {
         setDeleteFile(false);
         setLeftDisplay('files');
         return;
+      }
+      
+      if (event.altKey && event.key === 'l') {
+        if (leftDisplay === '') {
+          setLeftDisplay('files');
+        } else {
+          setLeftDisplay('');
+        }
+      }
+      if (event.altKey && event.key === 'p') {
+        if (rightDisplay === '') {
+          setRightDisplay('output');
+        } else {
+          setRightDisplay('');
+        }
       }
 
       if (user?.position === 'Student' && event.altKey && event.key === 'x') {
@@ -244,7 +261,13 @@ function AssignedRoom() {
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
-    window.location.href = '/dashboard';
+
+    if (user?.position === 'Student') {
+      navigate (`/dashboard/${activity.class_id}/all`);
+
+    } else if (user?.position === 'Professor'){
+      navigate (`/activity/${activity.activity_id}`);
+    }
   }  
 
   return (
@@ -269,16 +292,22 @@ function AssignedRoom() {
               runOutput={runOutput}/>
           }
           </div>
-          {activity &&
+          {activity && user.position === 'Student' &&
             <div className='items-center room-logo single-line'>
               {activity.activity_name}
             </div>
           }
+          {activity && user.position === 'Professor' &&
+            <Switch room={room} activity={activity} />
+          }
+
+        {room && activity &&
           <div className='items-center'>
             <button className='room-header-options items-center' onClick={ leaveRoom }>
               <VscDebugDisconnect size={23} color={ '#f8f8f8' } /><span>Leave</span> 
             </button>
           </div>
+        }
       </div>
       {!(room && activity && members && access && socketRef.current) &&
           <div className='loading'>

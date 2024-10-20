@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { BsXLg } from 'react-icons/bs';
 import { MdLoop } from 'react-icons/md';
+import { showConfirmPopup } from '../reactPopupService';
+
 
 function StudentList({user, class_info, showStudents}) {
     const [students, setStudents] = useState([]);
@@ -19,11 +21,16 @@ function StudentList({user, class_info, showStudents}) {
         }
     }
 
-    async function removeStudent(uid) {
-        const result = confirm('Are you sure you want to remove this student from this class?');
+    async function removeStudent(student) {
+        const result = await showConfirmPopup({
+            title: 'Remove Student',
+            message: `Are you sure you want to remove this ${student.first_name} ${student.last_name} from the class?`,
+            confirm_text: 'Remove Student',
+            cancel_text: 'Cancel'
+        });
 
         if (result) {
-            const info = await user.removeStudent(class_info.class_id, uid);
+            const info = await user.removeStudent(class_info.class_id, student.uid);
             if (info) {
                 getStudents();
             }
@@ -71,7 +78,7 @@ function StudentList({user, class_info, showStudents}) {
                                     <td>{index + 1}</td>
                                     <td>{student.last_name}, {student.first_name}</td>
                                     <td className='tbl-btn'>
-                                        <button className='remove-btn' onClick={() => removeStudent(student.uid)}>
+                                        <button className='remove-btn' onClick={() => removeStudent(student)}>
                                             Remove
                                         </button>
                                     </td>
@@ -97,14 +104,14 @@ function StudentList({user, class_info, showStudents}) {
                                     <td>{index + 1}</td>
                                     <td>{student.last_name}, {student.first_name}</td>
                                     <td className='tbl-btn'>
-                                        <button className='accept-btn' onClick={() => acceptRequest(student.uid)}>
-                                            Accept
-                                        </button>
-                                    </td>
-                                    <td className='tbl-btn'>
-                                        <button className='remove-btn' onClick={() => rejectRequest(student.uid)}>
-                                            Reject
-                                        </button>
+                                        <div className='flex-row items-center'>
+                                            <button className='accept-btn' onClick={() => acceptRequest(student.uid)}>
+                                                Accept
+                                            </button>
+                                            <button className='remove-btn' onClick={() => rejectRequest(student.uid)}>
+                                                Reject
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             )

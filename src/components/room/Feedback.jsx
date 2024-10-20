@@ -2,6 +2,7 @@ import React, { useState, useEffect }  from 'react'
 import { BsTrash } from 'react-icons/bs';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import converToReadable from './utils/convertToReadable';
+import { showConfirmPopup } from '../reactPopupService';
 
 function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
   const [feedback, setFeedback] = useState([]);
@@ -48,13 +49,13 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
       socket.off('submit_feedback_result');
       socket.off('delete_feedback_result');
     }
-  }, []);
+  }, [room]);
 
   function submitFeedback(e) {
     e.preventDefault();
-
-
-    room.submitFeedback(socket, new_feedback, user.uid);
+    if (user.position === 'Professor') {
+      room.submitFeedback(socket, new_feedback, user.uid, user.first_name, user.last_name);
+    }
     setNewFeedback('');
   }
 
@@ -66,8 +67,14 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
     }
   }
 
-  function deleteFeedback(createdAt) {
-    const result = confirm('Are you sure you want to delete this feedback?');
+  async function deleteFeedback(createdAt) {
+    const result = await showConfirmPopup({
+      title: 'Delete Feedback',
+      message: 'Do you want to delete your feedback?',
+      confirm_text: 'Delete',
+      cancel_text: 'Cancel',
+    });
+
     if (result) {
       room.deleteFeedback(socket, createdAt);
     }

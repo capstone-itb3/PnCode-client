@@ -39,8 +39,11 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
 
     function openFile() {
         setLeftDisplay('files');
-        setAddNewFile(false);
-        setDeleteFile(false);
+
+        if (setAddNewFile && setDeleteFile) {
+            setAddNewFile(false);
+            setDeleteFile(false);
+        }
         const option = document.getElementById(`files-menu`);
         option.classList.toggle('hidden');
 
@@ -70,11 +73,27 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
         option.classList.toggle('hidden');
     }
 
-    function changeTheme(checked) {
+    function closeSection(direction) {
+        if (direction === 'left') {
+            setLeftDisplay('');
+        } else if (direction === 'right') {
+            setRightDisplay('');
+        }
+
+        const option = document.getElementById(`view-menu`);
+        option.classList.toggle('hidden');
+    }
+
+    function changeTheme(checked, from) {
         const theme = checked ? 'dark' : 'light';
         user.changeTheme(theme);
         setIsChecked(checked);
         setEditorTheme(theme);
+
+        const theme_btn = document.getElementById('editor-theme');
+        if (theme_btn && from === 'button') {
+            theme_btn.checked = checked;
+        }
     }
 
 
@@ -88,55 +107,58 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
 
     return (
         <>
-            {type === 'assigned' &&
-            <>              
-                <button className='room-header-options' onClick={() => openMenu('files')}>
-                    Files
-                </button>
-                {isOnTimeRef.current &&
-                    <div id='files-menu' className='flex-column options-menu hidden'>
-                        {user.position === 'Student' &&
-                            <div className='item items-center'  onClick={addFile}>
-                                <label>Add File</label><span>Alt + A</span>
-                            </div>
-                        }
-                        <div className='item items-center'  onClick={openFile}>
-                            <label>Open File</label><span>Alt + (#)</span>
-                        </div>
-                        {user.position === 'Student' &&
-                            <div className='item items-center' onClick={deleteFile}>
-                                <label>Delete File</label><span>Alt + X</span>
-                            </div>
-                        }
-                    </div>
-                }
-            </>
-            }
-            {type === 'assigned' &&
-            <>
-                <button className='room-header-options' onClick={() => openMenu('view')}>
-                    View
-                </button>
-                <div id='view-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
-                    <div className='item items-center' onClick={() => viewSection('files')}>
-                        <label>Show Files</label><span>Alt + F</span>
-                    </div>
-                    <div className='item items-center' onClick={() => viewSection('notepad')}>
-                        <label>Show Notepad</label><span>Alt + N</span>
-                    </div>
-                    <div className='item items-center' onClick={() => viewSection('output')}>
-                        <label>Show Output</label><span>Alt + O</span>
-                    </div>
-                    <div className='item items-center' onClick={() => viewSection('history')}>
-                        <label>Show History</label><span>Alt + H</span>
-                    </div>
-                    <div className='item items-center' onClick={() => viewSection('feedback')}>
-                        <label>Show Feedback</label><span>Alt + B</span>
-                    </div>
-
+            <button className='room-header-options' onClick={() => openMenu('files')}>
+                Files
+            </button>
+            {isOnTimeRef.current &&
+                <div id='files-menu' className='flex-column options-menu hidden'>
+                    {user.position === 'Student' && type === 'assigned' &&
+                        <button className='item items-center'  onClick={addFile}>
+                            <label>Add File</label><span>Alt + A</span>
+                        </button>
+                    }
+                    <button className='item items-center'  onClick={openFile}>
+                        <label>Open File</label><span>Alt + (#)</span>
+                    </button>
+                    {user.position === 'Student' && type === 'assigned' &&
+                        <button className='item items-center' onClick={deleteFile}>
+                            <label>Delete File</label><span>Alt + X</span>
+                        </button>
+                    }
                 </div>
-            </>
             }
+            <button className='room-header-options' onClick={() => openMenu('view')}>
+                View
+            </button>
+            <div id='view-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
+                <button className='item items-center' onClick={() => viewSection('files')}>
+                    <label>Show Files</label><span>Alt + F</span>
+                </button>
+                {type === 'assigned' &&
+                    <button className='item items-center' onClick={() => viewSection('notepad')}>
+                        <label>Show Notepad</label><span>Alt + N</span>
+                    </button>
+                }
+                <button className='item items-center' onClick={() => viewSection('output')}>
+                    <label>Show Output</label><span>Alt + O</span>
+                </button>
+                {type === 'assigned' &&
+                <>
+                    <button className='item items-center' onClick={() => viewSection('history')}>
+                        <label>Show History</label><span>Alt + H</span>
+                    </button>
+                    <button className='item items-center' onClick={() => viewSection('feedback')}>
+                        <label>Show Feedback</label><span>Alt + B</span>
+                    </button>
+                </>
+                }
+                <button className='item items-center' onClick={() => closeSection('left')}>
+                    <label>Close Left Tabs</label><span>Alt + L</span>
+                </button>
+                <button className='item items-center' onClick={() => closeSection('right')}>
+                    <label>Close Right Tabs</label><span>Alt + P</span>
+                </button>
+            </div>
             <button className='room-header-options' onClick={() => openMenu('preferences')}>
                 Preferences
             </button>
@@ -146,6 +168,7 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
                     <div className='items-center'>
                         <label className="switch">
                             <input 
+                                id='editor-theme'
                                 type="checkbox" 
                                 checked={isChecked}
                                 onChange={(e) => changeTheme(e.target.checked)}
@@ -159,12 +182,12 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
                 Run
             </button>
             <div id='run-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
-                <div className='item items-center' onClick={runCode}>
+                <button className='item items-center' onClick={runCode}>
                     <label>Run</label> <span>Alt + R</span>
-                </div>
-                <div className='item items-center'>
+                </button>
+                <button className='item items-center'>
                     <label>Run in Full View</label>
-                </div>
+                </button>
             </div>
         </>
     )

@@ -44,7 +44,7 @@ function Notifications({ user, notifications, setNotifications }) {
 
   async function clickClassNotif(notif) {
     if (notif.for === 'accepted') {
-      navigate(`/class/${notif.subject_id}`);
+      navigate(`/dashboard/${notif.subject_id}/all`);
 
     } else if (notif.for === 'rejected') {
       await showAlertPopup({
@@ -108,6 +108,16 @@ function Notifications({ user, notifications, setNotifications }) {
     }
   }
 
+  async function clickRemoveNotif(notif) {
+    await showAlertPopup({
+      title: 'You Are Removed',
+      message: `You have been removed from this ${notif.for} ${notif.subject_name}.`,
+      okay_text: 'Okay',
+    });
+
+    filterOut(notif.notif_id);
+  };
+
   async function filterOut(notif_id) {
     setNotifications(notifications.filter(n => n.notif_id !== notif_id));
     await user.updateNotifications([notif_id]);
@@ -122,8 +132,9 @@ function Notifications({ user, notifications, setNotifications }) {
 
   return (
     <div id='notification'>
-      <div className='notification-header'>
-          Notifications
+      <div className='notification-header items-center'>
+        <label>Notifications</label>
+        <label>{notifications && notifications.length}</label>
       </div>
       <div className='notification-container flex-column'>
         {notifications &&
@@ -136,6 +147,7 @@ function Notifications({ user, notifications, setNotifications }) {
                   {...(notif.type === 'activity' && { onClick: () => clickActivityNotif(notif) })}
                   {...(notif.type === 'room' && { onClick: () => clickRoomNotif(notif) })}
                   {...(notif.type === 'invite' && { onClick: () => clickInviteNotif(notif) })}
+                  {...(notif.type === 'remove' && { onClick: () => clickRemoveNotif(notif) })}
                   key={index}>
                   <div className='content'>
                     {notif.type === 'team' &&
@@ -146,12 +158,15 @@ function Notifications({ user, notifications, setNotifications }) {
                     }
                     {notif.type === 'activity' &&
                       <label><b>{notif.source}</b> has created a new activity in {notif.for}: <b>{notif.subject_name}.</b></label>
-                    }
+                    } 
                     {notif.type === 'room' &&
                       <label><b>{notif.source}</b> made a new room for your team <b>{notif.for}</b> in <b>{notif.subject_name}</b>.</label>
                     }
                     {notif.type === 'invite' &&
-                      <label><b>{notif.source}</b> invites you to join the team: <b>{notif.subject_name}</b>.</label>
+                      <label><b>{notif.source}</b> invites you to join the team <b>{notif.subject_name}</b>.</label>
+                    }
+                    {notif.type === 'remove' &&
+                      <label><b>{notif.source}</b> has removed you from {notif.for} <b>{notif.subject_name}</b>.</label>
                     }
                   </div>
                   <div className='time'>

@@ -64,6 +64,7 @@ function Header({ user, base, name }) {
         </div>
         <div ref={notifsRef}>
           <button id='notif-bell' className='btn-icons items-center' onClick={() => setShowNotifs(!showNotifs)}>
+            {notifications && notifications.length !== 0 && <div className='count items-center'>{notifications.length}</div>}
             <FiBell size={24} />
           </button>
           {showNotifs &&

@@ -31,7 +31,7 @@ function Members({ members, roomUsers, inSolo }) {
     } else {
       setDisplayMembers(null);
     }
-  }, [roomUsers]);
+  }, [members, roomUsers]);
 
   return (
     <div className='side-tab flex-column'>

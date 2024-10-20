@@ -107,17 +107,37 @@ function AssignedRoom() {
       }
 
       if (event.altKey && event.key === 'f') {
+        event.preventDefault();
         setLeftDisplay('files');
         return;
       }
 
       if (event.altKey && event.key === 'o') {
+        event.preventDefault();
         setRightDisplay('output');
         return;
       }
 
+      if (event.altKey && event.key === 'l') {
+        event.preventDefault();
+        if (leftDisplay === '') {
+          setLeftDisplay('files');
+        } else {
+          setLeftDisplay('');
+        }
+      }
+      if (event.altKey && event.key === 'p') {
+        event.preventDefault();
+        if (rightDisplay === '') {
+          setRightDisplay('output');
+        } else {
+          setRightDisplay('');
+        }
+      }
+
       for (let i = 1; i <= room_files.length && i <= 10; i++) {
         if (event.altKey && event.key === i.toString()) {
+          event.preventDefault();
           displayFile(room_files[i - 1]);
           break;
         }

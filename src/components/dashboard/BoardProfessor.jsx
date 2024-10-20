@@ -234,7 +234,7 @@ function BoardProfessor({ auth }) {
                             {list_solo &&
                                 <>
                                     <SoloRoomBoard rooms={list_solo} displayInfo={displaySoloRooms}/>   
-                                    {list_solo.length !== 3 &&
+                                    {list_solo.length !== 5 &&
                                         <button className='create-btn' onClick={ createSoloRoom }>Create Solo Room</button>
                                     }                             
                                 </>

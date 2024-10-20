@@ -2,6 +2,7 @@ import React, { useState, useEffect }  from 'react'
 import { BsTrash } from 'react-icons/bs';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import converToReadable from '../../components/room/utils/convertToReadable';
+import { showConfirmPopup } from '../../components/reactPopupService';
 
 function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
   const [feedback, setFeedback] = useState([]);
@@ -66,9 +67,15 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
     document.getElementById('feedback')?.focus();
   }
 
-  function deleteFeedback(createdAt) {
-    const result = confirm('Are you sure you want to delete this feedback?');
-    if (result) {
+  async function deleteFeedback(createdAt) {
+    const res = await showConfirmPopup({
+      title: 'Delete Message',
+      message: 'Do you want to delete this feedback?',
+      confirm_text: 'Delete',
+      cancel_text: 'Cancel',
+    });
+
+    if (res) {
         socket.emit('delete_feedback', {
             room_id: room.room_id,
             createdAt: createdAt,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { MdKeyboardBackspace } from "react-icons/md";
 import './admin.css';
@@ -33,6 +33,10 @@ function AdminDashboard() {
     return `${day}, ${month} ${year} ${hours}:${minutes} ${ampm}`;
   }
   
+  useEffect(() => {
+    document.title = 'PnCode: Admin Dashboard';
+  }, []);
+
   return (
     <div className='admin-dashboard'>
       <Header admin={admin}/>

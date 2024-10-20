@@ -12,7 +12,7 @@ function Instructions({instructions, setInstructions, socket}) {
         return () => {
             socket.off('update_instructions');
         }
-    }, []);
+    }, [socket]);
 
 
 

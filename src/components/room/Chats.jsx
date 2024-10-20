@@ -3,6 +3,8 @@ import Avatar from 'react-avatar';
 import { RiArrowDropDownLine, RiArrowLeftSLine } from 'react-icons/ri';
 import { FiMinusCircle } from 'react-icons/fi';
 import { positionChat, minimizeChat } from './utils/toggleChat';
+import { showConfirmPopup } from '../reactPopupService';
+
 
 function Chats({room, socket, user}) {
     const [chats, setChats] = useState(null);
@@ -29,6 +31,11 @@ function Chats({room, socket, user}) {
                 setTimeout(() => {
                     const scroll = document.getElementById('chat-box-scroll');
                     scroll.scrollTop = scroll.scrollHeight;
+
+                    const chat_box = document.getElementById('chat-box-container');
+                    if (new_message.sender_uid !== user.uid && chat_box.classList.contains('hidden')) {
+                        minimizeChat();
+                    }
                 },100);
             });
     
@@ -61,8 +68,13 @@ function Chats({room, socket, user}) {
         setMessage('');
     }
 
-    function deleteMessage(createdAt) {
-        const res = confirm('Delete this message?');
+    async function deleteMessage(createdAt) {
+        const res = await showConfirmPopup({
+            title: 'Delete Message',
+            message: 'Do you want to delete this message?',
+            confirm_text: 'Delete',
+            cancel_text: 'Cancel',
+        });
         if (res) {
             socket.emit('delete_message', {
                 room_id: room.room_id,

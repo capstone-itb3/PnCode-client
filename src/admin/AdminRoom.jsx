@@ -170,7 +170,7 @@ function AdminRoom() {
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
-      navigate(`/admin/dashboard/activities/${activity.activity_id}/assigned-rooms/${room.room_id}/`);
+      navigate(`/admin/dashboard/activity/${activity.activity_id}/assigned-rooms/${room.room_id}/`);
   }  
 
   return (
