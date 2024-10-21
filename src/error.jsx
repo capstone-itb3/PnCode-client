@@ -38,7 +38,12 @@ export async function errorHandlerForms(e) {
         window.location.href = '/';
 
     } else if (e?.response && e?.response.status >= 400) {
-        toast.error(e.response.data?.message);
+        await showAlertPopup({
+            title: 'Alert Error',
+            message: e.response.data?.message,
+            type: 'error',
+            okay_text: 'Okay'
+        });
         
     } else {
         toast.error('Unable to connect to the server. Try again later.');

@@ -76,12 +76,12 @@ export class AssignedRoom extends Room {
         }
     }
 
-    async reactToFeedback(socket, createdAt, uid) {
+    async reactToFeedback(socket, feedback_id, react) {
         try {
             socket.emit('react_to_feedback', {
                 room_id: this.room_id,
-                createdAt: createdAt,
-                user_id: uid,
+                feedback_id,
+                react
             });
         } catch (e) {
             console.error('Unable to connect to the server.');
@@ -90,11 +90,11 @@ export class AssignedRoom extends Room {
 
     }
 
-    async deleteFeedback(socket, createdAt) {
+    async deleteFeedback(socket, feedback_id) {
         try {
             socket.emit('delete_feedback', {
                 room_id: this.room_id,
-                createdAt: createdAt,
+                feedback_id,
             });
         } catch (e) {
             console.error('Unable to connect to the server.');

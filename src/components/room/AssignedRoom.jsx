@@ -29,6 +29,9 @@ function AssignedRoom() {
   const [members, setMembers] = useState ([]);
   const [access, setAccess] = useState(null);
   
+  const [socketId, setSocketId] = useState(null);
+  const socketRef = useRef(null);
+
   const [activity, setActivity] = useState(null);
   const [instructions, setInstructions] = useState(null);
   const [open_time, setOpenTime] = useState(null);
@@ -39,7 +42,6 @@ function AssignedRoom() {
 
   const [roomUsers, setRoomUsers] = useState([]);
   const [editorUsers, setEditorUsers]  = useState([]);
-  const socketRef = useRef(null);
   const outputRef = useRef(null);
   
   const [leftDisplay, setLeftDisplay] = useState('files');
@@ -75,6 +77,13 @@ function AssignedRoom() {
       if (info.access) {
         socketRef.current = await initSocket();
         
+        console.log(socketRef.current?.id);
+
+        socketRef.current.on('get_socket_id', ({ socket_id }) => {
+          setSocketId(socket_id);
+          console.log(socket_id);
+        });
+        
         socketRef.current.emit('join_room', { 
           room_id, 
           user_id: user.uid,
@@ -82,7 +91,7 @@ function AssignedRoom() {
           last_name: user.last_name,
           position: user.position
         })
-  
+
         socketRef.current.on('room_users_updated', ({ users }) => {
           setRoomUsers(users);
           setCursorColor(users.find((u) => u.user_id === user.uid)?.cursor);
@@ -407,6 +416,7 @@ function AssignedRoom() {
                     user={user}
                     room={room}
                     socket={socketRef.current}
+                    socketId={socketId}
                     rightDisplay={rightDisplay}
                     setRightDisplay={setRightDisplay}/>
                 </div>

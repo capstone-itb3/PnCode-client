@@ -2,9 +2,10 @@ import React, { useState, useEffect }  from 'react'
 import { BsTrash } from 'react-icons/bs';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import converToReadable from './utils/convertToReadable';
+import updateFeedbackReacts from './utils/updateFeedbackReacts';
 import { showConfirmPopup } from '../reactPopupService';
 
-function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
+function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay }) {
   const [feedback, setFeedback] = useState([]);
   const [new_feedback, setNewFeedback] = useState('');
 
@@ -25,19 +26,29 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
         }
       });
 
-      socket.on('submit_feedback_result', ({new_feedback}) => {
+      socket.on('submit_feedback_result', ({ new_feedback }) => {
         setFeedback((prev) => {
           const new_feedback_list = [...prev, new_feedback];
           return new_feedback_list.sort((a, b) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
           });
         });
-
+        
+        console.log('new_feedback_list', new_feedback);
         setRightDisplay('feedback');
       });
 
-      socket.on('delete_feedback_result', ({createdAt}) => {
-        setFeedback(prev => prev.filter(item => item.createdAt !== createdAt));
+      socket.on('delete_feedback_result', ({ feedback_id }) => {
+        setFeedback(prev => prev.filter(item => item.feedback_id !== feedback_id));
+      });
+
+      socket.on('new_feedback_react', ({ feedback_id, react, socket_id }) => {
+        console.log(socket_id);
+        console.log(socketId);
+
+        if (socket_id !== socketId) {
+          updateFeedbackReacts(setFeedback, feedback_id, react);
+        }
       });
     } catch (e) {
       alert('An error occured while rendering feedback.');
@@ -48,8 +59,14 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
       socket.off('feedback_loaded');
       socket.off('submit_feedback_result');
       socket.off('delete_feedback_result');
+      socket.off('new_feedback_react');
     }
-  }, [room]);
+  }, [room, socketId]);
+
+  useEffect(() => {
+    console.log(socketId);
+
+  }, [socketId])
 
   function submitFeedback(e) {
     e.preventDefault();
@@ -60,14 +77,24 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
   }
 
   function reactToFeedback(feed) {
+    console.log(feed.feedback_id);
     if (user.position === 'Student') {
       if (!feed.reacts.some((u) => u.uid === user.uid)) {
-        room.reactToFeedback(socket, feed.createdAt, user.uid);
+        const react = {
+          uid: user.uid,
+          first_name: user.first_name,
+          last_name: user.last_name,
+        };
+  
+        room.reactToFeedback(socket, feed.feedback_id, react);
+
+
+        updateFeedbackReacts(setFeedback, feed.feedback_id, react);
       }
     }
   }
-
-  async function deleteFeedback(createdAt) {
+  
+  async function deleteFeedback(feedback_id) {
     const result = await showConfirmPopup({
       title: 'Delete Feedback',
       message: 'Do you want to delete your feedback?',
@@ -76,7 +103,7 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
     });
 
     if (result) {
-      room.deleteFeedback(socket, createdAt);
+      room.deleteFeedback(socket, feedback_id);
     }
   }
 
@@ -117,13 +144,13 @@ function Feedback({ room, user, socket, rightDisplay, setRightDisplay }) {
               <label className='date'>{date}</label>
               <label className='feedback-body'>{feed.feedback_body}</label>
               {user.position === 'Professor' &&
-                <button className='delete' onClick={() => deleteFeedback(feed.createdAt)}>
+                <button className='delete' onClick={() => deleteFeedback(feed.feedback_id)}>
                   <BsTrash size={20} />
                 </button>
               }
               <div className='flex-row items-center react-div'> 
                 <div className='count'>
-                  {feed.reacts.length} 
+                  {feed.reacts.length > 0 && feed.reacts.length} 
                   {feed.reacts.length > 0 &&
                     <div className='reacted-list flex-column'>
                       {feed.reacts.map((u, index) => (

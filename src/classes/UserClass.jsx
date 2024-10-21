@@ -332,7 +332,7 @@ export class Student extends User {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null;
         }
     }    
@@ -350,7 +350,7 @@ export class Student extends User {
                 return true;
             }
         } catch(e) {
-            errorHandler(e);
+            errorHandlerForms(e);
             return null
         }
     }

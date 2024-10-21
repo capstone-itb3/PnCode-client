@@ -1459,7 +1459,7 @@ header {
 }
 
 
-#room-header button:not(.item) {
+#room-header button:not(.item, #switch-rooms button) {
     display: flex;
     justify-content: center;
     height: 100%;
@@ -1537,8 +1537,10 @@ header {
 }
 
 #switch-rooms button{
-    padding: 2px;
+    padding: 3px 2px;
     color: var(--gray-light);
+    background-color: transparent;
+    border: 0;
     border-radius: 5px;
     transition: .4s;
     margin: 0 4px;

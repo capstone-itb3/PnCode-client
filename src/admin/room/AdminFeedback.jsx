@@ -2,6 +2,7 @@ import React, { useState, useEffect }  from 'react'
 import { BsTrash } from 'react-icons/bs';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import converToReadable from '../../components/room/utils/convertToReadable';
+import updateFeedbackReacts from '../../components/room/utils/updateFeedbackReacts';
 import { showConfirmPopup } from '../../components/reactPopupService';
 
 function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
@@ -25,7 +26,7 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
         }
       });
 
-      socket.on('submit_feedback_result', ({new_feedback}) => {
+      socket.on('submit_feedback_result', ({ new_feedback }) => {
         setFeedback((prev) => {
           const new_feedback_list = [...prev, new_feedback];
           return new_feedback_list.sort((a, b) => {
@@ -36,9 +37,13 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
         setRightDisplay('feedback');
       });
 
-      socket.on('delete_feedback_result', ({createdAt}) => {
-        setFeedback(prev => prev.filter(item => item.createdAt !== createdAt));
+      socket.on('delete_feedback_result', ({ feedback_id }) => {
+        setFeedback(prev => prev.filter(item => item.feedback_id !== feedback_id));
       });
+
+      socket.on('new_feedback_react', ({ feedback_id, react }) => {
+        updateFeedbackReacts(setFeedback, feedback_id, react);
+      })
 
     } catch (e) {
       alert('An error occured while rendering feedback');
@@ -67,7 +72,7 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
     document.getElementById('feedback')?.focus();
   }
 
-  async function deleteFeedback(createdAt) {
+  async function deleteFeedback(feedback_id) {
     const res = await showConfirmPopup({
       title: 'Delete Message',
       message: 'Do you want to delete this feedback?',
@@ -78,7 +83,7 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
     if (res) {
         socket.emit('delete_feedback', {
             room_id: room.room_id,
-            createdAt: createdAt,
+            feedback_id
         }); 
     }
   }
@@ -112,7 +117,7 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
               </label>
               <label className='date'>{date}</label>
               <label className='feedback-body'>{feed.feedback_body}</label>
-              <button className='delete' onClick={() => deleteFeedback(feed.createdAt)}>
+              <button className='delete' onClick={() => deleteFeedback(feed.feedback_id)}>
                 <BsTrash size={20} />
               </button>
               <div className='flex-row items-center react-div'> 

@@ -35,17 +35,20 @@ function History({ user, file, socket, rightDisplay }) {
       }
     });
 
-    socket.on('add_edit_count_result', ({ contributions }) => {
-      if (user.position === 'Professor') {
+    if (user.position === 'Professor') {
+      socket.on('add_edit_count_result', ({ contributions }) => {
         setContributions(contributions);
-      }
-    });
+      });
+    }
     
-    socket.on('reupdate_history', ({ status }) => {
-      if (status === 'ok') { 
-        getHistory();
+    socket.on('reupdate_history', ({ status, file_id, new_history }) => {
+      if (status === 'ok' && file.file_id === file_id) { 
+        setHistory((prev) => {
+          const new_history_list = [new_history, ...prev];
+          return new_history_list;
+        })
       }
-    });
+    }); 
 
     return () => {
       socket.off('get_history_result');
