@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import pnc from '../../assets/pamantasan.jpg'
 import full_logo from '../../assets/full_logo.jpg'
 import ccs_logo from '../../assets/ccs_logo.jfif'
-
+import { restrictStudent } from './validator';
 
 function ProfLogin() {
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
+    const [ hasAccess, setHasAccess ] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        !restrictStudent() ? setHasAccess(true) : navigate('/error/404');
+    }, []);
 
     async function loginAccount(event) {
         event.preventDefault();
@@ -38,6 +43,8 @@ function ProfLogin() {
     };
 
     return (
+        <>
+        {hasAccess &&
         <div id='login-signup'>
             <main className='form-container items-center login'>
                 <form className='form-account login' onSubmit={ loginAccount }>
@@ -82,7 +89,8 @@ function ProfLogin() {
                 <div id='orange-hue'/>
             </main>
         </div>
-
+        }
+        </>
     )    
 }
 

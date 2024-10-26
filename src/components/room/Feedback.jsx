@@ -34,7 +34,6 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
           });
         });
         
-        console.log('new_feedback_list', new_feedback);
         setRightDisplay('feedback');
       });
 
@@ -43,9 +42,6 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
       });
 
       socket.on('new_feedback_react', ({ feedback_id, react, socket_id }) => {
-        console.log(socket_id);
-        console.log(socketId);
-
         if (socket_id !== socketId) {
           updateFeedbackReacts(setFeedback, feedback_id, react);
         }
@@ -63,11 +59,6 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
     }
   }, [room, socketId]);
 
-  useEffect(() => {
-    console.log(socketId);
-
-  }, [socketId])
-
   function submitFeedback(e) {
     e.preventDefault();
     if (user.position === 'Professor') {
@@ -77,7 +68,6 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
   }
 
   function reactToFeedback(feed) {
-    console.log(feed.feedback_id);
     if (user.position === 'Student') {
       if (!feed.reacts.some((u) => u.uid === user.uid)) {
         const react = {

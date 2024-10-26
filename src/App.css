@@ -2642,10 +2642,13 @@ header {
     }
 }
 
-@media (width < 600px) {
+@media (width < 500px) {
+    #login-signup {
+        justify-content: center;
+    }
+    
     .two-column-grid {
         grid-template-columns: 1fr;
-        /* gap */
         gap: 5px;
     }
     #create-popup {
@@ -2653,15 +2656,27 @@ header {
     }
 
     .photo-container {
-        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
     }
 
     .form-container {
-        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        min-height: max(calc(100vh - 140px), 500px) !important;
+        z-index: 50;
+        margin: 50px 0;
         min-width: unset !important;
+        background-color: white;
     }
-
-    .form-container .head {
+    
+    .form-container.signup .head {
         flex-direction: column;
     }
 
@@ -2671,10 +2686,16 @@ header {
 
     .form-account {
         display: flex;
-        padding: unset !important;
         margin: unset !important;
         flex-direction: column;
         align-items: center;
+    }
+
+    .form-account.login {
+        padding: unset !important;
+    }
+    .form-account.signup {
+        padding: 0 0 40px 0 !important;
     }
 
     .input-btn {

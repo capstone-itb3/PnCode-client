@@ -12,17 +12,20 @@ function History({ user, file, socket, rightDisplay }) {
   const [retrieved, setRetrieved] = useState(true);
   const [options, setOptions] = useState('all');
   
-  useEffect(() => {
-    function getHistory () {
-      setHistory(null);
-      setContributions(null);
-      
-      socket.emit('get_history', { 
-        file_id: file.file_id,
-      });
-    }
-    getHistory();
+  function getHistory() {
+    setHistory(null);
+    setContributions(null);
+    
+    socket.emit('get_history', { 
+      file_id: file.file_id,
+    });
+  }
 
+  useEffect(() => {
+    getHistory();
+  }, [file])
+
+  useEffect(() => {
     socket.on('get_history_result', ({ status, history, contributions }) => {
       if (status === 'ok') {
         setHistory(history);
@@ -43,10 +46,12 @@ function History({ user, file, socket, rightDisplay }) {
     
     socket.on('reupdate_history', ({ status, file_id, new_history }) => {
       if (status === 'ok' && file.file_id === file_id) { 
-        setHistory((prev) => {
-          const new_history_list = [new_history, ...prev];
-          return new_history_list;
-        })
+        const prev_history = history ? history : [];
+        setHistory(null);
+
+        setTimeout(() => {
+          setHistory([new_history, ...prev_history]);
+        }, 500);
       }
     }); 
 
@@ -55,8 +60,7 @@ function History({ user, file, socket, rightDisplay }) {
       socket.off('add_edit_count_result');
       socket.off('reupdate_history');
     }
-  }, [file]);
-
+  }, [file, history]);
 
   return ( 
     <div id='history-div' className={`${rightDisplay !== 'history' &&  'inactive'}`}>

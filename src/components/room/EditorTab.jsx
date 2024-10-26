@@ -8,67 +8,62 @@ function EditorTab({room, user, cursorColor, socket, open_time, close_time, acti
 
 
   return (
-        <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'}`}>
-            <>
-                <div className='file-name-container items-start'>
-                    <div id='file-name'>
-                        {activeFile &&
-                            <label>{activeFile.name}</label>
-                        } 
-                        {!activeFile &&
-                            <label>No file selected.</label>
-                        }
-                    </div>
+    <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'}`}>
+        <>
+            <div className='file-name-container items-start'>
+                <div id='file-name'>
                     {activeFile &&
-                        <>
-                            {warning === 0 &&
-                            <div id='save-status' className='items-center'>
-                                {saved}
-                            </div>
-                            }
-                            {warning === 1 &&
-                            <div id='file-warning'>
-                                    <label className='single-line items-center'>
-                                        <BsExclamationTriangleFill size={12}/>
-                                        <span>Empty documents will not be saved to prevent loss of progress.</span>
-                                    </label>
-                            </div>
-                            }
-                            {warning === 2 &&
-                            <div id='file-warning'>
-                                    <label className='single-line items-center'>
-                                        <BsExclamationTriangleFill size={12}/>
-                                        <span>The access for this activity is currently closed.</span>
-                                    </label>
-                            </div>
-                            }
-                            {warning === 3 &&
-                            <div id='file-warning'>
-                                    <label className='single-line items-center'>
-                                        <BsExclamationTriangleFill size={12}/>
-                                        <span>You cannot edit the same line with another user.</span>
-                                    </label>
-                            </div>
-                            }
-                        </>
+                        <label>{activeFile.name}</label>
+                    } 
+                    {!activeFile &&
+                        <label>No file selected.</label>
                     }
                 </div>
                 {activeFile &&
-                <Editor 
-                    room={room}  
-                    user={user} 
-                    cursorColor={cursorColor}
-                    socket={socket} 
-                    open_time={open_time}
-                    close_time={close_time}
-                    file={activeFile}
-                    setSaved={setSaved}
-                    editorTheme={editorTheme}
-                    warning={warning}
-                    setWarning={setWarning}/>
+                <>
+                    {warning === 0 &&
+                    <div id='save-status' className='items-center'>
+                        {saved}
+                    </div>
+                    }
+                    {warning > 0 &&
+                        <div id='file-warning'>
+                            <label className='single-line items-center'>
+                                <BsExclamationTriangleFill size={12}/>
+                                {warning === 1 &&
+                                    <span>Empty documents will not be saved to prevent loss of progress.</span>
+                                }
+                                {warning === 2 &&
+                                    <span>The access for this activity is currently closed.</span>
+                                }
+                                {warning === 3 &&
+                                    <span>You cannot edit the same line with another user</span>
+                                }
+                                {warning === 4 &&
+                                    <span>Connection to websocket has failed. Please refresh the page.</span>
+                                }
+                            </label>
+                        </div>
+                    }
+                </>
                 }
-            </>
-        </div>
+            </div>
+            {activeFile &&
+            <Editor 
+                room={room}  
+                user={user} 
+                cursorColor={cursorColor}
+                socket={socket} 
+                open_time={open_time}
+                close_time={close_time}
+                file={activeFile}
+                setSaved={setSaved}
+                editorTheme={editorTheme}
+                warning={warning}
+                setWarning={setWarning}/>
+            }
+        </>
+    </div>
   )
 }
 

@@ -57,7 +57,7 @@ export function ConfirmPopup({title, message, onConfirm, confirm_text, onCancel,
 }
 
 
-export function AlertPopup({title, message, type, onOkay, okay_text}) {
+export function AlertPopup({title, message, type, onOkay, okay_text, onExit}) {
     const alertPopupRef = useRef(null);
     const submitRef = useRef(null);
 
@@ -69,11 +69,17 @@ export function AlertPopup({title, message, type, onOkay, okay_text}) {
         }, 50);        
     }, [])
 
-    function handleOkay() {        
+    function handleOkay(clicked) {        
         alertPopupRef.current.style.transform = 'scale(0.3)';
 
         setTimeout(() => {
             submitRef.current.blur();
+
+            if (clicked === 'okay') {
+                onOkay();
+            } else if (clicked === 'exit') {
+                onExit();
+            }
             onOkay();
         }, 50)
     }
@@ -82,6 +88,9 @@ export function AlertPopup({title, message, type, onOkay, okay_text}) {
         <div id='popup-gray-background' className='items-start'>
             <div id='create-popup' ref={alertPopupRef} className='window flex-column'>
                 <div className='scroll'>
+                    <div id='popup-close'onClick={() => handleOkay('exit')} >
+                        <BsXLg size={ 15 }/>
+                    </div>
                     <h4 className='head'>{title}</h4>
                     <div className='content items-center'>
                         {type === 'error' &&
@@ -93,7 +102,7 @@ export function AlertPopup({title, message, type, onOkay, okay_text}) {
                         {message}
                     </div>
                     <div className='flex-row footer'>
-                        <button id='popup-submit' ref={submitRef} onClick={handleOkay}>{okay_text}</button>
+                        <button id='popup-submit' ref={submitRef} onClick={() => handleOkay('okay')}>{okay_text}</button>
                     </div>
                 </div>
             </div>

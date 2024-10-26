@@ -1,10 +1,15 @@
 
-import { snippetCompletion, completeFromList } from '@codemirror/autocomplete'
+import { snippetCompletion } from '@codemirror/autocomplete'
 // import { html5Snippet, jquerySnippet, bootstrapLinkSnippet, bootstrapScriptSnippet } from './utils/codeSnippets';
 
 const html5Snippet = snippetCompletion('<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8" />\n<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n<title></title>\n</head>\n<body>\n</body>\n</html>', {
     label: 'html:5',
     detail: 'HTML5 boilerplate'
+});
+
+const linkTagSnippet = snippetCompletion('<link rel="stylesheet" href="style.css">', {
+    label: 'link stylesheet',
+    detail: 'stylesheet boilerplate'
 });
 
 // const jquerySnippet = snippetCompletion('<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>', {
@@ -24,6 +29,7 @@ const html5Snippet = snippetCompletion('<!DOCTYPE html>\n<html lang="en">\n<head
 
 export {    
             html5Snippet,
+            linkTagSnippet,
             // jquerySnippet, 
             // bootstrapLinkSnippet, 
             // bootstrapScriptSnippet 

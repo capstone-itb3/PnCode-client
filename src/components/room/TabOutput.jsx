@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ImArrowUpRight2 } from 'react-icons/im';
-import { FaRegWindowMinimize } from 'react-icons/fa';
 
 function TabOutput({ outputRef, rightDisplay }) {
   const { room_id } = useParams();

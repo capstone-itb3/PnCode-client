@@ -7,7 +7,6 @@ import { WebsocketProvider } from 'y-websocket'
 import { EditorView, basicSetup } from 'codemirror'
 import { EditorState, Compartment } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
-import { completeFromList } from '@codemirror/autocomplete'
 import { indentWithTab } from '@codemirror/commands'
 import { linter, lintGutter } from '@codemirror/lint' 
 import { javascript } from '@codemirror/lang-javascript'
@@ -16,7 +15,7 @@ import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
 import jsLint from './utils/JSesLint'
-import { html5Snippet } from './utils/codeSnippets'
+import { html5Snippet, linkTagSnippet } from './utils/codeSnippets'
 import checkTimeframe from './utils/checkTimeframe'
 import changeTheme from './utils/changeTheme';
 import _ from 'lodash'
@@ -26,8 +25,11 @@ function nonEditingKey(e) {
   const isModifierKey = e.altKey || e.ctrlKey || e.metaKey;
   const isNavigationKey = e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown';
   const isFunctionKey = e.key.startsWith('F') && e.key.length > 1;
-
+  
   return isModifierKey || isNavigationKey || isFunctionKey;
+}
+function editingKey(e) {
+  return e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || e.key === 'Enter';
 }
 
 function Editor({ user, cursorColor, file, socket, open_time, close_time, setSaved, editorTheme, warning, setWarning}) {
@@ -39,25 +41,17 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
   const themeCompartmentRef = useRef(new Compartment());
   const readOnlyCompartmentRef = useRef(new Compartment());
   const inSameLineRef = useRef(false);
-  let storeInHistory = false;
+  const storeInHistoryRef = useRef(false);
+  const previousLineRef = useRef(0);
 
   const editorListener = (event) => {
     try {
-      const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
       const onTime = checkTimeframe(openTimeRef.current, closeTimeRef.current);    
 
-      //Ctrl + S to save the code
-      if (event.ctrlKey && event.key === 's') {
-        event.preventDefault();
-        onTime ? updateCode(editorRef.current) : null;
-
-        return;
-      }    
-
-      if (!nonEditingKey(event) && (event.key.length === 1 || isEditingKey)) {
-        if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Enter') {
-          updateAwareness();
-        }
+      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event))) {
+        const new_line = editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1;
+        updateAwareness(new_line);
+        previousLineRef.current = new_line;
 
         //check the readOnly config and will be used to minimize the number of times the editor
         //...is updated so it can only be updated when readOnly must be in opposite state
@@ -67,7 +61,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         //...the current time is within the open and close time
         if (!inSameLineRef.current && onTime) {
           //if yes, it then checks if the current config of readOnly is true 
-          if (currentConfig === true){
+          if (currentConfig === true) {
             //if currently true, it then modifies the readOnly state of the editor to false
             editorRef.current?.dispatch({
               effects: readOnlyCompartmentRef.current.reconfigure([
@@ -79,7 +73,6 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
           debounceUserType(user.uid);
 
         } else if (inSameLineRef.current || !onTime) {
-        // } else if (!onTime) {
           //if in same line or not on time, it then checks if the current config of readOnly is false
           if (currentConfig === false) {
             //if currently false, it then modifies the readOnly state of the editor to true
@@ -93,6 +86,14 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
           !onTime && warning !== 2 ? setWarning(2) : null;
         }
       } 
+
+      //Ctrl + S to save the code
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();
+        onTime ? updateCode(editorRef.current) : null;
+        return;
+      }
+      
     } catch (e) {
       console.error(e);
     }
@@ -109,14 +110,12 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
     }
   }, 200);
 
-  const updateAwareness = () => {
+  function updateAwareness(new_line) {
     if (!providerRef.current || !editorRef.current) {
       return;
     }
 
     try {
-      const local_line = editorRef.current?.state?.doc.lineAt(editorRef.current?.state?.selection?.main?.head)?.number;
-
       let allOtherUsers = Array.from(providerRef.current.awareness.getStates().values())
                                 .map(state => state.user);
   
@@ -129,29 +128,13 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         return notUndefined && notMe && notLineOne && isEditing;
       });
       
-      let hasSameLine = false;
+      inSameLineRef.current = allOtherUsers.some(u => Number(u.line) === Number(new_line));
+
+      providerRef.current.awareness.setLocalStateField('user', {
+        ...providerRef.current.awareness.getLocalState().user,
+        line: !inSameLineRef.current ? new_line : 0,
+      });  
   
-      for (let i = 0; i < allOtherUsers.length; i++) {
-        if (allOtherUsers[i].line.toString() === local_line.toString()) {
-          hasSameLine = true;
-          break;
-        }
-      }
-  
-      if (hasSameLine) {
-        providerRef.current.awareness.setLocalStateField('user', {
-          ...providerRef.current.awareness.getLocalState().user,
-          line: 0,
-        });  
-        inSameLineRef.current = true;
-  
-      } else {
-        providerRef.current.awareness.setLocalStateField('user', {
-          ...providerRef.current.awareness.getLocalState().user,
-          line: local_line,
-        });
-        inSameLineRef.current = false;
-      }        
     } catch (e) {
       console.error(e);
     }
@@ -165,11 +148,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
       return;
     }
 
-
-
     try {
-
-
       async function init() {
         const ydoc = new Y.Doc();
         
@@ -188,7 +167,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         });
       
         const type = () => {
-          if      (file.name.endsWith('.html')) return [html(), htmlLanguage.data.of({ autocomplete: [html5Snippet] }),]; 
+          if      (file.name.endsWith('.html')) return [html(), htmlLanguage.data.of({ autocomplete: [html5Snippet, linkTagSnippet] }),]; 
           else if (file.name.endsWith('.css'))  return css();
           else if (file.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
         }
@@ -252,23 +231,57 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
             editor_div.addEventListener('keydown', editorListener);
           }
 
-          providerRef.current.awareness.on('change', () => {  
-            updateAwareness();
+          providerRef.current.awareness.on('change', () => {
+            const new_line = editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1;
+
+            if (new_line !== previousLineRef.current) {
+              updateAwareness(new_line);
+              previousLineRef.current = new_line;
+            }
           });
+        });
+
+        // Add these error handlers
+        providerRef.current.on('connection-error', (error) => {
+          console.error('YJS Connection Error:', error);
+          setWarning(4); // Add a new warning state for connection errors
+        });
+
+        providerRef.current.on('connection-close', () => {
+          console.warn('YJS Connection Closed');
+          providerRef.current.connect();
         });
       };
       init();
 
+      socket.emit('join_editor', {
+        room_id,
+        file_id: file.file_id,
+        user_id: user.uid
+      });
     } catch (e) {
       alert('Connection to websocket has failed. Please refresh the page.');
     }
       
-    socket.emit('join_editor', {
-      room_id,
-      file_id: file.file_id,
-      user_id: user.uid
-    });
+    return () => {      
+      if (user.position === 'Student') {
+        document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
+      }
+      if (file) {
+        socket.emit('leave_editor', { file_id: file?.file_id })
+      }
+      if (editorRef.current) {
+        editorRef.current.destroy();
+        editorRef.current = null;
+      }
+      if (providerRef.current) {
+        providerRef.current.destroy();
+        providerRef.current = null;
+      }
+    }
+  }, [file]);
 
+  useEffect (() => {
     socket.on('update_result', ({ status }) => {
       if (status === 'ok') {
         setSaved( <label className='items-center' id='saved'>
@@ -294,39 +307,23 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
             ])
         });
       }      
-    });
+    }); 
 
     return () => {
       socket.off('update_result');
       socket.off('dates_updated');
-      socket.off('editor_users_updated');
-
-      if (file) {
-        socket.emit('leave_editor', {file_id: file?.file_id })
-      }
-      if (user.position === 'Student') {
-        document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
-      }
-      if (editorRef.current) {
-        editorRef.current.destroy();
-        editorRef.current = null;
-      }
-      if (providerRef.current) {
-        providerRef.current.destroy();
-        providerRef.current = null;
-      }
     }
-  }, [file]);
+  }, [socket, open_time, close_time, file]);
 
   useEffect(() => {
     changeTheme(editorRef, editorTheme, themeCompartmentRef);
   }, [editorTheme]);
       
   useEffect(() => {
-    storeInHistory = true;
+    storeInHistoryRef.current = true;
     
     const interval = setInterval(() => {
-      storeInHistory = true;
+      storeInHistoryRef.current = true;
     }, 30000);
 
     return () => {
@@ -346,10 +343,10 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
       socket.emit('update_code', {
         file_id: file.file_id,
         code: code,
-        store_history: storeInHistory,
+        store_history: storeInHistoryRef.current,
       });
 
-      storeInHistory = false;
+      storeInHistoryRef.current = false;
 
       setWarning(0);
     } else if ( isEmpty || allSpaces) {

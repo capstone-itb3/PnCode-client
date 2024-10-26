@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BsXLg } from 'react-icons/bs';
 import { VscDebugDisconnect } from 'react-icons/vsc';
 import { getToken, getClass } from '../validator';
+import { showConfirmPopup } from '../reactPopupService';
 import disableCopyPaste from './utils/disableCopyPaste';
 import manageResizes from './utils/manageResizes';
 import Options from './Options';
@@ -18,6 +19,21 @@ import History from './History';
 import Chats from './Chats';
 import Feedback from './Feedback';
 import Switch from './Switch';
+
+async function socketConnectError(error_type) {
+  const reload = await showConfirmPopup({
+    title: `Connection ${error_type}`,
+    message: `An ${String(error_type).toLowerCase()} occured while connecting to socket.`,
+    confirm_text: 'Reload',
+    cancel_text: 'Dashboard'
+  });
+
+  if (reload === true) {
+    window.location.reload();
+  } else if (reload === false) {
+    window.location.href = '/dashboard';
+  }
+}
 
 function AssignedRoom() {  
   const { room_id } = useParams();
@@ -51,17 +67,18 @@ function AssignedRoom() {
   const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
   
   useEffect(() => {    
-    // if (!window.location.pathname.endsWith('/')) {
-    //   const added_slash = `${window.location.pathname}/`;
-    //   navigate(added_slash);
-    // }
-
     if (user?.position === 'Student') {
       disableCopyPaste();
     }   
 
     async function initRoom () {
       const info = await user.getAssignedRoomDetails(room_id);
+
+      if (!info.access) {
+        navigate('/error/404');
+        return;
+      }
+      
       setRoom(info.room);
       setRoomFiles(info.files);
       setMembers(info.members);
@@ -76,34 +93,21 @@ function AssignedRoom() {
 
       if (info.access) {
         socketRef.current = await initSocket();
-        
-        console.log(socketRef.current?.id);
 
-        socketRef.current.on('get_socket_id', ({ socket_id }) => {
-          setSocketId(socket_id);
-          console.log(socket_id);
+        socketRef.current.on('connect_timeout', () => {
+          console.log('Connection timeout');
+          socketConnectError('Timeout');
+        });
+
+        socketRef.current.on('error', (error) => {
+          console.log('Socket error:', error);
+          socketConnectError('Error');
         });
         
-        socketRef.current.emit('join_room', { 
-          room_id, 
-          user_id: user.uid,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          position: user.position
-        })
-
-        socketRef.current.on('room_users_updated', ({ users }) => {
-          setRoomUsers(users);
-          setCursorColor(users.find((u) => u.user_id === user.uid)?.cursor);
-        })  
-  
-        socketRef.current.on('found_file', ({ file }) => {
-          setActiveFile(file);
-        });
-    
         if (info.files.length > 0) {
           displayFile(info.files[0]);
         }
+    
       } else {
         windows.location.href = '/error/404';
       }
@@ -112,9 +116,9 @@ function AssignedRoom() {
     
     return () => {
       if (socketRef.current) {
-        socketRef.current.off('found_file');
-        socketRef.current.off('room_users_updated');
-        socketRef.current.off('editor_users_updated');
+        socketRef.current.off('connect_error');
+        socketRef.current.off('connect_timeout');
+        socketRef.current.off('error');
         socketRef.current.disconnect();
       }
 
@@ -133,18 +137,56 @@ function AssignedRoom() {
     }
   }, [room_id]);
 
+
   useEffect(() => {
-    if (socketRef.current) {
-      socketRef.current.on('editor_users_updated', ({ editors }) => {
-        setEditorUsers(editors);
-      });
+    if (!user || !socketRef.current) {
+      return;
     }
+
+    socketRef.current.on('connect', () => {
+      socketRef.current.emit('join_room', { 
+        room_id, 
+        user_id: user.uid,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        position: user.position
+      });
+
+      if (activeFile !== null) {
+        socketRef.current.emit('join_editor', {
+          room_id,
+          file_id: activeFile.file_id,
+          user_id: user.uid
+        });
+      }
+    });
+    
+    socketRef.current.on('get_socket_id', ({ socket_id }) => {
+      setSocketId(socket_id);
+    });
+    
+    socketRef.current.on('room_users_updated', ({ users }) => {
+      setRoomUsers(users);
+      setCursorColor(users.find((u) => u.user_id === user.uid)?.cursor);
+    })  
+
+    socketRef.current.on('found_file', ({ file }) => {
+      setActiveFile(file);
+    });
+
+    socketRef.current.on('editor_users_updated', ({ editors }) => {
+      setEditorUsers(editors);
+    });
+
     return () => {
       if (socketRef.current) {
+        socketRef.current.off('connect');
+        socketRef.current.off('found_file');
+        socketRef.current.off('room_users_updated');
         socketRef.current.off('editor_users_updated');
-      } 
-    };
-  }, [activeFile]);  
+      }
+    }
+  }, [socketRef.current, activeFile]);
 
   useEffect(() => {
     manageResizes(leftDisplay, rightDisplay);

@@ -1,10 +1,21 @@
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import { Student, Professor } from '../classes/UserClass';
+
+function restrictStudent() {
+    const token = Cookies.get('token');
+    if (token) {
+        const auth = getToken(token);
+        if (auth && auth?.position === 'Student') {
+            return true;
+        }
+    }
+    return false;
+}
+
 function getToken(token) {
     if (!token) {
-        window.location.href = '/login';
-        return null;
+        return removeAccess();
     }
 
     try {
@@ -18,38 +29,28 @@ function getToken(token) {
 function getClass(auth, position) {
     if (auth.position === position) {
         switch (position) {
-
-        case 'Student':
-            return new Student(
-                    auth.uid,
-                    auth.first_name,
-                    auth.last_name,
-                    auth.position,
-            );
-
-        case 'Professor':
-            return new Professor(
-                auth.uid, 
-                auth.first_name, 
-                auth.last_name, 
-                auth.position, 
-            );
-
-        default:
-            return removeAccess();
-        }            
-    } else {
-        return removeAccess();
+            case 'Student':
+                return new Student(
+                        auth.uid,
+                        auth.first_name,
+                        auth.last_name,
+                        auth.position,
+                );
+            case 'Professor':
+                return new Professor(
+                    auth.uid, 
+                    auth.first_name, 
+                    auth.last_name, 
+                    auth.position, 
+                );
+        }
     }
+    return removeAccess();
 }
 
 function removeAccess() {
-    Cookies.remove('token');
     window.location.href = '/login';
     return null;
 }
 
-export {
-            getToken,
-            getClass,
-        };
+export { restrictStudent, getToken, getClass };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { ConfirmPopup, AlertPopup } from './PopupWindow';
+import { ConfirmPopup, AlertPopup } from './PopupWindows';
 
 export function showConfirmPopup(props) {
   return new Promise((resolve) => {
@@ -50,6 +50,10 @@ export function showAlertPopup(props) {
         onOkay={() => {
           destroy();
           resolve(true);
+        }}
+        onExit={() => {
+          destroy();
+          resolve(null);
         }}
       />
     );
