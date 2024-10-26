@@ -42,16 +42,20 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
   const readOnlyCompartmentRef = useRef(new Compartment());
   const inSameLineRef = useRef(false);
   const storeInHistoryRef = useRef(false);
-  const previousLineRef = useRef(0);
 
   const editorListener = (event) => {
     try {
       const onTime = checkTimeframe(openTimeRef.current, closeTimeRef.current);    
 
+      //Ctrl + S to save the code
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();
+        onTime ? updateCode(editorRef.current) : null;
+        return;
+      }
+
       if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event))) {
-        const new_line = editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1;
-        updateAwareness(new_line);
-        previousLineRef.current = new_line;
+        updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
 
         //check the readOnly config and will be used to minimize the number of times the editor
         //...is updated so it can only be updated when readOnly must be in opposite state
@@ -86,13 +90,6 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
           !onTime && warning !== 2 ? setWarning(2) : null;
         }
       } 
-
-      //Ctrl + S to save the code
-      if (event.ctrlKey && event.key === 's') {
-        event.preventDefault();
-        onTime ? updateCode(editorRef.current) : null;
-        return;
-      }
       
     } catch (e) {
       console.error(e);
@@ -232,24 +229,23 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
           }
 
           providerRef.current.awareness.on('change', () => {
-            const new_line = editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1;
-
-            if (new_line !== previousLineRef.current) {
-              updateAwareness(new_line);
-              previousLineRef.current = new_line;
-            }
+            updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
           });
         });
 
         // Add these error handlers
-        providerRef.current.on('connection-error', (error) => {
-          console.error('YJS Connection Error:', error);
-          setWarning(4); // Add a new warning state for connection errors
-        });
-
         providerRef.current.on('connection-close', () => {
           console.warn('YJS Connection Closed');
-          providerRef.current.connect();
+
+          setTimeout(() => {
+            setWarning(4);
+            providerRef.current.connect();
+          }, 1000)
+        });
+
+        providerRef.current.on('connection-error', (error) => {
+          console.error('YJS Connection Error:', error);
+          setWarning(5);
         });
       };
       init();

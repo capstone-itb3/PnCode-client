@@ -1,10 +1,32 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { BsExclamationTriangleFill } from 'react-icons/bs'
 import Editor from './Editor'
+import { showConfirmPopup } from '../reactPopupService';
 
 function EditorTab({room, user, cursorColor, socket, open_time, close_time, activeFile, editorTheme}) {
     const [warning, setWarning] = useState(0);
     const [saved, setSaved] = useState(null);
+    const [alertUp, setAlertUp] = useState(false);
+
+    useEffect(() => {
+        async function alertWarning() {    
+            if (warning === 5 && alertUp === false) {
+                setAlertUp(true);
+                const reload = await showConfirmPopup({
+                    title: 'Websocket Error',
+                    message: 'Unable to connect to websocket. Do you want to reload the page?',
+                    confirm_text: 'Reload',
+                    cancel_text: 'Wait to reconnect',
+                });
+
+                if (reload) {
+                    window.location.reload();
+                }
+                setAlertUp(false);
+            }
+        }
+        alertWarning();
+    }, [warning]);
 
 
   return (
@@ -39,8 +61,8 @@ function EditorTab({room, user, cursorColor, socket, open_time, close_time, acti
                                 {warning === 3 &&
                                     <span>You cannot edit the same line with another user</span>
                                 }
-                                {warning === 4 &&
-                                    <span>Connection to websocket has failed. Please refresh the page.</span>
+                                {warning >= 4 &&
+                                    <span>Connection to websocket has failed. Reconnecting...</span>
                                 }
                             </label>
                         </div>
