@@ -759,8 +759,7 @@ header {
 }
 
 .no-course {
-    padding:60px 0 80px 50px;
-    font-style: italic;
+    padding:20px 0 50px 30px;
     color: var(--gray);
 }
 

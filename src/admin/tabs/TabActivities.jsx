@@ -5,6 +5,7 @@ import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
+import convertTime from '../../components/dashboard/utils/convertTime';
 
 function TabActivities({ admin, showId, setShowId }) {
   const [activites, setActivities] = useState(null);
@@ -86,7 +87,7 @@ function TabActivities({ admin, showId, setShowId }) {
 
   function searchActivities(e) {
     e.preventDefault();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
     selectedRef.current = null;
     if (search === '' && filter === 'activity_id') {
       navigate(`/admin/dashboard/class/${foreign_key}/activities/q=&f=`);
@@ -98,6 +99,7 @@ function TabActivities({ admin, showId, setShowId }) {
   function selectActivity(activity) {
     if (selectedRef.current?.activity_id === activity.activity_id) {
       selectedRef.current = null;
+      showForm ? setShowForm(null) : null;
       navigate(-1);
       return;
     }
@@ -144,7 +146,7 @@ function TabActivities({ admin, showId, setShowId }) {
 
   async function reloadData() {
     await getAllActivities();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
   }
 
   async function resetUI() {
@@ -266,14 +268,6 @@ function TabActivities({ admin, showId, setShowId }) {
           </thead>
           <tbody>
             {results && results.map(res => {
-              const convertTime = (time) => {
-                const [hour, minutes] = time.split(':');
-                const HH = (parseInt(hour) % 12 || 12) < 10 ? `0${parseInt(hour) % 12 || 12}` : parseInt(hour) % 12 || 12;
-                const mm = parseInt(minutes) < 10 ? `0${parseInt(minutes)}` : minutes;
-                const ampm = parseInt(hour) >= 12 ? 'PM' : 'AM';
-                return `${HH}:${mm} ${ampm}`;    
-              }
-
               return (
               <tr 
                 key={res.activity_id} 
@@ -304,6 +298,16 @@ function TabActivities({ admin, showId, setShowId }) {
         }
       </div>
       }
+      {selectedRef.current &&
+        <div id='admin-info-display' className='flex-column'>
+          <label><b>Activity ID:</b> {selectedRef.current.activity_id}</label>
+          <label><b>Activity Name:</b> {selectedRef.current.activity_name}</label>
+          <label><b>Class:</b> {parent_class.course_code} - {parent_class.section}</label>
+          <label className='single-line'><b>Instructions:</b> {selectedRef.current.instructions}</label>
+          <label><b>Open Time:</b> {convertTime(selectedRef.current.open_time)}</label>
+          <label><b>Close Time:</b> {convertTime(selectedRef.current.close_time)}</label>
+        </div>
+      }            
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>

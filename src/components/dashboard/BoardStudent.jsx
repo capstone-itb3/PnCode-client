@@ -149,7 +149,7 @@ function BoardStudent({ auth }) {
                         <label className='sub-title'>Professor: {class_info.professor}</label>
                     </div>
                     }
-                    {class_id &&
+                    {class_info &&
                         <>
                             <div className={`separator ${(select === 'activities' || select === 'solo') && 'none'}`} id='show-teams'>
                                 <div className='section-title'>

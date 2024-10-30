@@ -101,6 +101,7 @@ header.admin {
     left: 0;
     right: 0;
     overflow: auto;
+    margin-bottom: 100px;
     transition: 0.3s ease;
 }
 
@@ -142,7 +143,7 @@ header.admin {
 
 #admin-table-container {
     overflow-x: auto;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     padding: 0 20px;
 }
 
@@ -250,6 +251,7 @@ header.admin {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
+    margin-bottom: 30px;
     padding: 0 20px;
 }
 #admin-table-buttons.long{
@@ -342,7 +344,7 @@ header.admin {
 .admin-member-list-container {
     position: relative;
     width: calc(100% - 40px);
-    margin: 30px 20px;
+    margin: 0 20px 30px 20px;
 }
 
 .admin-member-list-container {
@@ -478,6 +480,18 @@ header.admin {
     color: unset;
 }
 
+#admin-info-display {
+    color: var(--gray-dark);
+    margin: 20px;
+    padding: 30px 20px;
+    border-radius: 10px;
+    background-color: var(--near-white);
+    gap: 20px 0;
+}
+
+#admin-info-display a {
+    color: blue;
+}
 
 
 @media (width < 600px) {

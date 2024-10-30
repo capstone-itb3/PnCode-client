@@ -102,7 +102,7 @@ function TabTeams({ admin, showId, setShowId }) {
 
   function searchTeams(e) {
     e.preventDefault();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
     selectedRef.current = null;
     setTeamMembers([]);
 
@@ -116,6 +116,7 @@ function TabTeams({ admin, showId, setShowId }) {
   function selectTeam(team) {
     if (selectedRef.current?.team_id === team.team_id) {
       selectedRef.current = null;
+      showForm ? setShowForm(null) : null;
       setTeamMembers([]);
       setShowMemberList(false);
       navigate(-1);
@@ -151,22 +152,28 @@ function TabTeams({ admin, showId, setShowId }) {
 
     if (showForm === 'edit' || !selectedRef.current?.team_name) {
       setShowForm(null);
-      
-      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
       return;
     }
     
     setShowForm('edit');
     setTeamName(selectedRef.current.team_name);
 
-    setTimeout(() => document.getElementById('team_name')?.focus(), 100);
+    setTimeout(() => {
+      const buttons = document.querySelector('#admin-table-buttons');
+      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
+    }, 200)
   }
 
   async function manageList() {
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
     setShowMemberList(!showMemberList);
     setMemberInput('');
     setShowStudents(false);
+
+    setTimeout(() => {
+      const buttons = document.querySelector('#admin-table-buttons');
+      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
+    }, 200)
   }
 
   async function addMember(student) {
@@ -203,7 +210,7 @@ function TabTeams({ admin, showId, setShowId }) {
 
   async function reloadData() {
     await getAllTeams();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
   }
 
   async function resetUI() {
@@ -354,14 +361,22 @@ function TabTeams({ admin, showId, setShowId }) {
         }
       </div>
       }
+      {selectedRef.current &&
+        <div id='admin-info-display' className='flex-column'>
+          <label><b>Team ID:</b> {selectedRef.current.team_id}</label>
+          <label><b>Team Name:</b> {selectedRef.current.team_name}</label>
+          <label><b>Class:</b> {parent_class.course_code} - {parent_class.section}</label>
+          <label><b>No. of Members:</b> {selectedRef.current.members?.length}</label>
+        </div>
+      }            
       <div id='admin-table-buttons'>
-        {selectedRef.current &&
+      {selectedRef.current &&
         <>
           <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${foreign_key}&f=class_id`)}>
             View Class
           </button>
           <button className='admin-view' onClick={() => navigate(`/admin/dashboard/team/${selectedRef.current.team_id}/assigned-rooms/q=&f=`)}>
-            View Assigned Rooms
+            View Assigned Rooms 
           </button>
           <button className='admin-manage' onClick={manageList}>
             Manage Members
@@ -373,7 +388,7 @@ function TabTeams({ admin, showId, setShowId }) {
             Delete Team
           </button>
         </>
-        }
+      }
       </div>
       <form id='admin-form' className={`flex-column ${!showForm && 'none' }`} onSubmit={submitTeam}>
         {showForm === 'create' && <h4>Create a team for: <span>{parent_class?.course_code} {parent_class?.section}</span></h4>}

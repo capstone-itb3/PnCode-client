@@ -88,8 +88,9 @@ function TabStudents({ admin, showId, setShowId }) {
 
   function searchStudents(e) {
     e.preventDefault();
-    setShowForm(null);
+
     selectedRef.current = null;
+    showForm ? setShowForm(null) : null;
 
     if (search === '' && filter === 'uid') {
       navigate('/admin/dashboard/students/q=&f=');
@@ -101,6 +102,7 @@ function TabStudents({ admin, showId, setShowId }) {
   function selectStudent(student) {
     if (selectedRef.current?.uid === student.uid) {
       selectedRef.current = null;
+      showForm ? setShowForm(null) : null;
       navigate(-1);
       return;
     }
@@ -120,11 +122,7 @@ function TabStudents({ admin, showId, setShowId }) {
     }
 
     setShowForm('create');
-    setEmail('');
-    setFirstName('');
-    setLastName('');
-    setPassword('');
-    setConfirmPassword('');
+    resetInput([setEmail, setFirstName, setLastName, setPassword, setConfirmPassword]);
     setLoading(false);
     setTimeout(() => document.getElementById('first_name')?.focus(), 100);
   }
@@ -132,8 +130,6 @@ function TabStudents({ admin, showId, setShowId }) {
   function showEditForm() {
     if (showForm === 'edit' || !selectedRef.current?.uid) {
       setShowForm(null);
-      
-      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
       return;
     }
 
@@ -144,12 +140,15 @@ function TabStudents({ admin, showId, setShowId }) {
     setPassword('');
     setConfirmPassword('');
 
-    setTimeout(() => document.getElementById('first_name')?.focus(), 100);
+    setTimeout(() => {
+      const buttons = document.querySelector('#admin-table-buttons');
+      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
+    }, 200)
   }
 
   async function reloadData() {
     await getAllStudents();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
   }
 
   async function resetUI() {
@@ -284,6 +283,14 @@ function TabStudents({ admin, showId, setShowId }) {
           </div>
         }
       </div>
+      }
+      {selectedRef.current &&
+        <div id='admin-info-display' className='flex-column'>
+          <label><b>UID:</b> {selectedRef.current.uid}</label>
+          <label><b>Last Name:</b> {selectedRef.current.last_name}</label>
+          <label><b>First Name:</b> {selectedRef.current.first_name}</label>
+          <label><b>Email:</b> {selectedRef.current.email}</label>
+        </div>
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&

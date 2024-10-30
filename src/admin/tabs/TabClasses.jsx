@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
@@ -114,7 +114,7 @@ function TabClasses({ admin, showId, setShowId }) {
 
   function searchClasses(e) {
     e.preventDefault();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
     selectedRef.current = null;
     setClassStudents([]);
     setClassRequests([]);
@@ -129,6 +129,7 @@ function TabClasses({ admin, showId, setShowId }) {
   function selectClass(class_data) {
     if (selectedRef.current?.class_id === class_data.class_id) {
       selectedRef.current = null;
+      showForm ? setShowForm(null) : null;
       setClassStudents([]);
       setClassRequests([]);
       setShowStudentList(false);
@@ -174,8 +175,6 @@ function TabClasses({ admin, showId, setShowId }) {
 
     if (showForm === 'edit' || !selectedRef.current?.course_code) {
       setShowForm(null);
-      
-      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
       return;
     }
     
@@ -186,11 +185,14 @@ function TabClasses({ admin, showId, setShowId }) {
     setSection(selectedRef.current.section);
     setProfessorUid(selectedRef.current.professor_uid);
 
-    setTimeout(() => document.getElementById('course_code')?.focus(), 100);
+    setTimeout(() => {
+      const buttons = document.querySelector('#admin-table-buttons');
+      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
+    }, 200)
   }
 
   function manageList(manage) {
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
     if (manage === 'students') {
       setShowStudentList(!showStudentList);
       setShowRequestList(false);
@@ -198,6 +200,11 @@ function TabClasses({ admin, showId, setShowId }) {
       setShowRequestList(!showRequestList);
       setShowStudentList(false);
     }
+    
+    setTimeout(() => {
+      const buttons = document.querySelector('#admin-table-buttons');
+      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
+    }, 200)
   }
 
   async function addStudent(student) {
@@ -262,7 +269,7 @@ function TabClasses({ admin, showId, setShowId }) {
 
   async function reloadData() {
     await getAllClasses();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
   }
 
   async function resetUI() {
@@ -408,6 +415,16 @@ function TabClasses({ admin, showId, setShowId }) {
         }
       </div>
       }
+      {selectedRef.current &&
+        <div id='admin-info-display' className='flex-column'>
+          <label><b>Class ID:</b> {selectedRef.current.class_id}</label>
+          <label><b>Course Code:</b> {selectedRef.current.course_code}</label>
+          <label><b>Section:</b> {selectedRef.current.section}</label>
+          <label><b>Professor:</b> {selectedRef.current.professor} {selectedRef.current.professor_uid !== '' && <Link to={`/admin/dashboard/professors/q=${selectedRef.current.professor_uid}&f=uid`}>(Info)</Link>}</label>
+          <label><b>No. of Students:</b> {selectedRef.current.students?.length}</label>
+          <label><b>No. of Requests:</b> {selectedRef.current.requests?.length}</label>
+        </div>
+      }      
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>

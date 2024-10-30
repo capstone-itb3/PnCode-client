@@ -95,7 +95,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
 
   function searchAssignedRooms(e) {
     e.preventDefault();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
     selectedRef.current = null;
 
     if (search === '' && filter === 'room_id') {
@@ -126,14 +126,13 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
       setLoading(false);
       return;
     }
-    console.log(parent_class.class_id)
 
     const data = await admin.getAllTeams(parent_class.class_id);
     if (data?.teams) {
       setTeamList(data.teams);
     } else {
       toast.error('Retrieving class\' teams failed!');
-      setShowForm(null);
+      showForm ? setShowForm(null) : null;
     }
 
     setShowForm('create');
@@ -143,7 +142,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
 
   async function reloadData() {
     await getAllAssignedRooms();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
   }
 
   async function resetUI() {
@@ -310,6 +309,14 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
           </>
         }
       </div>
+      }
+      {selectedRef.current &&
+        <div id='admin-info-display' className='flex-column'>
+          <label><b>Room ID:</b> {selectedRef.current.room_id}</label>
+          <label><b>Room Name:</b> {selectedRef.current.room_name}</label>
+          <label><b>Team:</b> {selectedRef.owner_id !== '' ? selectedRef.current.room_name.slice(0, -7) : <i>None</i>} </label>
+          <label><b>Activity:</b> {selectedRef.current.activity_name || parent_activity?.activity_name}</label>
+        </div>
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&

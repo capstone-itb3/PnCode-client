@@ -79,7 +79,7 @@ function TabCourses({ admin }) {
 
   function searchCourses(e) {
     e.preventDefault();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
     selectedRef.current = null;
 
     navigate(`/admin/dashboard/courses/q=${search}&f=${filter}`);
@@ -88,6 +88,7 @@ function TabCourses({ admin }) {
   function selectCourse(course) {
     if (selectedRef.current?.course_code === course.course_code) {
       selectedRef.current = null;
+      showForm ? setShowForm(null) : null;
       navigate(-1);
       return;
     }
@@ -116,8 +117,6 @@ function TabCourses({ admin }) {
   function showEditForm() {
     if (showForm === 'edit' || !selectedRef.current?.course_code) {
       setShowForm(null);
-      
-      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
       return;
     }
 
@@ -125,12 +124,15 @@ function TabCourses({ admin }) {
     setCourseCode(selectedRef.current.course_code);
     setCourseTitle(selectedRef.current.course_title);
 
-    setTimeout(() => document.getElementById('course_code')?.focus(), 100);
+    setTimeout(() => {
+      const buttons = document.querySelector('#admin-table-buttons');
+      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
+    }, 200)
   }
 
   async function reloadData() {
     await getAllCourses();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
   }
 
   async function resetUI() {
@@ -154,7 +156,6 @@ function TabCourses({ admin }) {
         setLoading(false);
       }
 
-
     } else if (showForm === 'edit') {
       const res = await admin.updateCourse(selectedRef.current.course_code, course_code, course_title);
       if (res) {
@@ -176,7 +177,6 @@ function TabCourses({ admin }) {
   
         if (res) {
           toast.success('Course deleted successfully!');
-          setShowForm(null);
           await reloadData();
           navigate(-1);
           selectedRef.current = null;
@@ -260,21 +260,25 @@ function TabCourses({ admin }) {
         }
       </div>
       }
+      {selectedRef.current &&
+        <div id='admin-info-display' className='flex-column'>
+          <label><b>Course Code:</b> {selectedRef.current.course_code}</label>
+          <label><b>Course Title:</b> {selectedRef.current.course_title}</label>
+        </div>
+      }
       <div id='admin-table-buttons' className='long'>
         {selectedRef.current &&
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`)}>
-            View Classes Within this Course
-          </button>
-        }
-        {selectedRef.current &&
-          <button className='admin-edit' onClick={showEditForm}>
-            Edit Course
-          </button>
-        }
-        {selectedRef.current &&
-          <button className='admin-delete' onClick={deleteCourse}>
-            Delete Course
-          </button>
+          <>
+            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`)}>
+              View Classes Within this Course
+            </button>
+            <button className='admin-edit' onClick={showEditForm}>
+              Edit Course
+            </button>
+            <button className='admin-delete' onClick={deleteCourse}>
+              Delete Course
+            </button>
+          </>
         }
       </div>
       <form id='admin-form' className={`two-column-grid ${!showForm && 'none' }`} onSubmit={submitCourse}>

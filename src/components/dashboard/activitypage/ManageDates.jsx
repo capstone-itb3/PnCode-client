@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import convertTime from '../utils/convertTime';
 
 function ManageDates({activity, renderActivity}) {
     const [showAccessInputs, setShowAccessInputs] = useState(false);
@@ -8,23 +9,8 @@ function ManageDates({activity, renderActivity}) {
     const [new_close_time, setNewCloseTime] = useState(activity.close_time);
     
     useEffect(() => {
-        setOpenTime(() => {
-            const [hours, minutes] = activity.open_time.split(':');
-        
-            const HH = (parseInt(hours) % 12 || 12) < 10 ? `0${parseInt(hours) % 12 || 12}` : parseInt(hours) % 12 || 12;
-            const mm = parseInt(minutes) < 10 ? `0${parseInt(minutes)}` : minutes;
-            const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
-            return `${HH}:${mm} ${ampm}`;    
-        });
-        setCloseTime(() => {
-            const [hours, minutes] = activity.close_time.split(':');
-    
-            const HH = (parseInt(hours) % 12 || 12) < 10 ? `0${parseInt(hours) % 12 || 12}` : parseInt(hours) % 12 || 12;
-            const mm = parseInt(minutes) < 10 ? `0${parseInt(minutes)}` : minutes;
-            const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
-            return `${HH}:${mm} ${ampm}`;
-        });
-
+        setOpenTime(convertTime(activity.open_time));
+        setCloseTime(convertTime(activity.close_time));
     }, [activity.open_time, activity.close_time]);
 
     function toggleAccess(show) {

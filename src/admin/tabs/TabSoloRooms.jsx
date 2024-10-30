@@ -268,6 +268,13 @@ function TabSoloRooms({ admin, showId, setShowId }) {
           </>
         }
       </div>
+      {selectedRef.current &&
+        <div id='admin-info-display' className='flex-column'>
+          <label><b>Room ID:</b> {selectedRef.current.room_id}</label>
+          <label><b>Room Name:</b> {selectedRef.current.room_name}</label>
+          <label><b>Owner:</b> {parent_user?.last_name}, {parent_user?.first_name}</label>
+        </div>
+      }
       <div id='admin-table-buttons'>
         {selectedRef.current &&
           <>

@@ -89,7 +89,7 @@ function TabProfessors({ admin, showId, setShowId }) {
 
   function searchProfessors(e) {
     e.preventDefault();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
     selectedRef.current = null;
 
     if (search === '' && filter === 'uid') {
@@ -102,6 +102,7 @@ function TabProfessors({ admin, showId, setShowId }) {
   function selectProfessor(professor) {
     if (selectedRef.current?.uid === professor.uid) {
       selectedRef.current = null;
+      showForm ? setShowForm(null) : null;
       navigate(-1);
       return;
     }
@@ -133,8 +134,6 @@ function TabProfessors({ admin, showId, setShowId }) {
   function showEditForm() {
     if (showForm === 'edit' || !selectedRef.current?.uid) {
       setShowForm(null);
-      
-      setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
       return;
     }
 
@@ -145,12 +144,15 @@ function TabProfessors({ admin, showId, setShowId }) {
     setPassword('');
     setConfirmPassword('');
 
-    setTimeout(() => document.getElementById('first_name')?.focus(), 100);
+    setTimeout(() => {
+      const buttons = document.querySelector('#admin-table-buttons');
+      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
+    }, 200)
   }
 
   async function reloadData() {
     await getAllProfessors();
-    setShowForm(null);
+    showForm ? setShowForm(null) : null;
   }
 
   async function resetUI() {
@@ -287,6 +289,14 @@ function TabProfessors({ admin, showId, setShowId }) {
           </div>
         }
       </div>
+      }
+      {selectedRef.current &&
+        <div id='admin-info-display' className='flex-column'>
+          <label><b>UID:</b> {selectedRef.current.uid}</label>
+          <label><b>Last Name:</b> {selectedRef.current.last_name}</label>
+          <label><b>First Name:</b> {selectedRef.current.first_name}</label>
+          <label><b>Email:</b> {selectedRef.current.email}</label>
+        </div>
       }
       <div id='admin-table-buttons'>
         {selectedRef.current &&

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { BsPencilSquare } from 'react-icons/bs';
+import convertTime from './utils/convertTime';
 
 function SelectActivity({ activity, index, onClick }) {
     const createdAt = () => {
@@ -20,25 +21,6 @@ function SelectActivity({ activity, index, onClick }) {
         }
         return 'just now';
     };
-
-    const open_time = () => {
-        const [hours, minutes] = activity.open_time.split(':');
-        
-        const HH = (parseInt(hours) % 12 || 12) < 10 ? `0${parseInt(hours) % 12 || 12}` : parseInt(hours) % 12 || 12;
-        const mm = parseInt(minutes) < 10 ? `0${parseInt(minutes)}` : minutes;
-        const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
-        return `${HH}:${mm} ${ampm}`;    
-    }
-
-    const close_time = () => {
-        const [hours, minutes] = activity.close_time.split(':');
-        
-        const HH = (parseInt(hours) % 12 || 12) < 10 ? `0${parseInt(hours) % 12 || 12}` : parseInt(hours) % 12 || 12;
-        const mm = parseInt(minutes) < 10 ? `0${parseInt(minutes)}` : minutes;
-        const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
-        return `${HH}:${mm} ${ampm}`;    
-    }
-
     
     return (
         <div className='activity-box flex-column' onClick={onClick}>
@@ -51,7 +33,7 @@ function SelectActivity({ activity, index, onClick }) {
             </div>
             <div className='dates'>
                 <label>Created: {createdAt()}</label>
-                <label>Access: {open_time()} - {close_time()}</label>
+                <label>Access: {convertTime(activity.open_time)} - {convertTime(activity.close_time)}</label>
             </div>
         </div>
     )
