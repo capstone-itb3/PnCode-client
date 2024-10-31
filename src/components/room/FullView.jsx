@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import Frame from 'react-frame-component';
 import Cookies from 'js-cookie';
 import { getToken, getClass } from '../validator'
+import toast from 'react-hot-toast';
 
 function FullView() {
     const { room_id, file_name } = useParams();

@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import Cookies from 'js-cookie';
 
-function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditorTheme, outputRef, setAddNewFile, setDeleteFile, runOutput}) {
+function Options({type, setLeftDisplay, setRightDisplay, setEditorTheme, setAddNewFile, setDeleteFile, startRunOutput, startRunOutputFullView}) {
     const [isChecked, setIsChecked] = useState(() => {
         if (Cookies.get('theme') === 'dark' || !Cookies.get('theme')) {
             return true;
@@ -65,6 +65,17 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
         option.classList.toggle('hidden');
     }
 
+    function closeSection(direction) {
+        if (direction === 'left') {
+            setLeftDisplay('');
+        } else if (direction === 'right') {
+            setRightDisplay('');
+        }
+
+        const option = document.getElementById(`view-menu`);
+        option.classList.toggle('hidden');
+    }
+
     function changeTheme(checked) {
         const theme = checked ? 'dark' : 'light';
         Cookies.set('theme', theme);
@@ -74,18 +85,16 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
 
 
     function runCode() {
-        if (outputRef.current) {
-            runOutput();
-        }
+        setRightDisplay('output');
+        startRunOutput();
         const option = document.getElementById(`run-menu`);
         option.classList.toggle('hidden');
     }
 
-    async function deleteSoloRoom() {
-        const result = confirm('Are you sure you want to delete this room?');
-        if (result) {
-            await room?.deleteRoom();
-        }
+    function runCodeFull() {
+        startRunOutputFullView();
+        const option = document.getElementById(`run-menu`);
+        option.classList.toggle('hidden');
     }
 
     return (
@@ -96,15 +105,15 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
                     Files
                 </button>
                 <div id='files-menu' className='flex-column options-menu hidden'>
-                    <div className='item items-center'  onClick={addFile}>
+                    <button className='item items-center'  onClick={addFile}>
                         <label>Add File</label><span>Alt + A</span>
-                    </div>
-                    <div className='item items-center'  onClick={openFile}>
+                    </button>
+                    <button className='item items-center'  onClick={openFile}>
                         <label>Open File</label><span>Alt + [#]</span>
-                    </div>
-                    <div className='item items-center' onClick={deleteFile}>
+                    </button>
+                    <button className='item items-center' onClick={deleteFile}>
                         <label>Delete File</label><span>Alt + X</span>
-                    </div>
+                    </button>
                 </div>
             </>
             }
@@ -114,21 +123,27 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
                     View
                 </button>
                 <div id='view-menu' className={`flex-column options-menu hidden`}>
-                    <div className='item items-center' onClick={() => viewSection('files')}>
+                    <button className='item items-center' onClick={() => viewSection('files')}>
                         <label>Show Files</label><span>Alt + F</span>
-                    </div>
-                    <div className='item items-center' onClick={() => viewSection('notepad')}>
+                    </button>
+                    <button className='item items-center' onClick={() => viewSection('notepad')}>
                         <label>Show Notepad</label><span>Alt + N</span>
-                    </div>
-                    <div className='item items-center' onClick={() => viewSection('output')}>
+                    </button>
+                    <button className='item items-center' onClick={() => viewSection('output')}>
                         <label>Show Output</label><span>Alt + O</span>
-                    </div>
-                    <div className='item items-center' onClick={() => viewSection('history')}>
+                    </button>
+                    <button className='item items-center' onClick={() => viewSection('history')}>
                         <label>Show History</label><span>Alt + H</span>
-                    </div>
-                    <div className='item items-center' onClick={() => viewSection('feedback')}>
+                    </button>
+                    <button className='item items-center' onClick={() => viewSection('feedback')}>
                         <label>Show Feedback</label><span>Alt + B</span>
-                    </div>
+                    </button>
+                    <button className='item items-center' onClick={() => closeSection('left')}>
+                        <label>Close Left Tabs</label><span>Alt + L</span>
+                    </button>
+                    <button className='item items-center' onClick={() => closeSection('right')}>
+                        <label>Close Right Tabs</label><span>Alt + P</span>
+                    </button>
 
                 </div>
             </>
@@ -155,18 +170,13 @@ function Options({type, room, socket, setLeftDisplay, setRightDisplay, setEditor
                 Run
             </button>
             <div id='run-menu' className={`flex-column options-menu hidden`}>
-                <div className='item items-center' onClick={runCode}>
+                <button className='item items-center' onClick={runCode}>
                     <label>Run</label> <span>Alt + R</span>
-                </div>
-                <div className='item items-center'>
-                    <label>Run in Full View</label>
-                </div>
-            </div>
-            {type === 'solo' &&
-                <button className='room-header-options' onClick={() => deleteSoloRoom()}>
-                    Delete Room
                 </button>
-            }
+                <button className='item items-center' onClick={runCodeFull}>
+                    <label>Run in Full View <span>Alt + \</span></label>
+                </button>
+            </div>
         </>
     )
 }

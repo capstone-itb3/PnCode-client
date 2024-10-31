@@ -8,6 +8,8 @@ import { getToken, getClass } from '../validator';
 import { showConfirmPopup } from '../reactPopupService';
 import disableCopyPaste from './utils/disableCopyPaste';
 import manageResizes from './utils/manageResizes';
+import { handleKeyDownAssigned } from './utils/roomHandleKeyDown';
+import { runOutput, runOutputFullView } from './utils/runOption';
 import Options from './Options';
 import FileDrawer from './FileDrawer';
 import Notepad from './Notepad';
@@ -194,87 +196,33 @@ function AssignedRoom() {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.altKey && event.key === 'r') {
-        event.preventDefault();
-        runOutput();
-        return;
-      }
-
-      if (event.altKey && event.key === 'f') {
-        event.preventDefault();
-        setLeftDisplay('files');
-        return;
-      }
-
-      if (event.altKey && event.key === 'n') {
-        event.preventDefault();
-        setLeftDisplay('notepad');
-        return;
-      }
-
-      if (event.altKey && event.key === 'o') {
-        event.preventDefault();
-        setRightDisplay('output');
-        return;
-      }
-
-      if (event.altKey && event.key === 'h') {
-        event.preventDefault();
-        setRightDisplay('history');
-        return;
-      }
-
-      if (event.altKey && event.key === 'b') {
-        event.preventDefault();
-        setRightDisplay('feedback');
-        return;
-      }
-
-      if (user?.position === 'Student' && event.altKey && event.key === 'a') {
-        event.preventDefault();
-        setAddNewFile(true);
-        setDeleteFile(false);
-        setLeftDisplay('files');
-        return;
-      }
-      
-      if (event.altKey && event.key === 'l') {
-        if (leftDisplay === '') {
-          setLeftDisplay('files');
-        } else {
-          setLeftDisplay('');
-        }
-      }
-      if (event.altKey && event.key === 'p') {
-        if (rightDisplay === '') {
-          setRightDisplay('output');
-        } else {
-          setRightDisplay('');
-        }
-      }
-
-      if (user?.position === 'Student' && event.altKey && event.key === 'x') {
-        event.preventDefault();
-        setDeleteFile(true);
-        setAddNewFile(false);
-        setLeftDisplay('files');
-        return;
-      }
-
-      for (let i = 1; i <= room_files.length && i <= 10; i++) {
-        if (event.altKey && event.key === i.toString()) {
+      if (user?.position === 'Student') {
+        if (event.altKey && event.key === 'a') {
           event.preventDefault();
-          displayFile(room_files[i - 1]);
-          break;
+          setAddNewFile(true);
+          setDeleteFile(false);
+          setLeftDisplay('files');
+          return;
+        }
+        if (event.altKey && event.key === 'x') {
+          event.preventDefault();
+          setDeleteFile(true);
+          setAddNewFile(false);
+          setLeftDisplay('files');
+          return;
         }
       }
+
+      handleKeyDownAssigned(event, setLeftDisplay, setRightDisplay, room_files, displayFile, startRunOutput, startRunOutputFullView);
     };
 
     document.addEventListener('keydown', handleKeyDown);
 
+    console.log('triggered');
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-    }  
+    }
   }, [room_files, activeFile]);
 
   function displayFile(file) {
@@ -289,23 +237,12 @@ function AssignedRoom() {
     });
   }
 
-  function runOutput() {
-    setRightDisplay('output');
+  function startRunOutput() {
+    runOutput(outputRef.current, room_id, room_files, activeFile);
+  }
 
-    if (activeFile.type === 'html') {
-      outputRef.current.src = `/view/${room_id}/${activeFile.name}`;
-
-    } else {
-      if (activeFile.type !== 'html') {      
-        let active = room_files.find((f) => f.type = 'html');
-  
-        if (active) {
-          outputRef.current.src = `/view/${room_id}/${active.name}`;
-        } else {
-          outputRef.current.src = null;
-        }  
-      }
-    }
+  function startRunOutputFullView() {
+    runOutputFullView(room_id, room_files, activeFile);
   }
   
   function leaveRoom () {
@@ -340,7 +277,8 @@ function AssignedRoom() {
               outputRef={outputRef}
               setAddNewFile={setAddNewFile}
               setDeleteFile={setDeleteFile}
-              runOutput={runOutput}/>
+              startRunOutput={startRunOutput}
+              startRunOutputFullView={startRunOutputFullView}/>
           }
           </div>
           {activity && user.position === 'Student' &&
@@ -446,7 +384,8 @@ function AssignedRoom() {
                 <div id='right-section'>
                   <TabOutput 
                     rightDisplay={rightDisplay}
-                    outputRef={outputRef}/> 
+                    outputRef={outputRef}
+                    startRunOutputFullView={startRunOutputFullView}/>
                   {activeFile &&
                     <History
                     user={user}

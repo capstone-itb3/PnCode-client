@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import Cookies from 'js-cookie';
 import checkTimeframe from './utils/checkTimeframe';
 
-function Options({type, room, user, socket, open_time, close_time, setLeftDisplay, setRightDisplay, setEditorTheme, outputRef, setAddNewFile, setDeleteFile, runOutput}) {
+function Options({type, user, open_time, close_time, setLeftDisplay, setRightDisplay, setEditorTheme, setAddNewFile, setDeleteFile, startRunOutput, startRunOutputFullView}) {
     const isOnTimeRef = useRef(type === 'assigned' ? checkTimeframe(open_time, close_time) : true);
     const [isChecked, setIsChecked] = useState(() => {
         if (Cookies.get('theme') === 'dark' || !Cookies.get('theme')) {
@@ -96,11 +96,15 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
         }
     }
 
-
     function runCode() {
-        if (outputRef.current) {
-            runOutput();
-        }
+        setRightDisplay('output');
+        startRunOutput();
+        const option = document.getElementById(`run-menu`);
+        option.classList.toggle('hidden');
+    }
+
+    function runCodeFull() {
+        startRunOutputFullView()
         const option = document.getElementById(`run-menu`);
         option.classList.toggle('hidden');
     }
@@ -112,7 +116,7 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
             </button>
             {isOnTimeRef.current &&
                 <div id='files-menu' className='flex-column options-menu hidden'>
-                    {user.position === 'Student' && type === 'assigned' &&
+                    {user?.position !== 'Student' && type === 'assigned' &&
                         <button className='item items-center'  onClick={addFile}>
                             <label>Add File</label><span>Alt + A</span>
                         </button>
@@ -120,7 +124,7 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
                     <button className='item items-center'  onClick={openFile}>
                         <label>Open File</label><span>Alt + (#)</span>
                     </button>
-                    {user.position === 'Student' && type === 'assigned' &&
+                    {user?.position === 'Student' && type === 'assigned' &&
                         <button className='item items-center' onClick={deleteFile}>
                             <label>Delete File</label><span>Alt + X</span>
                         </button>
@@ -185,8 +189,8 @@ function Options({type, room, user, socket, open_time, close_time, setLeftDispla
                 <button className='item items-center' onClick={runCode}>
                     <label>Run</label> <span>Alt + R</span>
                 </button>
-                <button className='item items-center'>
-                    <label>Run in Full View</label>
+                <button className='item items-center' onClick={runCodeFull}>
+                    <label>Run in Full View <span>Alt + \</span></label>
                 </button>
             </div>
         </>

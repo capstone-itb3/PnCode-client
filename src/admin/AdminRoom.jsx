@@ -7,6 +7,7 @@ import { VscDebugDisconnect } from 'react-icons/vsc';
 import getAdminClass from './utils/adminValidator';
 import { handleKeyDownAssigned } from '../components/room/utils/roomHandleKeyDown';
 import manageResizes from '../components/room/utils/manageResizes';
+import { runOutput, runOutputFullView } from '../components/room/utils/runOption';
 import FileDrawer from '../components/room/FileDrawer';
 import TabOutput from '../components/room/TabOutput';
 import Members from '../components/room/Members';
@@ -46,23 +47,6 @@ function AdminRoom() {
   const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
   
   useEffect(() => {    
-    // setRoom(null);
-    // setRoomFiles([]);
-    // setActivity(null);
-    // setMembers([]);
-    // setAccess(null);
-    // setActiveFile(null);
-    // setCursorColor(null);
-    // setRoomUsers([]);
-    // setEditorUsers([]);
-    // setEditorTheme(user?.preferences.theme);
-    // socketRef.current = null;
-
-    // if (!window.location.pathname.endsWith('/')) {
-    //   const added_slash = `${window.location.pathname}/`;
-    //   navigate(added_slash);
-    // }
-
     async function initRoom () {
       const info = await admin.getAssignedRoomDetails(room_id);
       setRoom(info.room);
@@ -128,10 +112,30 @@ function AdminRoom() {
   }, [leftDisplay, rightDisplay]);
 
   useEffect(() => {
-    document.addEventListener('keydown', e => handleKeyDownAssigned(e, runOutput, setLeftDisplay, setRightDisplay, setAddNewFile, setDeleteFile, room_files, displayFile));
+    const handleKeyDown = (event) => {
+      if (event.altKey && event.key === 'a') {
+        event.preventDefault();
+        setAddNewFile(true);
+        setDeleteFile(false);
+        setLeftDisplay('files');
+        return;
+      }
+  
+      if (event.altKey && event.key === 'x') {
+        event.preventDefault();
+        setDeleteFile(true);
+        setAddNewFile(false);
+        setLeftDisplay('files');
+        return;
+      }
+      
+      handleKeyDownAssigned(event, setLeftDisplay, setRightDisplay, room_files, displayFile, startRunOutput, startRunOutputFullView);
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDownAssigned);
+      document.removeEventListener('keydown', handleKeyDown);
     }  
   }, [room_files, activeFile]);
 
@@ -147,25 +151,14 @@ function AdminRoom() {
     });
   }
 
-  function runOutput() {
-    setRightDisplay('output');
-
-    if (activeFile.type === 'html') {
-      outputRef.current.src = `/view/${room_id}/${activeFile.name}`;
-
-    } else {
-      if (activeFile.type !== 'html') {      
-        let active = room_files.find((f) => f.type = 'html');
-  
-        if (active) {
-          outputRef.current.src = `/view/${room_id}/${active.name}`;
-        } else {
-          outputRef.current.src = null;
-        }  
-      }
-    }
+  function startRunOutput() {
+    runOutput(outputRef.current, room_id, room_files, activeFile);
   }
-  
+
+  function startRunOutputFullView() {
+    runOutputFullView(room_id, room_files, activeFile);
+  }
+
   function leaveRoom () {
     if (socketRef.current) {
       socketRef.current.disconnect();
@@ -191,7 +184,8 @@ function AdminRoom() {
               outputRef={outputRef}
               setAddNewFile={setAddNewFile}
               setDeleteFile={setDeleteFile}
-              runOutput={runOutput}/>
+              startRunOutput={startRunOutput}
+              startRunOutputFullView={startRunOutputFullView}/>
           }
           </div>
           {room && activity &&
@@ -290,7 +284,8 @@ function AdminRoom() {
                 <div id='right-section'>
                   <TabOutput 
                     rightDisplay={rightDisplay}
-                    outputRef={outputRef}/> 
+                    outputRef={outputRef}
+                    startRunOutputFullView={startRunOutputFullView}/>
                   {activeFile &&
                     <History
                       rightDisplay={rightDisplay}

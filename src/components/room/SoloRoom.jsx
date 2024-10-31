@@ -352,7 +352,9 @@ function AssignedRoom() {
                 <div id='right-section'>
                   <TabOutput 
                     rightDisplay={rightDisplay}
-                    outputRef={outputRef}/> 
+                    outputRef={outputRef}
+                    activeFile={activeFile}
+                    room_files={room_files}/> 
                 </div>
               </div>
             </div>

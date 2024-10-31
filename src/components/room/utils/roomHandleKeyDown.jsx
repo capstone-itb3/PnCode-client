@@ -1,16 +1,10 @@
-export function handleKeyDownAssigned (event, runOutput, setLeftDisplay, setRightDisplay, setAddNewFile, setDeleteFile, room_files, displayFile) {
-    if (event.altKey && event.key === 'r') {
-      event.preventDefault();
-      runOutput();
-      return;
-    }
-
+export function handleKeyDownAssigned (event, setLeftDisplay, setRightDisplay, room_files, displayFile, startRunOutput, startRunOutputFullView) {
     if (event.altKey && event.key === 'f') {
       event.preventDefault();
       setLeftDisplay('files');
       return;
     }
-
+    
     if (event.altKey && event.key === 'n') {
       event.preventDefault();
       setLeftDisplay('notepad');
@@ -35,20 +29,25 @@ export function handleKeyDownAssigned (event, runOutput, setLeftDisplay, setRigh
       return;
     }
 
-    if (event.altKey && event.key === 'a') {
+    if (event.altKey && event.key === 'r') {
       event.preventDefault();
-      setAddNewFile(true);
-      setDeleteFile(false);
-      setLeftDisplay('files');
+      setRightDisplay('output');
+      startRunOutput();
       return;
     }
 
-    if (event.altKey && event.key === 'x') {
+    if (event.altKey && event.key === '\\') {
       event.preventDefault();
-      setDeleteFile(true);
-      setAddNewFile(false);
-      setLeftDisplay('files');
+      startRunOutputFullView();
       return;
+    }
+
+    if (event.altKey && event.key === 'l') {
+      setLeftDisplay('');
+    }
+
+    if (event.altKey && event.key === 'p') {
+        setRightDisplay('');
     }
 
     for (let i = 1; i <= room_files.length || i <= 10; i++) {

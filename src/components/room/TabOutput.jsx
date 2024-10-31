@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ImArrowUpRight2 } from 'react-icons/im';
+import { runOutputFullView } from './utils/runOption';
 
-function TabOutput({ outputRef, rightDisplay }) {
+function TabOutput({ outputRef, rightDisplay, startRunOutputFullView }) {
   const { room_id } = useParams();
   const navigate = useNavigate();
   const [iframeTitle, setIframeTitle] = useState('Output');
@@ -22,7 +23,7 @@ function TabOutput({ outputRef, rightDisplay }) {
     const iframe = outputRef.current;
     if (iframe) {
       iframe.addEventListener('load', updateTitle);
-      const intervalId = setInterval(updateTitle, 2000); // Check every second
+      const intervalId = setInterval(updateTitle, 2000);
 
       return () => {
         iframe.removeEventListener('load', updateTitle);
@@ -30,12 +31,6 @@ function TabOutput({ outputRef, rightDisplay }) {
       };
     }
   }, [outputRef, updateTitle]);
-
-  function fullView () {
-    if (outputRef.current?.src) {
-      window.location.href = outputRef.current.src;
-    }
-  }
 
   return (
     <div className={`flex-column ${rightDisplay !== 'output' && 'inactive'}`} id='output-div'>
@@ -45,7 +40,7 @@ function TabOutput({ outputRef, rightDisplay }) {
           <a 
             className='output-btn items-center' 
             id='full-btn' 
-            onClick={fullView}
+            onClick={startRunOutputFullView}
             href={outputRef.current?.src ? outputRef.current.src : undefined}
             target='_blank'>
             <ImArrowUpRight2 color={'#505050'} size={17}/>
