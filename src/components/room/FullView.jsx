@@ -21,7 +21,6 @@ function FullView() {
     }, [])
 
     async function renderContent() {
-        console.log('here');
         const info = await user.viewOutput(room_id, file_name);
 
         if (!info) {
@@ -32,7 +31,6 @@ function FullView() {
             let newStyle = '', newScript = '';
             const cssFiles = info.files.filter(f => f.type === 'css');
             const jsFiles = info.files.filter(f => f.type === 'js');
-            console.log(info.files);
             if (info.active.type === 'html' || info.active.type === 'css') {                    
                 outputRef.current.contentDocument.body.innerHTML = info.active.content;
                 
@@ -41,16 +39,11 @@ function FullView() {
                     if (link.href) {
                         const linkUrl = new URL(link.href).pathname.split('/').pop();
                         const css = cssFiles.find(f => f.name === linkUrl);
-                
-                        console.log(linkUrl);
 
                         if (css) {
                             newStyle +=`<style>${css.content}</style>`;
-                            console.log(css)
                         }
-
                     }
-                    console.log(link)
                 };
                 outputRef.current.contentDocument.body.innerHTML = newStyle + outputRef.current.contentDocument.body.innerHTML;
     
