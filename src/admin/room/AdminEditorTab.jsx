@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { BsExclamationTriangleFill } from 'react-icons/bs'
 import Editor from './AdminEditor'
 
-function EditorTab({room, cursorColor, socket, open_time, close_time, activeFile, editorTheme}) {
+function EditorTab({room, cursorColor, socket, open_time, close_time, activeFile, editorTheme, rightDisplay}) {
     const [warning, setWarning] = useState(0);
     const [saved, setSaved] = useState(null);
 
 
   return (
-        <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'}`}>
+    <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'} ${rightDisplay === '' && 'larger'}`}>
             <>
                 <div className='file-name-container items-start'>
                     <div id='file-name'>

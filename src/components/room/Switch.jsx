@@ -32,9 +32,11 @@ function Switch({ room, activity }) {
     
   return (
     <div id='switch-rooms' className='flex-row items-center'>
-        <button className='items-center' onClick={() => arrowSwitch('left')}>
-            <BsCaretLeftFill size={18}/>
-        </button>
+        {room_links.length > 1 &&
+            <button className='items-center' onClick={() => arrowSwitch('left')}>
+                <BsCaretLeftFill size={18}/>
+            </button>
+        }
         <select id='room-select' value={room.room_id} onChange={(e) => switchRoom(e.target.value)}>
             {room_links.map((room_link) => {
                 return (
@@ -46,9 +48,11 @@ function Switch({ room, activity }) {
                 )
             })}
         </select>
-        <button className='items-center' onClick={() => arrowSwitch('right')}>
-            <BsCaretRightFill size={18}/>
-        </button>
+        {room_links.length > 1 &&
+            <button className='items-center' onClick={() => arrowSwitch('right')}>
+                <BsCaretRightFill size={18}/>
+            </button>
+        }
     </div>
   )
 }

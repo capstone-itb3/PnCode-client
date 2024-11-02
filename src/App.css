@@ -1845,6 +1845,10 @@ header {
     width: calc(100% - 227px);
 }
 
+#center-body.larger {
+    width: 100%;
+}
+
 #editor-header {
     position: relative;
     background-color:#feff9c;
@@ -1920,6 +1924,10 @@ header {
     width: 55%;
     background-color: rgb(40, 44, 52);
     height: 100%;
+}
+
+#editor-container.larger {
+    width: 100%;
 }
 
 .file-name-container {
@@ -2363,8 +2371,6 @@ header {
     flex-direction: row-reverse;
 }
 
-
-
 .chat-box-message-avatar {
     margin: 0 10px;
 }
@@ -2626,7 +2632,11 @@ header {
 
     #editor-container {
         width: 100% !important;
-        max-height: 50% !important;
+        max-height: 50%;
+    }
+
+    #editor-container.larger {
+        max-height: 100%;
     }
 
     #editor-div {

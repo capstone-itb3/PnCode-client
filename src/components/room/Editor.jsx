@@ -180,8 +180,13 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
 
         if (checkTimeframe(openTimeRef.current, closeTimeRef.current) === false) {
           setWarning(2);
-        }
-        
+        }        
+
+        providerRef.current.on('connected', () => {
+          setWarning(0);
+          setSaved(<label id='saving'>Successfully connected.</label>);
+        });
+
         providerRef.current.on('synced', () => {
           const users_length = Array.from(providerRef.current.awareness.getStates().values()).length;
 
@@ -231,12 +236,12 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
           providerRef.current.awareness.on('change', () => {
             updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
           });
+
+          setSaved(<label id='saving'>Successfully connected.</label>);
         });
 
-        // Add these error handlers
         providerRef.current.on('connection-close', () => {
           console.warn('YJS Connection Closed');
-
           setTimeout(() => {
             setWarning(4);
             providerRef.current.connect();
@@ -260,6 +265,9 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
     }
       
     return () => {      
+      setWarning(0);
+      setSaved(null);  
+
       if (user.position === 'Student') {
         document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
       }
@@ -281,12 +289,12 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
     socket.on('update_result', ({ status }) => {
       if (status === 'ok') {
         setSaved( <label className='items-center' id='saved'>
-                      <BsCheck2 size={14}/><span>Saved</span>
-                  </label>
+                    <BsCheck2 size={14}/><span>Saved!</span>
+                  </label>  
                 );
       } else {
         setSaved( <label className='items-center' id='unsaved'>
-                    <BsExclamationTriangleFill size={13}/><span>Unsaved</span>
+                    <BsExclamationTriangleFill size={13}/><span>Unsaved.</span>
                   </label>
                 );
       }

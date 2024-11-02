@@ -6,7 +6,6 @@ import { BsXLg, BsCheck2, BsExclamationTriangleFill } from 'react-icons/bs';
 import { VscDebugDisconnect } from 'react-icons/vsc';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
-import manageResizes from './utils/manageResizes';
 import Options from './Options';
 import FileDrawer from './FileDrawer';
 import Members from './Members';
@@ -94,10 +93,6 @@ function AssignedRoom() {
       }
     }
   }, []);
-
-  useEffect(() => {
-    manageResizes(leftDisplay, rightDisplay);
-  }, [leftDisplay, rightDisplay]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -308,9 +303,9 @@ function AssignedRoom() {
                 roomUsers={[{ user_id: user.uid, cursor: { color: 'red' } }]}
                 inSolo={true}/>
           </aside>
-          <div className='flex-column' id='center-body'>
+          <div className={`flex-column ${leftDisplay === '' && 'larger'}`} id='center-body'>
             <div className='flex-row' id='editor-section'>
-              <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'}`}>
+              <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'} ${rightDisplay === '' && 'larger'}`}>
                 <div className='file-name-container items-start'>
                   <div id='file-name'>
                       {activeFile &&

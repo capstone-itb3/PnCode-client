@@ -6,7 +6,6 @@ import { BsXLg } from 'react-icons/bs';
 import { VscDebugDisconnect } from 'react-icons/vsc';
 import getAdminClass from './utils/adminValidator';
 import { handleKeyDownAssigned } from '../components/room/utils/roomHandleKeyDown';
-import manageResizes from '../components/room/utils/manageResizes';
 import { runOutput, runOutputFullView } from '../components/room/utils/runOption';
 import FileDrawer from '../components/room/FileDrawer';
 import TabOutput from '../components/room/TabOutput';
@@ -106,10 +105,6 @@ function AdminRoom() {
       };
     }
   }, [activeFile]);  
-
-  useEffect(() => {
-    manageResizes(leftDisplay, rightDisplay);
-  }, [leftDisplay, rightDisplay]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -249,7 +244,7 @@ function AdminRoom() {
               members={members}
               roomUsers={roomUsers}/>
           </aside>
-          <div className='flex-column' id='center-body'>
+          <div className={`flex-column ${leftDisplay === '' && 'larger'}`} id='center-body'>
             <Instructions 
               instructions={instructions} 
               setInstructions={setInstructions}
@@ -262,7 +257,8 @@ function AdminRoom() {
                 open_time={open_time}
                 close_time={close_time}
                 activeFile={activeFile}
-                editorTheme={editorTheme}/>
+                editorTheme={editorTheme}
+                rightDisplay={rightDisplay}/>
               <div className={`flex-column ${rightDisplay === '' && 'none'}`} id='right-body'>
                 <div className='side-tab-buttons flex-row'>
                   <button className='remove-side-tab items-center' onClick={() => setRightDisplay('')}>

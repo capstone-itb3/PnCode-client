@@ -116,7 +116,7 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
             </button>
             {isOnTimeRef.current &&
                 <div id='files-menu' className='flex-column options-menu hidden'>
-                    {user?.position !== 'Student' && type === 'assigned' &&
+                    {user?.position === 'Student' && type === 'assigned' &&
                         <button className='item items-center'  onClick={addFile}>
                             <label>Add File</label><span>Alt + A</span>
                         </button>
@@ -134,7 +134,7 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
             <button className='room-header-options' onClick={() => openMenu('view')}>
                 View
             </button>
-            <div id='view-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
+            <div id='view-menu' className={`flex-column options-menu hidden`}>
                 <button className='item items-center' onClick={() => viewSection('files')}>
                     <label>Show Files</label><span>Alt + F</span>
                 </button>
@@ -166,7 +166,7 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
             <button className='room-header-options' onClick={() => openMenu('preferences')}>
                 Preferences
             </button>
-            <div id='preferences-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
+            <div id='preferences-menu' className={`flex-column options-menu hidden`}>
                 <div className='item items-center'>
                     <label>Editor Theme</label>
                     <div className='items-center'>
@@ -185,7 +185,7 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
             <button className='room-header-options' onClick={() => openMenu('run')}>
                 Run
             </button>
-            <div id='run-menu' className={`flex-column options-menu hidden ${user?.position === 'Professor' && 'prof'}`}>
+            <div id='run-menu' className={`flex-column options-menu hidden`}>
                 <button className='item items-center' onClick={runCode}>
                     <label>Run</label> <span>Alt + R</span>
                 </button>

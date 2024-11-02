@@ -254,8 +254,10 @@ export class User {
             });
 
             const data = response.data;
+            console.log('here');
 
             if (data.status === 'ok') {
+                console.log('here ok');
                 return { files: data.files, active: data.active };
             }
             return null;

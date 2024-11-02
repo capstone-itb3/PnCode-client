@@ -3,7 +3,7 @@ import { BsExclamationTriangleFill } from 'react-icons/bs'
 import Editor from './Editor'
 import { showConfirmPopup } from '../reactPopupService';
 
-function EditorTab({room, user, cursorColor, socket, open_time, close_time, activeFile, editorTheme}) {
+function EditorTab({room, user, cursorColor, socket, open_time, close_time, activeFile, editorTheme, rightDisplay}) {
     const [warning, setWarning] = useState(0);
     const [saved, setSaved] = useState(null);
     const [alertUp, setAlertUp] = useState(false);
@@ -30,7 +30,7 @@ function EditorTab({room, user, cursorColor, socket, open_time, close_time, acti
 
 
   return (
-    <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'}`}>
+    <div id='editor-container' className={`flex-column  ${editorTheme !== 'dark' && 'light'} ${rightDisplay === '' && 'larger'}`}>
         <>
             <div className='file-name-container items-start'>
                 <div id='file-name'>
@@ -48,7 +48,7 @@ function EditorTab({room, user, cursorColor, socket, open_time, close_time, acti
                         {saved}
                     </div>
                     }
-                    {warning > 0 &&
+                    {warning !== 0 &&
                         <div id='file-warning'>
                             <label className='single-line items-center'>
                                 <BsExclamationTriangleFill size={12}/>
@@ -59,10 +59,13 @@ function EditorTab({room, user, cursorColor, socket, open_time, close_time, acti
                                     <span>The access for this activity is currently closed.</span>
                                 }
                                 {warning === 3 &&
-                                    <span>You cannot edit the same line with another user</span>
+                                    <span>You cannot edit the same line with another user.</span>
                                 }
-                                {warning >= 4 &&
+                                {warning === 4 &&
                                     <span>Connection to websocket has failed. Reconnecting...</span>
+                                }
+                                {warning === 5 &&
+                                    <span>Error. Unable to connect to Websocket.</span>
                                 }
                             </label>
                         </div>

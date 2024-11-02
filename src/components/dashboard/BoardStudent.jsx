@@ -286,7 +286,6 @@ function ActivityBoard({activities, student, class_id}) {
         const room_id = await student.visitActivity(activity_id);
 
         if (room_id) {
-            toast.success('Redirecting you to your team\'s assigned room...');
             navigate(`/room/${room_id}`);
         }
     }

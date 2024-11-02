@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
+import toast from 'react-hot-toast';
 import { initSocket } from '../../socket';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsXLg } from 'react-icons/bs';
@@ -7,7 +8,6 @@ import { VscDebugDisconnect } from 'react-icons/vsc';
 import { getToken, getClass } from '../validator';
 import { showConfirmPopup } from '../reactPopupService';
 import disableCopyPaste from './utils/disableCopyPaste';
-import manageResizes from './utils/manageResizes';
 import { handleKeyDownAssigned } from './utils/roomHandleKeyDown';
 import { runOutput, runOutputFullView } from './utils/runOption';
 import Options from './Options';
@@ -167,10 +167,14 @@ function AssignedRoom() {
       setSocketId(socket_id);
     });
     
-    socketRef.current.on('room_users_updated', ({ users }) => {
+    socketRef.current.on('room_users_updated', ({ users, message }) => {
       setRoomUsers(users);
       setCursorColor(users.find((u) => u.user_id === user.uid)?.cursor);
-    })  
+
+      if (message) {
+        toast.success(message);
+      }
+    });  
 
     socketRef.current.on('found_file', ({ file }) => {
       setActiveFile(file);
@@ -189,10 +193,6 @@ function AssignedRoom() {
       }
     }
   }, [socketRef.current, activeFile]);
-
-  useEffect(() => {
-    manageResizes(leftDisplay, rightDisplay);
-  }, [leftDisplay, rightDisplay]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -215,10 +215,7 @@ function AssignedRoom() {
 
       handleKeyDownAssigned(event, setLeftDisplay, setRightDisplay, room_files, displayFile, startRunOutput, startRunOutputFullView);
     };
-
     document.addEventListener('keydown', handleKeyDown);
-
-    console.log('triggered');
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
@@ -256,6 +253,8 @@ function AssignedRoom() {
     } else if (user?.position === 'Professor'){
       navigate (`/activity/${activity.activity_id}`);
     }
+
+    toast.success('You have left the room.');
   }  
 
   return (
@@ -348,7 +347,7 @@ function AssignedRoom() {
               members={members}
               roomUsers={roomUsers}/>
           </aside>
-          <div className='flex-column' id='center-body'>
+          <div className={`flex-column ${leftDisplay === '' && 'larger'}`} id='center-body'>
             <Instructions 
               instructions={instructions} 
               setInstructions={setInstructions}
@@ -362,7 +361,8 @@ function AssignedRoom() {
                 open_time={open_time}
                 close_time={close_time}
                 activeFile={activeFile}
-                editorTheme={editorTheme}/>
+                editorTheme={editorTheme}
+                rightDisplay={rightDisplay}/>
               <div className={`flex-column ${rightDisplay === '' && 'none'}`} id='right-body'>
                 <div className='side-tab-buttons flex-row'>
                   <button className='remove-side-tab items-center' onClick={() => setRightDisplay('')}>
