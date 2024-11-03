@@ -12,10 +12,10 @@ const linkTagSnippet = snippetCompletion('<link rel="stylesheet" href="style.css
     detail: 'stylesheet boilerplate'
 });
 
-// const jquerySnippet = snippetCompletion('<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>', {
-//     label: 'jQuery',
-//     detail: 'Script tag for JQuery'        
-// });
+const jquerySnippet = snippetCompletion('<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>', {
+    label: 'jQuery',
+    detail: 'Script tag for JQuery'        
+});
 
 // const bootstrapLinkSnippet = snippetCompletion('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">', {
 //     label: 'Bootstrap',
@@ -30,7 +30,7 @@ const linkTagSnippet = snippetCompletion('<link rel="stylesheet" href="style.css
 export {    
             html5Snippet,
             linkTagSnippet,
-            // jquerySnippet, 
+            jquerySnippet, 
             // bootstrapLinkSnippet, 
             // bootstrapScriptSnippet 
         };

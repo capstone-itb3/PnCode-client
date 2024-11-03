@@ -4,7 +4,7 @@ function findHTMLInFiles(room_id, room_files) {
     const active =  room_files.find((f) => f.type = 'html');
 
     if (active) {
-        return `/view/${room_id}/${active.name}`
+        return `${import.meta.env.VITE_APP_BACKEND_URL}/view/${room_id}/${active.name}`
     } else {
         return null;
     }
@@ -16,7 +16,7 @@ export function runOutput(output, room_id, room_files, activeFile) {
     }
 
     if (activeFile.type === 'html') {
-        output.src = `/view/${room_id}/${activeFile.name}`;
+        output.src = `${import.meta.env.VITE_APP_BACKEND_URL}/view/${room_id}/${activeFile.name}`;
 
     } else {
         const html = findHTMLInFiles(room_id, room_files);
@@ -33,10 +33,10 @@ export function runOutputFullView(room_id, room_files, activeFile) {
     }
 
     if (activeFile.type === 'html') {
-        window.location.href = `/view/${room_id}/${activeFile.name}`;
+        window.location.href = `${import.meta.env.VITE_APP_BACKEND_URL}/view/${room_id}/${activeFile.name}`;
 
     } else {
         const html = findHTMLInFiles(room_id, room_files);
-        html ? window.location.href = html : `/view/${room_id}/${activeFile.name}`;
+        html ? window.location.href = html : `${import.meta.env.VITE_APP_BACKEND_URL}/view/${room_id}/${activeFile.name}`;
     }
 }

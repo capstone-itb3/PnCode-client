@@ -14,7 +14,16 @@ function FullView() {
     const [fileExists, setFileExists] = useState(true);
     const outputRef = useRef(null);
     const navigate = useNavigate();
-    const initialContent = `<!DOCTYPE html><html><head><base target="_parent"></head><body></body></html>`;
+
+    const initialContent = 
+    `<!DOCTYPE html>
+     <html>
+        <head>
+            <base href="${import.meta.env.VITE_APP_BACKEND_URL}/view/${room_id}/" target="_parent">
+        </head>
+        <body>
+        </body>
+    </html>`;
 
     useEffect(() => {
         renderContent();
@@ -26,64 +35,19 @@ function FullView() {
         if (!info) {
             navigate('/error/404');
         }
-
-        if (info?.files) {
-            let newStyle = '', newScript = '';
-            const cssFiles = info.files.filter(f => f.type === 'css');
-            const jsFiles = info.files.filter(f => f.type === 'js');
-            if (info.active.type === 'html' || info.active.type === 'css') {                    
-                outputRef.current.contentDocument.body.innerHTML = info.active.content;
-                
-                const links = outputRef.current.contentDocument.querySelectorAll('link[rel="stylesheet"]');
-                for (const link of links) {
-                    if (link.href) {
-                        const linkUrl = new URL(link.href).pathname.split('/').pop();
-                        const css = cssFiles.find(f => f.name === linkUrl);
-
-                        if (css) {
-                            newStyle +=`<style>${css.content}</style>`;
-                        }
-                    }
-                };
-                outputRef.current.contentDocument.body.innerHTML = newStyle + outputRef.current.contentDocument.body.innerHTML;
+        if (info.active.type === 'html' || info.active.type === 'css') {                    
+            outputRef.current.contentDocument.body.innerHTML = info.active.content;
+        }                
     
-                const scripts = outputRef.current.contentDocument.querySelectorAll('script');
-                scripts.forEach((script) => {
-                    if (script.src) {
-                        const scriptUrl = new URL(script.src).pathname.split('/').pop();
-                        const js = jsFiles.find(f => f.name === scriptUrl);
-                
-                        if (js) {
-                            newScript = js.content;
-                        } 
-                    } else {
-                        newScript = script.textContent;
-                    }
-                    convertToScriptTag(newScript);
-                });
-            } else if (info.active.type === 'js') {
-                outputRef.current.contentDocument.body.innerHTML = '';
-                convertToScriptTag(info.active.content);
-            }
-    
-            setIsLoaded(true);
+        setIsLoaded(true);
 
-            const title = outputRef.current.contentDocument.querySelector('title')?.textContent;
-            if (title !== undefined && !(/^\s*$/.test(title))) {
-                document.title = title;
-            } else {
-                document.title = file_name;
-            }
+        const title = outputRef.current.contentDocument.querySelector('title')?.textContent;
+        if (title !== undefined && !(/^\s*$/.test(title))) {
+            document.title = title;
+        } else {
+            document.title = file_name;
         }
     }    
-
-    function convertToScriptTag(script) {
-        const locationHrefRegex = /window\.location\.href\s*=(?!=)/g;
-        script = script.replace(locationHrefRegex, 'window.parent.location.href =');
-        const scriptTag = document.createElement('script');
-        scriptTag.text = script;
-        outputRef.current.contentDocument.head.appendChild(scriptTag);
-    }
 
     return (
         <div className='full-view-container'>
