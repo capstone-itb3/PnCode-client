@@ -235,7 +235,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
         <div className='flex-row items-center'>
           {foreign_name === 'activity' &&
             <button className='admin-create items-center' onClick={showCreateForm}>
-              Create <FiPlus size={17}/>
+              Create Room<FiPlus size={17}/>
             </button>
           }
         </div>

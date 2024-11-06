@@ -23,6 +23,7 @@ body {
     --gray-light: rgb(224, 224, 224);
     --near-white: rgb(244, 244, 244);
 
+
     /* Misc */
     --warn-color: rgb(255, 196, 0);    
     --error-color: rgb(255, 51, 51);
@@ -214,19 +215,25 @@ input:checked + .slider:before {
     font-size: 14px;
     border: 0;
     border-radius: 5px;
-    background-color: transparent;
     font-weight: bold;
     padding: 4px 10px;
+    transition: .2s;
 }
 
+.accept-btn:hover, .remove-btn:hover {
+    background-color: white;
+}
+
+
 .accept-btn {
-    color: var(--gray-dark);
-    background-color: lime;
+    color: green;
+    border: 1px solid green;
 }
 
 .remove-btn {
-    color: var(--near-white);
-    background-color: var(--error-color);
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
+
 }
 
 .create-btn {
@@ -908,13 +915,13 @@ header {
 
 
 .student-list thead tr {
-    border-bottom: 5px solid white;
     text-align: left;
-    background-color: var(--base-blue-light);
+    background-color: rgb(170, 235, 252);
+    border-bottom: 4px solid white;
 }
 
 .student-list th {
-    padding: 10px 5px 10px 20px;
+    padding: 13px 5px 13px 20px;
     color: var(--gray-dark);
     font-size: 17px;
 }
@@ -923,8 +930,8 @@ header {
     border: var(--gray-light) 1px solid;
 }
 
-.student-list tbody tr {
-    color: var(--gray-dark);
+.student-list tr {
+    cursor: pointer
 }
 
 .student-list td:not(.tbl-btn){
@@ -932,16 +939,31 @@ header {
 }
 
 .student-list tbody tr:nth-child(odd) {
-    background-color: var(--gray-light);
+    background-color: var(--near-white);
 }
 
-.tbl-btn {
+.student-list tr:hover {
+    background-color: var(--gray-light) !important;
+}
+.student-list .name {
+    color: var(--near-black);
+}
+.student-list .single-line {
+    color: var(--gray);
+}
+
+.student-list .tbl-btn {
     width: 20%;
     min-width: 70px;
     padding-right: 20px;
 }
 .tbl-btn button {
     margin-left: 20px;
+    display: none;
+}
+
+.student-list tr:hover .tbl-btn button {
+    display: block;
 }
 
 /* CREATE TEAM AND ACTIVITY POP UP */
@@ -1077,7 +1099,7 @@ header {
     margin-right: 15px;
     cursor: pointer;
     flex: 0 0 auto;
-    transition: all 0.2s;
+    transition: all 0.3s;
 }
 
 .team-box {
@@ -1098,7 +1120,7 @@ header {
     font-size: 60px;
     color: var(--base-light);
     text-shadow: 10px var(--base);
-    transition: all 0.2s;
+    transition: all 0.3s;
 }
 .team-plus:hover {
     color: var(--base);
@@ -1168,6 +1190,7 @@ header {
 
 
 .activity-box {
+    position: relative;
     width: calc(100% - 10px);
     margin: 0 0 15px 10px;
     position: relative;
@@ -1176,10 +1199,27 @@ header {
     padding: 1px;
     border: 2px var(--gray-light) solid;
     box-shadow: 0 0 3px var(--gray-dark);
-    transition: .1s ease;
+    background-color: transparent;
+    transition: color .5s ease-out;
+    overflow: hidden;
 }
-.activity-box:hover {
+  
+.activity-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
     background-color: var(--near-white);
+    border-radius: 40px;
+    z-index: -1;
+    transition: left .5s ease;
+}
+
+.activity-box:hover::before {
+    left: 0; 
+    border-radius: 0;
 }
 
 .activity-box .name {
@@ -1187,15 +1227,14 @@ header {
     display: flex;
     justify-content: space-between;
     background-color: var(--base);
-    padding: 8px 15px;
+    padding: 8px 15px 10px 15px;
     color: #fff;
     top: 0;
     left: 0;
     right: 0;
     font-size: 25px;
     font-weight: bold;
-    padding-bottom: 10px;
-    margin-bottom: 15px; 
+    margin: 1px 1px 15px 1px; 
 }
 
 .activity-box .instruc-div {
@@ -1226,7 +1265,6 @@ header {
     padding-top: 20px;
     margin: 15px;
     color: var(--gray)
-
 }
 
 /*? TEAM PAGE AND ACTIVITY PAGE ?*/
@@ -1260,7 +1298,6 @@ header {
     border-bottom: var(--gray) 1px solid;
 }
 
-
 .two-column-grid {
     display: grid;
     grid-template-columns: auto auto;
@@ -1270,7 +1307,6 @@ header {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 10px;
-
 }
 
 .team-member, .assigned-item {
@@ -1303,6 +1339,14 @@ header {
     width: 15%;
 }
 
+.team-member .col-3 button {
+    display: none;
+}
+.team-member:hover .col-3 button {
+    display: block;
+}
+
+
 #activity-container h3 {
     margin-bottom: 0;
     border-bottom: var(--gray) 1px solid;
@@ -1319,10 +1363,10 @@ header {
     transition: .2s ease;    
     color: var(--gray-dark);
 }
-.assigned-item:not(.empty) * {
+.assigned-item:not(.empty) *, .team-member {
     cursor: pointer;
 }
-.assigned-item:not(.empty):hover {
+.assigned-item:not(.empty):hover, .team-member:hover {
     background-color: var(--gray-light);
 }
 
@@ -1341,40 +1385,58 @@ header {
     font-weight: normal;
 }
 
+.add-member-div {
+    margin: 20px 40px 120px 40px;
+    padding-bottom: 10px;
+    border-bottom: 10px solid var(--base-light);
+    gap: 10px;
+}
+
 .add-member-search {
-    margin: 20px auto 120px auto;
-    padding: 20px;
-    border-radius: 20px;
-    background-color: var(--base-light);
+    position: relative;
+    width: 100%;
+}
+
+.add-member-search input{
+    border: 0;
+    border-radius: 0 0 0 10px;
+    border-bottom: 2px solid var(--gray); 
 }
 
 #search-results-div {
-    position: relative;
+    border-radius: 20px;
+    position: absolute;
+    top: 45px;
+    border: 1px solid gray;
+    background-color: white;
+    display:flex;
+    justify-content: center;
+    height: 200px;
+    overflow-y: auto;
 }
 
 #member-search-list {
-    position: absolute;
     margin: 0;
-    left: 2px;
-    right: 2px;
     padding: 0;
+    width: 100%;
     list-style: none;
-    background-color: #fff;
-    box-shadow: 0 3px 5px var(--gray-dark);
-    border-radius: 0 0 10px 10px;
-    opacity: 0;
-    visibility: hidden;
+}
+#search-results-div::-webkit-scrollbar {
+    display: none !important;
 }
 
+
 .member-search-item {
-    padding: 10px 10%;
+    margin: 5px;
+    padding: 5px 10%;
+    border-radius: 20px;
+    gap: 5%;
     overflow-x: hidden;
     cursor: pointer;
-    border-bottom: 1px var(--gray-light) solid;
 }
 
 .member-search-item:hover {
-    background-color: var(--base-light);
+    background-color: rgba(128, 189, 255, .3);
 }
 
 #member-search-list .member-search-item:last-child {
@@ -1400,10 +1462,8 @@ header {
     display: flex;
     align-items: center;
     padding: 10px 15px;
-    background-color: #fff;
-    border: var(--error-color) 1px solid;
-    border-radius: 10px;
-    color: var(--error-color);
+    background-color: var(--error-color);
+    color: white;
     cursor: pointer;
 }
 
@@ -2563,6 +2623,10 @@ header {
     padding: 20px 15px;
 }
 
+.dash-section .length-0 {    
+    padding: 50px 15px;
+    color: var(--gray);
+}
 
 @media (width < 800px) {
 

@@ -223,7 +223,7 @@ function TabStudents({ admin, showId, setShowId }) {
         </div>
         <div className='flex-row items-center'>
           <button className='admin-create items-center' onClick={showCreateForm}>
-            Create <FiPlus size={17}/>
+            Create Student<FiPlus size={17}/>
           </button>
         </div>
       </div>

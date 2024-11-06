@@ -16,10 +16,10 @@
     color: var(--gray-dark);
 }
 
-
 .admin-dashboard {
     position: relative;
     min-width: 350px;
+    font-weight: 200;
 }
 
 header.admin {

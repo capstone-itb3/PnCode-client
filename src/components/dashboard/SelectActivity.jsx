@@ -32,7 +32,7 @@ function SelectActivity({ activity, index, onClick }) {
                 <p className='instructions'>{activity.instructions}</p>
             </div>
             <div className='dates'>
-                <label>Created: {createdAt()}</label>
+                <label>Created {createdAt()}</label>
                 <label>Access: {convertTime(activity.open_time)} - {convertTime(activity.close_time)}</label>
             </div>
         </div>

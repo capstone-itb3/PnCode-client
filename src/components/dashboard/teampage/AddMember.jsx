@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import UserAvatar from '../../UserAvatar';
-import { showConfirmPopup, showAlertPopup } from '../../reactPopupService'
+import { BsPersonPlus } from 'react-icons/bs';
+import { showConfirmPopup, showAlertPopup } from '../../reactPopupService';
+import handleMenu from '../utils/handleMenu';
 
-function AddMember({team, user, renderTeam}) {
+function AddMember({team, user}) {
     const [search, setSearch] = useState('');
     const [student_list, setStudentList] = useState([]);
+    const [showResults, setShowResults] = useState(false);
+    const addMemberRef = useRef(null);
 
     useEffect(() => {
         async function init() {
@@ -19,24 +23,20 @@ function AddMember({team, user, renderTeam}) {
         init();
     }, [team.members]);
 
-    function showSearchResults(bool) {
-        const search_list = document.getElementById('member-search-list');
-
-        if (bool) {
-            search_list.style.visibility = 'visible';
-            search_list.style.opacity = 1;
-        } else {
-            search_list.style.opacity = 0
-            
-            setTimeout(() => { 
-                search_list.style.visibility = 'hidden';  
-            }, 350);
+    useEffect(() => {  
+        function handleClickOutside(e) {
+          handleMenu(addMemberRef.current, setShowResults, e.target);
         }
-    }
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+      }, [addMemberRef]);    
 
     async function addStudentToTeam(student) {
         setSearch(`${student.first_name} ${student.last_name}`);
-        showSearchResults(false);
+        setShowResults(false);
 
         const isAvailable = await team.checkStudentAvailability(student.uid);
 
@@ -66,17 +66,24 @@ function AddMember({team, user, renderTeam}) {
     }
 
     return (
-        <div className='add-member-search flex-column'>
-            <input 
-                className='input-data'
-                type='text' 
-                value={search} 
-                placeholder='Search for a student by their name'
-                onFocus={() => {showSearchResults(true)}}
-                onChange={(e) => {setSearch(e.target.value)}}
-            />
-            <div id='search-results-div' className='width-100'>
-                <SearchStudents students_list={student_list} search={search} addStudentToTeam={addStudentToTeam}/>
+        <div className='add-member-div flex-row'>
+            <div className='items-center'>
+                <BsPersonPlus size={20} />
+            </div>
+            <div className='flex-column add-member-search' ref={addMemberRef}>
+                <input
+                    className='input-data'
+                    type='text' 
+                    value={search} 
+                    placeholder='Search for a student by their name'
+                    onFocus={() => {setShowResults(true)}}
+                    onChange={(e) => {setSearch(e.target.value)}}
+                />
+                {showResults &&
+                    <div id='search-results-div' className='width-100'>
+                        <SearchStudents students_list={student_list} search={search} addStudentToTeam={addStudentToTeam}/>
+                    </div>
+                }
             </div>
         </div>
     )
@@ -93,14 +100,12 @@ function SearchStudents({ students_list, search, addStudentToTeam }) {
     return (
       <ul id='member-search-list'>
       {filter ? filter.map((s, index) => {
-          if (index < 4) {
             return (
               <li key={index} className='member-search-item flex-row items-center' onClick={() => (addStudentToTeam(s))}>
                 <UserAvatar name={`${s.last_name}, ${s.first_name.charAt(0)}`} size={24}/>
                 <label className='single-line'>{s.last_name}, {s.first_name}</label>
               </li>
             );  
-          }      
         }) : null}
       </ul>
     )

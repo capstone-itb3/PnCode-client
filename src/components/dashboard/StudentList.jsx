@@ -63,12 +63,14 @@ function StudentList({user, class_info, showStudents}) {
                 </button>
             </div>                 
             {students && !switchView &&
+                <>
                 <table className='student-list'>
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>Name</th>
-                            <th>Action</th>
+                            <th>Email</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,7 +78,8 @@ function StudentList({user, class_info, showStudents}) {
                             return (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
-                                    <td>{student.last_name}, {student.first_name}</td>
+                                    <td className='name'>{student.last_name}, {student.first_name}</td>
+                                    <td className='single-line'>{student.email}</td>
                                     <td className='tbl-btn'>
                                         <button className='remove-btn' onClick={() => removeStudent(student)}>
                                             Remove
@@ -87,14 +90,21 @@ function StudentList({user, class_info, showStudents}) {
                         })}
                     </tbody>                    
                 </table>
+                {requests && requests.length === 0 && 
+                    <div className='length-0'>
+                        No requests found.
+                    </div>
+                }
+                </>                
             }
             {requests && switchView &&
+                <>
                 <table className='student-list'>
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>Name</th>
-                            <th>Actions</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,6 +128,12 @@ function StudentList({user, class_info, showStudents}) {
                         })}
                     </tbody>
                 </table>
+                {requests && requests.length === 0 && 
+                    <div className='length-0'>
+                        No requests found.
+                    </div>
+                }
+                </>
             }
         </div>
     )

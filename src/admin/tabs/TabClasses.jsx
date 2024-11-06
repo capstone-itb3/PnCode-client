@@ -348,7 +348,7 @@ function TabClasses({ admin, showId, setShowId }) {
         </div>
         <div className='flex-row items-center'>
           <button className='admin-create items-center' onClick={showCreateForm}>
-            Create <FiPlus size={17}/>
+            Create Class<FiPlus size={17}/>
           </button>
         </div>
       </div>
@@ -420,7 +420,7 @@ function TabClasses({ admin, showId, setShowId }) {
           <label><b>Class ID:</b> {selectedRef.current.class_id}</label>
           <label><b>Course Code:</b> {selectedRef.current.course_code}</label>
           <label><b>Section:</b> {selectedRef.current.section}</label>
-          <label><b>Professor:</b> {selectedRef.current.professor} {selectedRef.current.professor_uid !== '' && <Link to={`/admin/dashboard/professors/q=${selectedRef.current.professor_uid}&f=uid`}>(Info)</Link>}</label>
+          <label><b>Professor:</b> {selectedRef.current.professor} {selectedRef.current.professor_uid !== '' && <Link to={`/admin/dashboard/professors/q=${selectedRef.current.professor_uid}&f=uid`}>(View Info)</Link>}</label>
           <label><b>No. of Students:</b> {selectedRef.current.students?.length}</label>
           <label><b>No. of Requests:</b> {selectedRef.current.requests?.length}</label>
         </div>

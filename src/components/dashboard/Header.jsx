@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react'
 import { FiBell, FiLogOut } from 'react-icons/fi';
 import UserAvatar from '../UserAvatar';
 import Cookies from 'js-cookie';
-import logo from '../../../assets/logo.jpg'
+import logo from '../../../assets/logo.jpg';
 import Notifications from './Notifications';
+import handleMenu from './utils/handleMenu';
 
 function Header({ user, base, name }) {
   const [notifications, setNotifications] = useState([]);
@@ -17,22 +18,16 @@ function Header({ user, base, name }) {
     async function getNotifications() {
       const data = await user.getUserNotifications(notifications);
         setNotifications(data);
-        console.log(data);
     }
     getNotifications();
   }, [])
 
-  
   useEffect(() => {  
-    function handleClickOutside(event) {
-      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
-        setShowSettings(false);
-
-      }
-      if (notifsRef.current && !notifsRef.current.contains(event.target)) {
-        setShowNotifs(false);
-      }      
+    function handleClickOutside(e) {
+      handleMenu(settingsRef.current, setShowSettings, e.target);
+      handleMenu(notifsRef.current, setShowNotifs, e.target);
     }
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);

@@ -10,7 +10,6 @@ import ProfLogin from './components/ProfLogin';
 import Dashboard from './components/Dashboard';
 import PageTeam from './components/dashboard/teampage/PageTeam';
 import PageActivity from './components/dashboard/activitypage/PageActivity';
-import FullView from './components/room/FullView';
 import NotFound from './components/NotFound';
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
@@ -33,7 +32,6 @@ function App() {
       <Route path = '/activity/:activity_id' element={ <PageActivity/> }/>
       <Route path = '/room/:room_id/' element={ <AssignedRoom/> }/>
       <Route path = '/solo/:room_id/' element={ <SoloRoom/> }/>
-      <Route path = '/view/:room_id/:file_name' element={ <FullView/> }/>
       <Route path = '/error/404' element={ <NotFound/> }/>
       <Route path =  '/admin/login' element={ <AdminLogin/> }/>
       <Route path = '/admin/dashboard/:collection' element={ <AdminDashboard/> }/>
