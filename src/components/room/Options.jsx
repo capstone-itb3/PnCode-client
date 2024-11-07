@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import Cookies from 'js-cookie';
 import checkTimeframe from './utils/checkTimeframe';
+import handleMenu from '../dashboard/utils/handleMenu';
+
 
 function Options({type, user, open_time, close_time, setLeftDisplay, setRightDisplay, setEditorTheme, setAddNewFile, setDeleteFile, startRunOutput, startRunOutputFullView}) {
     const isOnTimeRef = useRef(type === 'assigned' ? checkTimeframe(open_time, close_time) : true);
@@ -12,20 +14,49 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
         }
     });
 
-    function openMenu(clicked) {
-        if (clicked === 'files' && type === 'assigned') {
-            isOnTimeRef.current = checkTimeframe(open_time, close_time);
-        }
-        const option = document.getElementById(`${clicked}-menu`);
-        if (option) {
-            option?.classList?.toggle('hidden');
-        }
+    const fileRef = useRef(null);
+    const viewRef = useRef(null);
+    const preferenceRef = useRef(null);
+    const runRef = useRef(null);
 
-        document.querySelectorAll('.options-menu').forEach((menu) => {
-            if (menu.id !== option?.id && !menu.classList.contains('hidden')) {
-                menu.classList.add('hidden');
+    useEffect(() => {
+        function handleClickOutside(e) {
+            handleMenu(fileRef.current, openMenu, e.target);
+            handleMenu(viewRef.current, openMenu, e.target);
+            handleMenu(preferenceRef.current, openMenu, e.target);
+            handleMenu(runRef.current, openMenu, e.target);
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+    
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [])
+
+    function openMenu(clicked) {
+        if (clicked !== false) {
+            if (clicked === 'files' && type === 'assigned') {
+                isOnTimeRef.current = checkTimeframe(open_time, close_time);
             }
-        });
+    
+            const option = document.getElementById(`${clicked}-menu`);
+            if (option) {
+                option?.classList?.toggle('hidden');
+            }
+    
+            document.querySelectorAll('.options-menu').forEach((menu) => {
+                if (menu.id !== option?.id && !menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                }
+            });
+
+        } else {
+            // setTimeout(() => {
+            //     document.querySelectorAll('.options-menu').forEach((menu) => {
+            //         !menu.classList.contains('hidden') ? menu.classList.add('hidden') : null;
+            //     });
+            // }, 200)
+        }
     }
 
     function addFile() {
@@ -111,6 +142,7 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
 
     return (
         <>
+        <div ref={fileRef}>
             <button className='room-header-options' onClick={() => openMenu('files')}>
                 Files
             </button>
@@ -131,6 +163,8 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
                     }
                 </div>
             }
+        </div>
+        <div ref={viewRef}>
             <button className='room-header-options' onClick={() => openMenu('view')}>
                 View
             </button>
@@ -163,25 +197,27 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
                     <label>Close Right Tabs</label><span>Alt + P</span>
                 </button>
             </div>
-            <button className='room-header-options' onClick={() => openMenu('preferences')}>
-                Preferences
-            </button>
-            <div id='preferences-menu' className={`flex-column options-menu hidden`}>
-                <div className='item items-center'>
-                    <label>Editor Theme</label>
-                    <div className='items-center'>
-                        <label className="switch">
-                            <input 
-                                id='editor-theme'
-                                type="checkbox" 
-                                checked={isChecked}
-                                onChange={(e) => changeTheme(e.target.checked)}
-                            />
-                            <span className="slider"></span>
-                        </label>
-                    </div>
+        </div>
+        <button className='room-header-options' onClick={() => openMenu('preferences')}>
+            Preferences
+        </button>
+        <div id='preferences-menu' className={`flex-column options-menu hidden`}>
+            <div className='item items-center'>
+                <label>Editor Theme</label>
+                <div className='items-center'>
+                    <label className="switch">
+                        <input 
+                            id='editor-theme'
+                            type="checkbox" 
+                            checked={isChecked}
+                            onChange={(e) => changeTheme(e.target.checked)}
+                        />
+                        <span className="slider"></span>
+                    </label>
                 </div>
             </div>
+        </div>
+        <div ref={runRef}>
             <button className='room-header-options' onClick={() => openMenu('run')}>
                 Run
             </button>
@@ -193,6 +229,7 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
                     <label>Run in Full View <span>Alt + \</span></label>
                 </button>
             </div>
+        </div>
         </>
     )
 }

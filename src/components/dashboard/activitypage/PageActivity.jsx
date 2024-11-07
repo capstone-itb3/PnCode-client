@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { BsTrash, BsPlus } from 'react-icons/bs';
+import { FaChevronRight } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Cookies from 'js-cookie';
 import Header from '../Header';
@@ -142,31 +143,27 @@ function PageActivity() {
                     </div>
                     <div id='activity-room-list'>
                        <h3>Rooms</h3>
-                        <table id='assigned-table'>
-                            <tbody>
                             {room_list.length === 0 &&
-                                (
-                                    <tr className='assigned-item empty'>
-                                        <td className='col-1'>
-                                            <label>Rooms will fill in as student teams join the activity.</label>
-                                        </td>
-                                    </tr>
-                            )} 
+                                <div className='length-0 flex-column items-center'>
+                                    <label>Rooms will fill in as teams join the activity.</label>
+                                </div>
+                            } 
+                            <div className='two-column-grid'>
                             {room_list.length > 0 &&
                                 room_list.map((room, index) => {
                                     return (
-                                        <tr className='assigned-item' onClick={() => {spectateRoom(room.room_id)}} key={index}>
-                                            <td className='col-1'>
-                                                <label>{index + 1}</label>
-                                            </td>
-                                            <td className='col-2'>
+                                        <div className='assigned-item flex-row items-center' onClick={() => {spectateRoom(room.room_id)}} key={index}>
+                                            <div className='col-1'>{index + 1}</div>
+                                            <div className='col-2'>
                                                 <label className='single-line'>{room.room_name.slice(0, -4)}<span>{room.room_name.slice(-4)}</span></label>
-                                            </td>
-                                        </tr>
+                                            </div>
+                                            <div className='col-3 flex-row'>
+                                                <Link to={`/room/${room.room_id}`} className='items-center'>View Room <FaChevronRight size={18}/></Link>
+                                            </div>
+                                        </div>
                                     )
                             })}
-                            </tbody>
-                        </table>
+                            </div>
                     </div>
                     <ManageDates activity={activity} renderActivity={renderActivity}/>
 

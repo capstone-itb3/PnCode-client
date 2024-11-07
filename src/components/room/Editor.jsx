@@ -241,11 +241,8 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         });
 
         providerRef.current.on('connection-close', () => {
-          console.warn('YJS Connection Closed');
-          setTimeout(() => {
-            setWarning(4);
+          console.warn('YJS Connection Closed.');
             providerRef.current.connect();
-          }, 1000)
         });
 
         providerRef.current.on('connection-error', (error) => {

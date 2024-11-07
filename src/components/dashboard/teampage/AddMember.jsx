@@ -92,6 +92,9 @@ function AddMember({team, user}) {
 
 function SearchStudents({ students_list, search, addStudentToTeam }) {
     const filter = students_list.filter((s) => {
+        if (search === '') {
+            return students_list;
+        }
         const firstThenLast = `${s.first_name} ${s.last_name}`.toLowerCase().includes(search.toLowerCase());
         const lastThenFirst = `${s.last_name}, ${s.first_name}`.toLowerCase().includes(search.toLowerCase());
         return (firstThenLast || lastThenFirst)

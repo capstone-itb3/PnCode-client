@@ -157,7 +157,7 @@ function PageTeam() {
                 <tbody>
                 {team && team.members.map((member, index) => {
                   return (
-                    <tr className='team-member' key={index}>
+                    <tr className={`team-member ${user.position === 'Professor' && 'hoverable'}`} key={index}>
                       <td className='col-1'>
                         <UserAvatar name={`${member.last_name}, ${member.first_name.charAt(0)}`} size={30}/>
                       </td>
