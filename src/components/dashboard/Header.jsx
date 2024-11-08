@@ -19,7 +19,11 @@ function Header({ user, base, name }) {
       const data = await user.getUserNotifications(notifications);
         setNotifications(data);
     }
+
     getNotifications();
+    setInterval(() => {
+      getNotifications();
+    }, 7000)
   }, [])
 
   useEffect(() => {  
