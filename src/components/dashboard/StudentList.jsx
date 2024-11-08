@@ -90,9 +90,9 @@ function StudentList({user, class_info, showStudents}) {
                         })}
                     </tbody>                    
                 </table>
-                {requests && requests.length === 0 && 
+                {students && students.length === 0 && 
                     <div className='length-0'>
-                        No requests found.
+                        No students found.
                     </div>
                 }
                 </>                
