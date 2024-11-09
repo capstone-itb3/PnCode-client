@@ -44,7 +44,9 @@ function Notifications({ user, notifications, setNotifications }) {
 
   async function clickClassNotif(notif) {
     if (notif.for === 'accepted') {
-      navigate(`/dashboard/${notif.subject_id}/all`);
+
+      await filterOut(notif.notif_id);
+      window.location.href = `/dashboard/${notif.subject_id}/all`;
 
     } else if (notif.for === 'rejected') {
       await showAlertPopup({
@@ -54,7 +56,6 @@ function Notifications({ user, notifications, setNotifications }) {
       })
     }
 
-    filterOut(notif.notif_id);
   }  
 
   async function clickActivityNotif(notif) {
