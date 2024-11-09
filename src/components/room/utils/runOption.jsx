@@ -19,14 +19,14 @@ export function runOutput(output, room_id, room_files, activeFile) {
         output.src = `${import.meta.env.VITE_APP_BACKEND_URL}/view/${room_id}/${activeFile.name}`;
 
     } else {
+        output.src = null;
         setTimeout(() => {
-           output.src = null;
+            const html = findHTMLInFiles(room_id, room_files);
+            output.src = html;
+    
+            !html ? toast.error('No HTML file found.') : null;
         }, 200);
         
-        const html = findHTMLInFiles(room_id, room_files);
-        output.src = html;
-
-        !html ? toast.error('No HTML file found.') : null;
     }    
 }
 
