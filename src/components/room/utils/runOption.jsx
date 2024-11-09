@@ -19,6 +19,10 @@ export function runOutput(output, room_id, room_files, activeFile) {
         output.src = `${import.meta.env.VITE_APP_BACKEND_URL}/view/${room_id}/${activeFile.name}`;
 
     } else {
+        setTimeout(() => {
+           output.src = null;
+        }, 200);
+        
         const html = findHTMLInFiles(room_id, room_files);
         output.src = html;
 
