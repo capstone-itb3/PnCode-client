@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ImArrowUpRight2 } from 'react-icons/im';
-import { runOutputFullView } from './utils/runOption';
 
 function TabOutput({ outputRef, rightDisplay, startRunOutputFullView }) {
   const { room_id } = useParams();

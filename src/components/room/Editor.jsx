@@ -19,7 +19,6 @@ import { html5Snippet, linkTagSnippet, jquerySnippet } from './utils/codeSnippet
 import checkTimeframe from './utils/checkTimeframe'
 import changeTheme from './utils/changeTheme';
 import _ from 'lodash'
-// import VirtualFileSystem from '../virtualFileSystem'
 
 function nonEditingKey(e) {
   const isModifierKey = e.altKey || e.ctrlKey || e.metaKey;

@@ -223,8 +223,8 @@ function AssignedRoom() {
   }, [room_files, activeFile]);
 
   function displayFile(file) {
-    if (file === null) {
-      setActiveFile(null);
+    if (file === null || activeFile?.file_id === file?.file_id) {
+      !file ? setActiveFile(null) : null;
       return;
     }
 

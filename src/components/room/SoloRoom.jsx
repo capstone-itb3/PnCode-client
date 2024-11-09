@@ -6,6 +6,8 @@ import { BsXLg, BsCheck2, BsExclamationTriangleFill } from 'react-icons/bs';
 import { VscDebugDisconnect } from 'react-icons/vsc';
 import { getToken, getClass } from '../validator';
 import disableCopyPaste from './utils/disableCopyPaste';
+import { runOutput, runOutputFullView } from './utils/runOption';
+import { html5Snippet } from './utils/codeSnippets';
 import Options from './Options';
 import FileDrawer from './FileDrawer';
 import Members from './Members';
@@ -16,7 +18,7 @@ import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
 import { linter, lintGutter } from '@codemirror/lint' 
 import { javascript  } from '@codemirror/lang-javascript'
-import { html } from '@codemirror/lang-html'
+import { html, htmlLanguage } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
@@ -45,12 +47,7 @@ function AssignedRoom() {
   const editorRef = useRef(null);
   const compartmentRef = useRef(new Compartment());
 
-  useEffect(() => {    
-    if (!window.location.pathname.endsWith('/')) {
-      const added_slash = `${window.location.pathname}/`;
-      navigate(added_slash);
-    }
-
+  useEffect(() => { 
     if (user?.position === 'Student') {
       disableCopyPaste();
     }   
@@ -97,7 +94,14 @@ function AssignedRoom() {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.altKey && event.key === 'r') {
-        runOutput();
+        event.preventDefault();
+        startRunOutput();
+        return;
+      }
+
+      if (event.altKey && event.key === '\\') {
+        event.preventDefault();
+        startRunOutputFullView();
         return;
       }
 
@@ -138,7 +142,6 @@ function AssignedRoom() {
         }
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
@@ -146,37 +149,58 @@ function AssignedRoom() {
     }
   }, [room_files, activeFile]);
 
-  useEffect(() => {
-    if (activeFile) {
 
-      const type = () => {
-        if      (activeFile.name.endsWith('.html')) return html(); 
-        else if (activeFile.name.endsWith('.css'))  return css();
-        else if (activeFile.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
-      }
-      const theme = editorTheme === 'dark' ? oneDark : clouds;
-
-      const state = EditorState.create({
-        doc: activeFile.content,
-        extensions: [
-          keymap.of([indentWithTab]),
-          basicSetup,
-          type(),
-          compartmentRef.current.of([theme]),
-          lintGutter(),
-          EditorView.updateListener.of(e => {
-            if (e.docChanged) {
-              updateCode(e);
-            }
-          }),
-        ]
-      });
-
-      const editor_div = document.getElementById('editor-div');
-      editor_div.innerHTML = '';
-      
-      editorRef.current = new EditorView({ state, parent: (editor_div) });
+  function editorListener(e) {
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      updateCode(editorRef.current);
     }
+  };
+
+
+  useEffect(() => {
+    if (!activeFile) {
+      editorRef.current = null;
+      return;
+    }
+
+    const type = () => {
+      if      (activeFile.name.endsWith('.html')) return [html(), htmlLanguage.data.of({ autocomplete: [html5Snippet] })]; 
+      else if (activeFile.name.endsWith('.css'))  return css();
+      else if (activeFile.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
+    }
+    const theme = editorTheme === 'dark' ? oneDark : clouds;
+
+    const state = EditorState.create({
+      doc: activeFile.content,
+      extensions: [
+        keymap.of([indentWithTab]),
+        basicSetup,
+        type(),
+        compartmentRef.current.of([theme]),
+        lintGutter(),
+        EditorView.lineWrapping,
+        EditorView.updateListener.of(e => {
+          if (e.docChanged) {
+            updateCode(e);
+          }
+        }),
+      ]
+    });
+
+    const editor_div = document.getElementById('editor-div');
+    editor_div.innerHTML = '';
+    
+    editorRef.current = new EditorView({ state, parent: (editor_div) });
+    editor_div.addEventListener('keydown', editorListener);
+
+    return () => {
+      document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
+
+      editorRef.current.destroy();
+      editorRef.current = null;
+    }
+
   }, [activeFile]);
 
   useEffect(() => {
@@ -188,7 +212,6 @@ function AssignedRoom() {
     }
   }, [editorTheme]);
 
-
   function displayFile(file) {
     if (file === null) {
       setActiveFile(null);
@@ -197,43 +220,34 @@ function AssignedRoom() {
     setActiveFile(file);
   }
 
-  function updateCode(e) {
-    if (activeFile) {
-      const content = e.state.doc.toString();
-      const file_updated = { ...activeFile, content };
-
-      setRoomFiles(room_files.map(f => f.name === activeFile.name ? file_updated : f));
-
-      setSaved( <label id='saving'>Saving...</label>);
-
-      socketRef.current.emit('update_code_solo', {
-        room_id: room_id,
-        file_id: activeFile.file_id,
-        content: content,
-      });
+  const updateCode = _.debounce((e) => {
+    if (!activeFile || !editorRef.current) {
+      return;
     }
+
+    const content = e.state.doc.toString();
+    const file_updated = { ...activeFile, content };
+
+    setRoomFiles(room_files.map(f => f.name === activeFile.name ? file_updated : f));
+
+    setSaved( <label id='saving'>Saving...</label>);
+
+    socketRef.current.emit('update_code_solo', {
+      room_id: room_id,
+      file_id: activeFile.file_id,
+      content: content,
+    });
+  }, 300)
+
+  function startRunOutput() {
+    runOutput(outputRef.current, room_id, room_files, activeFile, 'solo/');
   }
 
-  function runOutput() {
-    setRightDisplay('output');
-
-    if (activeFile.type === 'html') {
-      outputRef.current.src = `/view/${room_id}/${activeFile.name}`;
-
-    } else {
-      if (activeFile.type !== 'html') {      
-        let active = room_files.find((f) => f.type = 'html');
-  
-        if (active) {
-          outputRef.current.src = `/view/${room_id}/${active.name}`;
-        } else {
-          outputRef.current.src = null;
-          toast.error('No html file found.');
-        }  
-      }
-    }
+  function startRunOutputFullView() {
+    runOutputFullView(room_id, room_files, activeFile, 'solo/');
   }
-  
+
+
   function leaveRoom () {
     if (socketRef.current) {
       socketRef.current.disconnect();
@@ -255,7 +269,8 @@ function AssignedRoom() {
               setRightDisplay={setRightDisplay}
               setEditorTheme={setEditorTheme}
               outputRef={outputRef}
-              runOutput={runOutput}/>
+              startRunOutput={startRunOutput}
+              startRunOutputFullView={startRunOutputFullView}/>
           }
           </div>
           {room &&
@@ -315,14 +330,6 @@ function AssignedRoom() {
                           <label>No file selected.</label>
                       }
                   </div>
-                  {activeFile && warning === 1 &&
-                  <div id='file-warning'>
-                          <label className='single-line items-center'>
-                              <BsExclamationTriangleFill size={12}/>
-                              <span>Empty documents will not be saved to prevent loss of progress.</span>
-                          </label>
-                  </div>
-                  }
                   {activeFile && warning === 0 &&
                   <div id='save-status' className='items-center'>
                       {saved}
@@ -349,7 +356,7 @@ function AssignedRoom() {
                     rightDisplay={rightDisplay}
                     outputRef={outputRef}
                     activeFile={activeFile}
-                    room_files={room_files}/> 
+                    startRunOutputFullView={startRunOutputFullView}/> 
                 </div>
               </div>
             </div>
