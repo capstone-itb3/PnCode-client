@@ -7,6 +7,7 @@ import { BsXLg } from 'react-icons/bs';
 import { VscDebugDisconnect } from 'react-icons/vsc';
 import { getToken, getClass } from '../validator';
 import { showConfirmPopup } from '../reactPopupService';
+import convertTime from '../dashboard/utils/convertTime';
 import disableCopyPaste from './utils/disableCopyPaste';
 import { handleKeyDownAssigned } from './utils/roomHandleKeyDown';
 import { runOutput, runOutputFullView } from './utils/runOption';
@@ -21,6 +22,7 @@ import History from './History';
 import Chats from './Chats';
 import Feedback from './Feedback';
 import Switch from './Switch';
+import checkTimeframe from './utils/checkTimeframe';
 
 async function socketConnectError(error_type) {
   const reload = await showConfirmPopup({
@@ -45,15 +47,14 @@ function AssignedRoom() {
   const [room, setRoom] = useState(null);
   const [room_files,  setRoomFiles] = useState([]);
   const [members, setMembers] = useState ([]);
-  const [access, setAccess] = useState(null);
   
   const [socketId, setSocketId] = useState(null);
   const socketRef = useRef(null);
 
   const [activity, setActivity] = useState(null);
   const [instructions, setInstructions] = useState(null);
-  const [open_time, setOpenTime] = useState(null);
-  const [close_time, setCloseTime] = useState(null);
+  const [timeframes, setTimeframes] = useState([]);
+  const [activityOpen, setActivityOpen] = useState(null);
 
   const [activeFile, setActiveFile] = useState(null);
   const [cursorColor, setCursorColor] = useState(null);
@@ -84,13 +85,10 @@ function AssignedRoom() {
       setRoom(info.room);
       setRoomFiles(info.files);
       setMembers(info.members);
-      setAccess(info.access);
 
       setActivity(info.activity);
       setInstructions(info.activity.instructions);
-      setOpenTime(info.activity.open_time);
-      setCloseTime(info.activity.close_time);
-
+      setTimeframes([info.activity.open_time, info.activity.close_time]);
       document.title = info.activity.activity_name;
 
       if (info.access) {
@@ -127,8 +125,8 @@ function AssignedRoom() {
       setRoom(null);
       setRoomFiles([]);
       setMembers([]);
-      setAccess(null);
       setActivity(null);
+      setActivityOpen(null);
       setActiveFile(null);
       setCursorColor(null);
       setRoomUsers([]);
@@ -184,11 +182,17 @@ function AssignedRoom() {
       setEditorUsers(editors);
     });
 
+    socketRef.current.on('dates_updated', ({ new_open_time, new_close_time }) => {
+      setTimeframes([new_open_time, new_close_time]);
+      toast.success(`Activity dates updated to ${convertTime(new_open_time)} - ${convertTime(new_close_time)}`);
+    });
+
     return () => {
       if (socketRef.current) {
         socketRef.current.off('connect');
         socketRef.current.off('found_file');
         socketRef.current.off('room_users_updated');
+        socketRef.current.off('dates_updated');
         socketRef.current.off('editor_users_updated');
       }
     }
@@ -222,6 +226,28 @@ function AssignedRoom() {
     }
   }, [room_files, activeFile]);
 
+  useEffect(() => {
+    if (!activity || timeframes.length === 0) {
+      return;
+    }
+  
+    async function toggleActivityTimeframe() {
+      const open = await checkTimeframe(timeframes[0], timeframes[1]);
+      setActivityOpen(open);
+    }
+    toggleActivityTimeframe();
+
+    const interval = setInterval(toggleActivityTimeframe, 60000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [timeframes, activity]);
+
+  useEffect(() => {
+    console.log(activityOpen);
+  }, [activityOpen]);
+    
   function displayFile(file) {
     if (file === null || activeFile?.file_id === file?.file_id) {
       !file ? setActiveFile(null) : null;
@@ -261,14 +287,13 @@ function AssignedRoom() {
     <main className='room-main'>
       <div className='flex-row items-center' id='room-header'>
           <div className='items-center'>
-          {room && activity && members && access && socketRef.current &&
+          {room && activity && members && socketRef.current &&
             <Options 
               type={'assigned'} 
               room={room} 
               user={user}
               socket={socketRef.current}
-              open_time={activity.open_time}
-              close_time={activity.close_time}
+              activityOpen={activityOpen}
               setLeftDisplay={setLeftDisplay}
               setRightDisplay={setRightDisplay}
               reloadFile={() => displayFile(activeFile)}
@@ -297,12 +322,12 @@ function AssignedRoom() {
           </div>
         }
       </div>
-      {!(room && activity && members && access && socketRef.current) &&
+      {!(room && activity && members && socketRef.current) &&
           <div className='loading'>
             <div className='loading-spinner'/>
           </div>
       }
-      {room && activity && members && access && socketRef.current &&
+      {room && activity && members && socketRef.current && (activityOpen !== null) && 
         <div id='editor-tab' className='flex-row'>
           <aside className={`flex-column ${leftDisplay === '' && 'none'}`} id='left-body'>
             <div className='flex-column side-tab top'>
@@ -358,8 +383,7 @@ function AssignedRoom() {
                 user={user}
                 cursorColor={cursorColor}
                 socket={socketRef.current}
-                open_time={open_time}
-                close_time={close_time}
+                activityOpen={activityOpen}
                 activeFile={activeFile}
                 editorTheme={editorTheme}
                 rightDisplay={rightDisplay}/>

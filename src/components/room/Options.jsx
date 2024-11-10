@@ -4,8 +4,7 @@ import checkTimeframe from './utils/checkTimeframe';
 import handleMenu from '../dashboard/utils/handleMenu';
 
 
-function Options({type, user, open_time, close_time, setLeftDisplay, setRightDisplay, setEditorTheme, setAddNewFile, setDeleteFile, startRunOutput, startRunOutputFullView}) {
-    const isOnTimeRef = useRef(type === 'assigned' ? checkTimeframe(open_time, close_time) : true);
+function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, setEditorTheme, setAddNewFile, setDeleteFile, startRunOutput, startRunOutputFullView}) {
     const [isChecked, setIsChecked] = useState(() => {
         if (Cookies.get('theme') === 'dark' || !Cookies.get('theme')) {
             return true;
@@ -36,7 +35,6 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
     function openMenu(clicked) {
         if (clicked !== false) {
             if (clicked === 'files' && type === 'assigned') {
-                isOnTimeRef.current = checkTimeframe(open_time, close_time);
             }
     
             const option = document.getElementById(`${clicked}-menu`);
@@ -146,7 +144,7 @@ function Options({type, user, open_time, close_time, setLeftDisplay, setRightDis
             <button className='room-header-options' onClick={() => openMenu('files')}>
                 Files
             </button>
-            {isOnTimeRef.current &&
+            {activityOpen &&
                 <div id='files-menu' className='flex-column options-menu hidden'>
                     {user?.position === 'Student' && type === 'assigned' &&
                         <button className='item items-center'  onClick={addFile}>

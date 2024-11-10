@@ -3,7 +3,7 @@ import { BsExclamationTriangleFill } from 'react-icons/bs'
 import Editor from './Editor'
 import { showConfirmPopup } from '../reactPopupService';
 
-function EditorTab({room, user, cursorColor, socket, open_time, close_time, activeFile, editorTheme, rightDisplay}) {
+function EditorTab({room, user, cursorColor, socket, activityOpen, activeFile, editorTheme, rightDisplay}) {
     const [warning, setWarning] = useState(0);
     const [saved, setSaved] = useState(null);
     const [alertUp, setAlertUp] = useState(false);
@@ -79,8 +79,7 @@ function EditorTab({room, user, cursorColor, socket, open_time, close_time, acti
                 user={user} 
                 cursorColor={cursorColor}
                 socket={socket} 
-                open_time={open_time}
-                close_time={close_time}
+                activityOpen={activityOpen}
                 file={activeFile}
                 setSaved={setSaved}
                 editorTheme={editorTheme}

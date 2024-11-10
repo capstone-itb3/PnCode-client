@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom';
 import { BsCheck2, BsExclamationTriangleFill } from 'react-icons/bs';
 import * as Y from 'yjs'
@@ -31,20 +31,18 @@ function editingKey(e) {
   return e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || e.key === 'Enter';
 }
 
-function Editor({ user, cursorColor, file, socket, open_time, close_time, setSaved, editorTheme, warning, setWarning}) {
+function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, editorTheme, warning, setWarning}) {
   const { room_id } = useParams();
   const editorRef = useRef(null);
   const providerRef = useRef(null);
-  const openTimeRef = useRef(open_time);
-  const closeTimeRef = useRef(close_time);
   const themeCompartmentRef = useRef(new Compartment());
   const readOnlyCompartmentRef = useRef(new Compartment());
   const inSameLineRef = useRef(false);
   const storeInHistoryRef = useRef(false);
 
-  const editorListener = (event) => {
+  const editorListener = useCallback((event) => {
     try {
-      const onTime = checkTimeframe(openTimeRef.current, closeTimeRef.current);    
+      const onTime = activityOpen;    
 
       //Ctrl + S to save the code
       if (event.ctrlKey && event.key === 's') {
@@ -93,7 +91,7 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
     } catch (e) {
       console.error(e);
     }
-  };
+  }, [activityOpen]);
 
   const debounceUserType = _.debounce((editing_user_id) => {
     if (editorRef.current) {
@@ -171,13 +169,13 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         
         const access = () => {
           if (user?.position === 'Student') {
-            return EditorState.readOnly.of(!checkTimeframe(openTimeRef.current, closeTimeRef.current));
+            return EditorState.readOnly.of(!activityOpen);
           } else if (user?.position === 'Professor') {
             return EditorState.readOnly.of(true);
           }          
         }
 
-        if (checkTimeframe(openTimeRef.current, closeTimeRef.current) === false) {
+        if (activityOpen === false) {
           setWarning(2);
         }        
 
@@ -279,14 +277,14 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
         providerRef.current = null;
       }
     }
-  }, [file]);
+  }, [file, activityOpen, socket]);
 
   useEffect (() => {
     socket.on('update_result', ({ status }) => {
       if (status === 'ok') {
         setSaved( <label className='items-center' id='saved'>
                     <BsCheck2 size={14}/><span>Saved!</span>
-                  </label>  
+                  </label>
                 );
       } else {
         setSaved( <label className='items-center' id='unsaved'>
@@ -296,24 +294,10 @@ function Editor({ user, cursorColor, file, socket, open_time, close_time, setSav
       }
     });
 
-    socket.on('dates_updated', ({ new_open_time, new_close_time }) => {
-      openTimeRef.current = new_open_time;
-      closeTimeRef.current = new_close_time;
-
-      if (editorRef.current && user.position === 'Student') {
-        editorRef.current.dispatch({
-          effects: readOnlyCompartmentRef.current.reconfigure([
-              EditorState.readOnly.of(!checkTimeframe(new_open_time, new_close_time))
-            ])
-        });
-      }      
-    }); 
-
     return () => {
       socket.off('update_result');
-      socket.off('dates_updated');
     }
-  }, [socket, open_time, close_time, file]);
+  }, [socket, file]);
 
   useEffect(() => {
     changeTheme(editorRef, editorTheme, themeCompartmentRef);
