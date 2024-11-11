@@ -232,12 +232,12 @@ function AssignedRoom() {
     }
   
     async function toggleActivityTimeframe() {
-      const open = await checkTimeframe(timeframes[0], timeframes[1]);
+      const open = checkTimeframe(timeframes[0], timeframes[1]);
       setActivityOpen(open);
     }
     toggleActivityTimeframe();
 
-    const interval = setInterval(toggleActivityTimeframe, 60000);
+    const interval = setInterval(toggleActivityTimeframe, 10000);
 
     return () => {
       clearInterval(interval);

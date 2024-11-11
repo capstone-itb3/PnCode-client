@@ -1,15 +1,10 @@
-export default async function checkTimeframe(open_time, close_time) {
+export default function checkTimeframe(open_time, close_time) {
     try {
-        const response = await fetch('https://timeapi.io/api/time/current/zone?timeZone=Asia%2FManila', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const date_now = new Date();
+        const date_utc = date_now.getTime() + (date_now.getTimezoneOffset() * 60000);
 
-        const data = await response.json();
-        const phtTime = new Date(data.dateTime);
-        const currentTime = phtTime.getHours() * 60 + phtTime.getMinutes();
+        const date_pht = new Date(date_utc + (3600000*8));
+        const time_pht = date_pht.getHours() * 60 + date_pht.getMinutes();
 
         const [openHours, openMinutes] = open_time.split(':').map(Number);
         const [closeHours, closeMinutes] = close_time.split(':').map(Number);
@@ -17,7 +12,7 @@ export default async function checkTimeframe(open_time, close_time) {
         const openTimeMinutes = openHours * 60 + openMinutes;
         const closeTimeMinutes = closeHours * 60 + closeMinutes;
       
-        return currentTime >= openTimeMinutes && currentTime <= closeTimeMinutes;    
+        return time_pht >= openTimeMinutes && time_pht < closeTimeMinutes;    
     } catch (error) {
         console.error('Failed to fetch server time:', error);
     }
