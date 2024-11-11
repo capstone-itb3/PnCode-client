@@ -76,12 +76,13 @@ export class AssignedRoom extends Room {
         }
     }
 
-    async reactToFeedback(socket, feedback_id, react) {
+    async reactToFeedback(socket, feedback_id, react, action) {
         try {
             socket.emit('react_to_feedback', {
                 room_id: this.room_id,
                 feedback_id,
-                react
+                react,
+                action
             });
         } catch (e) {
             console.error('Unable to connect to the server.');

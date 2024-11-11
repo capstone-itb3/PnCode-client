@@ -77,7 +77,7 @@ function AssignedRoom() {
     async function initRoom () {
       const info = await user.getAssignedRoomDetails(room_id);
 
-      if (!info.access) {
+      if (!info?.access) {
         navigate('/error/404');
         return;
       }
@@ -365,7 +365,8 @@ function AssignedRoom() {
                   room={room} 
                   user={user} 
                   socket={socketRef.current}
-                  cursorColor={cursorColor}/>
+                  cursorColor={cursorColor}
+                  activityOpen={activityOpen}/>
               }
               </div>
             <Members 

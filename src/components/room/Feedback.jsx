@@ -4,6 +4,7 @@ import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import converToReadable from './utils/convertToReadable';
 import updateFeedbackReacts from './utils/updateFeedbackReacts';
 import { showConfirmPopup } from '../reactPopupService';
+import _ from 'lodash';
 
 function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay }) {
   const [feedback, setFeedback] = useState([]);
@@ -41,9 +42,9 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
         setFeedback(prev => prev.filter(item => item.feedback_id !== feedback_id));
       });
 
-      socket.on('new_feedback_react', ({ feedback_id, react, socket_id }) => {
+      socket.on('new_feedback_react', ({ feedback_id, react, socket_id, action }) => {
         if (socket_id !== socketId) {
-          updateFeedbackReacts(setFeedback, feedback_id, react);
+          updateFeedbackReacts(setFeedback, feedback_id, react, action);
         }
       });
     } catch (e) {
@@ -69,20 +70,25 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
 
   function reactToFeedback(feed) {
     if (user.position === 'Student') {
+      const react = {
+        uid: user.uid,
+        first_name: user.first_name,
+        last_name: user.last_name,
+      };
+
+      let action = 'unheart';
       if (!feed.reacts.some((u) => u.uid === user.uid)) {
-        const react = {
-          uid: user.uid,
-          first_name: user.first_name,
-          last_name: user.last_name,
-        };
-  
-        room.reactToFeedback(socket, feed.feedback_id, react);
-
-
-        updateFeedbackReacts(setFeedback, feed.feedback_id, react);
+        action = 'heart';
       }
+      
+      updateFeedbackReacts(setFeedback, feed.feedback_id, react, action);
+      reactRoom(feed.feedback_id, react, action);
     }
   }
+
+  const reactRoom = _.debounce((feedback_id, react, action) => {
+    room.reactToFeedback(socket, feedback_id, react, action)
+  }, 1000);
   
   async function deleteFeedback(feedback_id) {
     const result = await showConfirmPopup({
@@ -140,7 +146,7 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
               }
               <div className='flex-row items-center react-div'> 
                 <div className='count'>
-                  {feed.reacts.length > 0 && feed.reacts.length} 
+                  {feed.reacts.length} 
                   {feed.reacts.length > 0 &&
                     <div className='reacted-list flex-column'>
                       {feed.reacts.map((u, index) => (

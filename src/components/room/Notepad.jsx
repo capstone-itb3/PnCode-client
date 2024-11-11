@@ -8,7 +8,7 @@ import { keymap } from '@codemirror/view'
 import _ from 'lodash'
 import notepadListener from './utils/notepadListener'
 
-function Notepad({room, user, socket, cursorColor}) {
+function Notepad({room, user, socket, cursorColor, activityOpen}) {
     const notepadRef = useRef(null);
     const providerRef = useRef(null);
   
@@ -43,7 +43,7 @@ function Notepad({room, user, socket, cursorColor}) {
       
             const setup = () => {
                 if (user?.position === 'Student') {
-                    return EditorState.readOnly.of(false);
+                    return EditorState.readOnly.of(!activityOpen);
                 } else if (user?.position === 'Professor') {
                     return EditorState.readOnly.of(true);
                 }
@@ -63,8 +63,10 @@ function Notepad({room, user, socket, cursorColor}) {
                     doc: initialContent,
                     extensions: [
                         keymap.of([...yUndoManagerKeymap, { key: 'Enter', run: (view) => {
-                            view.dispatch(view.state.replaceSelection('\n'))
-                            return true
+                            if (user.position === 'Student' && activityOpen) {
+                                view.dispatch(view.state.replaceSelection('\n'));
+                            }
+                            return true;
                             }}
                         ]),
                         setup(),
@@ -93,7 +95,7 @@ function Notepad({room, user, socket, cursorColor}) {
             notepadRef.current ? notepadRef.current?.destroy() : null;
             socket.off('notepad_loaded');
         };
-    }, [room, user, socket, cursorColor]);
+    }, [room, user, socket, cursorColor, activityOpen]);
 
     const updateNotes = _.debounce(() => {
         if (notepadRef.current) {
@@ -102,7 +104,7 @@ function Notepad({room, user, socket, cursorColor}) {
                 content: notepadRef.current.state.doc.toString(),
             });
         }
-    }, 200);
+    }, 500);
 
     return (    
         <div id='note-container'>

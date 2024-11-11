@@ -2238,7 +2238,7 @@ header {
 .feedback-item .react-div {
     position: relative;
     justify-content: flex-end;
-    margin: 0 15px 10px 0;
+    margin: 0 25px 10px 0;
     color: var(--gray);
     font-size: 14px;
 }
@@ -2248,6 +2248,7 @@ header {
     padding: 0 6px;
     background-color: transparent;
 }
+
 .react-div .count {
     cursor: pointer;
     display: flex;
