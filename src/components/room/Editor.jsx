@@ -40,7 +40,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
   const inSameLineRef = useRef(false);
   const storeInHistoryRef = useRef(false);
 
-  const editorListener = useCallback((event) => {
+  const editorListener = (event) => {
     try {
       const onTime = activityOpen;    
 
@@ -91,7 +91,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     } catch (e) {
       console.error(e);
     }
-  }, [activityOpen]);
+  }
 
   const debounceUserType = _.debounce((editing_user_id) => {
     if (editorRef.current) {
@@ -315,7 +315,10 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     }
   }, [file, editorRef.current]);
 
-  function updateCode (e) {
+  const updateCode = (e) => {
+    if (!e?.state?.doc) {
+      return;
+    }
     let isEmpty = e.state.doc.toString() === '' && e.state.doc === null;
     let allSpaces = new RegExp('^\\s*$').test(e.state.doc.toString());
 
@@ -336,7 +339,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     } else if ( isEmpty || allSpaces) {
       setWarning(1);
     }
-  }
+  };
   
   return (
     <>
