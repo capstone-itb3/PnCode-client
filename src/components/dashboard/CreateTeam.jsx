@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BsXLg, BsExclamationCircleFill } from 'react-icons/bs';
+import { BsXLg } from 'react-icons/bs';
+import { showAlertPopup } from '../reactPopupService';
 import { useNavigate } from 'react-router-dom';
+import InfoHover from '../InfoHover';
 
 function CreateTeam({ user, class_info, exit }) {
   const [team_name, setTeamName] = useState('');
@@ -8,6 +10,16 @@ function CreateTeam({ user, class_info, exit }) {
   
   async function submitTeam(e) {
     e.preventDefault();
+
+    if (team_name.length < 5 || team_name.length > 30) {
+      await showAlertPopup({ 
+        title: 'Invalid Team Name',
+        message: 'Team name must be between 5 and 30 characters long.',
+        type: 'error',
+        okay_text: 'Okay',
+      });
+      return;
+    }
     const created = await user.createTeam(team_name, class_info.class_id);
 
     if (created) {
@@ -29,7 +41,7 @@ function CreateTeam({ user, class_info, exit }) {
                 <label><b>Section:</b> {class_info.section}</label>
             </div>
             <div className='flex-column'>
-              <h4>Team Name</h4>
+              <h4>Team Name <InfoHover size={16} info={'The name of your team. Team name must be 5-30 characters long.'}/> </h4>
               <input 
                 className='input-data'
                 type='text'

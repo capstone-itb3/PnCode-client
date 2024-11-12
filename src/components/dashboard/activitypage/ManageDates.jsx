@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import convertTime from '../utils/convertTime';
+import InfoHover from '../../InfoHover';
 
 function ManageDates({activity, renderActivity}) {
     const [showAccessInputs, setShowAccessInputs] = useState(false);
@@ -38,7 +39,7 @@ function ManageDates({activity, renderActivity}) {
 
     return (
         <div id='display-dates'>
-            <h3>Access Timeframes</h3>
+            <h3 className='flex-row items-center'>Access Timeframe<InfoHover size={18} info={'The range of time of day the students can access this activity.'}/></h3>
             <div className='two-column-grid'>
             {!showAccessInputs &&
             <div>

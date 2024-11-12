@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { getToken, getClass } from '../../validator';
 import Header from '../Header';
 import UserAvatar from '../../UserAvatar';
+import InfoHover from '../../InfoHover';
 import AddMember from './AddMember';
 import { showConfirmPopup } from '../../reactPopupService'
 
@@ -152,7 +153,7 @@ function PageTeam() {
               </div>
             </div>
             <div id='team-members-list'>
-              <h3>Members</h3>
+              <h3 className='flex-row items-center'>Members<InfoHover size={18} info={'The students who are members of this team.'}/></h3>
               <table id='members-table'>
                 <tbody>
                 {team && team.members.map((member, index) => {

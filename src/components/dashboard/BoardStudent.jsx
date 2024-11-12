@@ -4,6 +4,7 @@ import { BsListUl } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import InfoHover from '../InfoHover';
 import SelectRoom from './SelectRoom';
 import SelectTeam from './SelectTeam';
 import SelectActivity from './SelectActivity';
@@ -153,7 +154,10 @@ function BoardStudent({ auth }) {
                         <>
                             <div className={`separator ${(select === 'activities' || select === 'solo') && 'none'}`} id='show-teams'>
                                 <div className='section-title'>
-                                    <label>Teams <span>({team_count})</span></label>
+                                    <label className='items-center flex-row'>
+                                        Teams <span>({team_count})</span> 
+                                        <InfoHover size={18} info={'The list of teams created for this class. You can join one team at a time for one class.'} />
+                                    </label>
                                 </div>
                                 {loading_teams &&
                                      <div className='in-retrieve'>Retrieving...</div>
@@ -174,7 +178,10 @@ function BoardStudent({ auth }) {
                             </div>
                             <div className={`separator ${(select === 'teams' || select === 'solo') && 'none'}`} id='show-activities'>
                                 <div className='section-title'>
-                                    <label>Activities <span>({activity_count})</span></label>
+                                    <label className='items-center flex-row'>
+                                        Activities <span>({activity_count})</span> 
+                                        <InfoHover size={18} info={'The list of activities created by your professor. A student must have a team to proceed to an activity.'} />
+                                    </label>
                                 </div>
                                 {loading_activities &&
                                     <div className='in-retrieve'>Retrieving...</div>
@@ -194,6 +201,9 @@ function BoardStudent({ auth }) {
                                 }
                             </div>
                         </>
+                    }
+                    {!class_info && !noCourse &&
+                        <div className='in-retrieve'><label>Loading class...</label></div>
                     } 
                     {noCourse &&
                         <div className='no-course'>
@@ -202,7 +212,10 @@ function BoardStudent({ auth }) {
                     }
                     <div className={`separator ${(select === 'activities' || select === 'teams') && 'none'}`} id='show-solos'>
                         <div className='section-title'>
-                            <label>Solo Rooms <span>({solo_count})</span></label>
+                            <label className='items-center flex-row'>
+                                Solo Rooms <span>({solo_count})</span> 
+                                <InfoHover size={18} info={'The list of rooms where you can practice your skills in coding by yourself. You can create up to 5 solo rooms.'} />
+                            </label>
                         </div>
                         {loading_solo &&
                             <div className='in-retrieve'>Retrieving...</div>
@@ -266,7 +279,10 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
     return (
         <div id='team-selection' className='flex-row'>
             {showPlus &&
-                <button className='team-plus' onClick={openTeamPopup}>+</button> 
+                <button className='team-plus flex-column items-center' onClick={openTeamPopup}>
+                    <span>+</span>
+                    <label>Create Team</label>
+                </button> 
             }
             {teams.map((team) => (
                 <SelectTeam 

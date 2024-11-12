@@ -244,10 +244,6 @@ function AssignedRoom() {
     };
   }, [timeframes, activity]);
 
-  useEffect(() => {
-    console.log(activityOpen);
-  }, [activityOpen]);
-    
   function displayFile(file) {
     if (file === null || activeFile?.file_id === file?.file_id) {
       !file ? setActiveFile(null) : null;
@@ -349,6 +345,7 @@ function AssignedRoom() {
                   room={room} 
                   user={user}
                   socket={socketRef.current}
+                  activityOpen={activityOpen}
                   room_files={room_files}
                   setRoomFiles={setRoomFiles}
                   activeFile={activeFile}
@@ -410,6 +407,7 @@ function AssignedRoom() {
                   <TabOutput 
                     rightDisplay={rightDisplay}
                     outputRef={outputRef}
+                    startRunOutput={startRunOutput}
                     startRunOutputFullView={startRunOutputFullView}/>
                   {activeFile &&
                     <History

@@ -5,6 +5,7 @@ import { FaChevronRight } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Cookies from 'js-cookie';
 import Header from '../Header';
+import InfoHover from '../../InfoHover';
 import { getToken, getClass } from '../../validator';
 import ManageDates from './ManageDates';
 import { MdLoop } from 'react-icons/md';
@@ -17,6 +18,7 @@ function PageActivity() {
     const [professor, setProfessor ] = useState(getClass(auth, 'Professor'));
     const [activity, setActivity] = useState(null);
     const [room_list, setRoomList] = useState([]);
+    const [no_rooms_list, setNoRoomsList] = useState([]);
     const [instructions, setInstructions] = useState('');
     const [showInstructionInputs, setShowInstructionInputs] = useState(false);
     const [course_code, setCourseCode] = useState(null);
@@ -35,6 +37,7 @@ function PageActivity() {
         setActivity(act_info.activity_class);
         setInstructions(act_info.activity_class.instructions);
         setRoomList(act_info.rooms);
+        setNoRoomsList(act_info.no_rooms);
 
         setCourseCode(act_info.course_code);
         setSection(act_info.section);
@@ -119,7 +122,7 @@ function PageActivity() {
                         </div>
                     </div>
                     <div className='flex-column'>
-                    <h3>Instructions</h3>
+                    <h3 className='flex-row items-center'>Instructions<InfoHover size={18} info={'The instructions to be followed by the students for this activity.'}/></h3>
                     {!showInstructionInputs &&
                         <p className='instructions'>{activity.instructions}</p>
                     }
@@ -142,27 +145,40 @@ function PageActivity() {
                         </div>
                     </div>
                     <div id='activity-room-list'>
-                       <h3>Rooms</h3>
+                        <h3 className='flex-row items-center'>Rooms<InfoHover size={18} info={'The list of rooms assigned for each team in this activity.'}/></h3>
                             {room_list.length === 0 &&
                                 <div className='length-0 flex-column items-center'>
                                     <label>Rooms will fill in as teams join the activity.</label>
                                 </div>
                             } 
                             <div className='two-column-grid'>
-                            {room_list.length > 0 &&
-                                room_list.map((room, index) => {
-                                    return (
-                                        <div className='assigned-item flex-row items-center' onClick={() => {spectateRoom(room.room_id)}} key={index}>
-                                            <div className='col-1'>{index + 1}</div>
-                                            <div className='col-2'>
-                                                <label className='single-line'>{room.room_name.slice(0, -4)}<span>{room.room_name.slice(-4)}</span></label>
-                                            </div>
-                                            <div className='col-3 flex-row'>
-                                                <Link to={`/room/${room.room_id}`} className='items-center'>View Room <FaChevronRight size={18}/></Link>
-                                            </div>
+                            {room_list.length > 0 && room_list.map((room, index) => {
+                                return (
+                                    <div className={`assigned-item flex-row items-center ${room.owner_id === '' && 'team-deleted'}`} onClick={() => {spectateRoom(room.room_id)}} key={index}>
+                                        <div className='col-1'>{index + 1}</div>
+                                        <div className='col-2'>
+                                            <label className='single-line'>{room.room_name.slice(0, -4)}<span>{room.room_name.slice(-4)}</span></label>
                                         </div>
-                                    )
+                                        <div className='col-3 flex-row'>
+                                            <label><Link to={`/room/${room.room_id}`} className='items-center'>View Room <FaChevronRight size={18}/></Link></label>
+                                        </div>
+                                    </div>
+                                )
                             })}
+                            {no_rooms_list.length > 0 && no_rooms_list.map((team, index) => {
+                                return (
+                                    <div className={`assigned-item flex-row items-center no-room`} key={index}>
+                                        <div className='col-1'>{index + 1}</div>
+                                        <div className='col-2'>
+                                            <label className='single-line'>{team.team_name}</label>
+                                        </div>
+                                        <div className='col-3 flex-row'>
+                                            <b>No Room</b>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+
                             </div>
                     </div>
                     <ManageDates activity={activity} renderActivity={renderActivity}/>

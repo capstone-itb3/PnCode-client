@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BsXLg } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import { BsExclamationCircleFill } from 'react-icons/bs';
+import InfoHover from '../InfoHover';
 
 function CreateActivity({user, class_info, exit}) {
     const [activity_name, setActivityName] = useState('');
@@ -37,7 +36,7 @@ function CreateActivity({user, class_info, exit}) {
                             <label>Section: <b>{class_info.section}</b></label>
                         </div>
                         <div className='flex-column width-100'>
-                            <h4>Activity Name</h4>
+                            <h4>Activity Name <InfoHover size={16} info={'The name of the activity. The activity name can be 5-100 characters long.'}/></h4>
                             <input 
                                 className='input-data'
                                 type='text'
@@ -48,7 +47,7 @@ function CreateActivity({user, class_info, exit}) {
                             />
                         </div>
                         <div className='flex-column'>
-                            <h4>Instructions</h4>
+                            <h4>Instructions<InfoHover size={16} info={'The instructions to be followed by the students for this activity.'}/></h4>
                             <textarea 
                                 value={instructions}
                                 placeholder='Enter the instructions'
@@ -58,7 +57,7 @@ function CreateActivity({user, class_info, exit}) {
                         </div>
                         <div className='flex-column'>
                             <div className='flex-row'>
-                                <h4>Access Timeframe</h4>
+                                <h4>Access Timeframe<InfoHover size={16} info={'The range of time of day the students can access this activity.'}/></h4>
                             </div>
                             <div className='two-column-grid' id='chosen-timeframe'>
                                 <div className='flex-row items-center'>

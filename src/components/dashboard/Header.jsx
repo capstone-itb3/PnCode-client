@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom';
 import { FiBell, FiLogOut } from 'react-icons/fi';
 import UserAvatar from '../UserAvatar';
 import Cookies from 'js-cookie';
@@ -21,9 +22,11 @@ function Header({ user, base, name }) {
     }
 
     getNotifications();
-    setInterval(() => {
-      getNotifications();
-    }, 7000)
+    const interval = setInterval(getNotifications, 10000)
+
+    return () => {
+      clearInterval(interval);
+    }
   }, [])
 
   useEffect(() => {  
@@ -52,7 +55,7 @@ function Header({ user, base, name }) {
     <header>
       <div className='left-nav items-center'>
         <div id='header-url' className='flex-row items-center'>
-            <img src={logo} alt='logo' />
+            <Link to={'/dashboard'}><img src={logo} alt='logo' /></Link>
             <label className='single-line'><span>{base}</span> / <a href=''>{name}</a> </label>
         </div>
       </div>

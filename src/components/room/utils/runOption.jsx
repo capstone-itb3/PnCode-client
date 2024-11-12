@@ -6,7 +6,7 @@ function findHTMLInFiles(room_id, room_files, isSolo) {
     if (active) {
         return `${import.meta.env.VITE_APP_BACKEND_URL}/view/${isSolo || ''}${room_id}/${active.name}`
     } else {
-        return null;
+        return undefined;
     }
 }
 
@@ -19,7 +19,7 @@ export function runOutput(output, room_id, room_files, activeFile, isSolo) {
         output.src = `${import.meta.env.VITE_APP_BACKEND_URL}/view/${isSolo || ''}${room_id}/${activeFile.name}`;
 
     } else {
-        output.src = null;
+        output.src = undefined;
         setTimeout(() => {
             const html = findHTMLInFiles(room_id, room_files, isSolo);
             output.src = html;

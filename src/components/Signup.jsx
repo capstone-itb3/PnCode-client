@@ -4,7 +4,6 @@ import pnc from '../../assets/pamantasan.jpg'
 import ccs_logo from '../../assets/ccs_logo.jfif'
 import logo from '../../assets/logo.jpg'
 
-
 function Signup() {
     const [ email, setEmail ] = useState('');
     const [ first_name, setFirstName ] = useState('');

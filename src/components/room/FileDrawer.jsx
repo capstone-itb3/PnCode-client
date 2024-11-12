@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaHtml5, FaCss3, FaJs } from 'react-icons/fa';
 import { BsTrash } from 'react-icons/bs';
+import { FiPlus } from 'react-icons/fi';
 
-function FileDrawer({room, socket, room_files, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile, deleteFile, setDeleteFile, editorUsers, roomUsers}) {
+function FileDrawer({room, socket, room_files, activityOpen, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile, deleteFile, setDeleteFile, editorUsers, roomUsers}) {
     const [new_file_name, setNewFileName] = useState('');
     const [new_file_type, setNewFileType] = useState('html');
     const [warning, setWarning] = useState(null);
@@ -179,6 +180,11 @@ function FileDrawer({room, socket, room_files, setRoomFiles, activeFile, display
                         </div>
                         {warning && <label className='label-warning'>{warning}</label>}
                     </form>
+                }
+                {!addNewFile && activityOpen &&
+                    <button className='add-file items-center' onClick={() => setAddNewFile(true)}>
+                        <FiPlus size={17}/> Add File
+                    </button>
                 }
             </div>
         </div>

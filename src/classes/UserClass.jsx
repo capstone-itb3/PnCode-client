@@ -244,29 +244,6 @@ export class User {
         }
     }    
 
-    async viewOutput(room_id, file_name) {
-        try {
-            const response = await api.get('/api/view-output', {
-                params: {
-                    room_id,
-                    file_name,
-                }
-            });
-
-            const data = response.data;
-            console.log('here');
-
-            if (data.status === 'ok') {
-                console.log('here ok');
-                return { files: data.files, active: data.active };
-            }
-            return null;
-        } catch (e) {
-            errorHandler(e);
-            return null;
-        }
-    }
-
     changeTheme(theme) {
         Cookies.set('theme', theme);
     }
@@ -496,6 +473,7 @@ export class Professor extends User {
                         info.close_time,
                     ),
                     rooms: data.rooms,
+                    no_rooms: data.no_rooms,
                     course_code: data.course_code,
                     section: data.section
                 };

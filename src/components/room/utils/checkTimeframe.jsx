@@ -9,8 +9,6 @@ export default async function checkTimeframe(open_time, close_time) {
     console.error('Failed to fetch server time:', error);
   }
 
-  console.log('date_now:', date_now);
-
   const date_utc = date_now.getTime() + (date_now.getTimezoneOffset() * 60000);
 
   const date_pht = new Date(date_utc + (3600000*8));
