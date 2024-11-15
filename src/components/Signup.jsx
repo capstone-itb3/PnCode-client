@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import pnc from '../../assets/pamantasan.jpg'
 import ccs_logo from '../../assets/ccs_logo.jfif'
 import logo from '../../assets/logo.jpg'
+import { showAlertPopup } from './reactPopupService'
 
 function Signup() {
     const [ email, setEmail ] = useState('');
@@ -10,11 +11,13 @@ function Signup() {
     const [ last_name, setLastName ] = useState('');
     const [ password, setPassword ] = useState('');
     const [ conf_password, setConfPassword ] = useState('');
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
     const [ warning, setWarning ] = useState(null);
     const navigate = useNavigate();
 
     async function signupAccount(event) {
         event.preventDefault();
+        setIsSubmitting(true);
         try {
             setWarning(null);
 
@@ -34,7 +37,13 @@ function Signup() {
             const data = await response.json();
     
             if(data.status === 'ok') {
-                alert('Sign up successful! You can now login.');
+                setWarning(null);
+                await showAlertPopup({
+                    title: 'Sign Up Success',
+                    message: 'Your account has been created! Please check your email to verify your account to be able to login.',
+                    type: 'success',
+                    okay_text: 'Okay!'
+                });
                 navigate('/login');
 
             } else if (data.message) {
@@ -44,6 +53,7 @@ function Signup() {
             setWarning('Error occured while processing sign up. Please try again.');
             console.error(e);
         }
+        setIsSubmitting(false);
     };
     
     return (
@@ -126,8 +136,10 @@ function Signup() {
                         <label className='label-warning'>{warning}</label>
                     }
                     </div>
-                    <div className='input-btn'>
-                        <input type='submit' value='Create Account'/>
+                    <div className='input-btn signup'>
+                        <input  type='submit' 
+                                value={isSubmitting ? 'Creating Account...' : 'Create Account'}
+                                disabled={isSubmitting}/>
                         <label>Already have an account? <a href='/login'>Log in</a></label>
                     </div>                
                 </form>

@@ -406,7 +406,7 @@ function AssignedRoom() {
                           Feedback
                   </button>
                 </div>
-                <div id='right-section' className={`${rightDisplay === 'output' && 'flex-column'}`}>
+                <div id='right-section' className={`${rightDisplay === 'output' && 'column'}`}>
                     <TabOutput 
                       rightDisplay={rightDisplay}
                       outputRef={outputRef}

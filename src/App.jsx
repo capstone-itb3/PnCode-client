@@ -5,6 +5,7 @@ import './App.css';
 import AssignedRoom from './components/room/AssignedRoom';
 import SoloRoom from './components/room/SoloRoom';
 import Signup from './components/Signup';
+import EmailVerification from './components/EmailVerification';
 import Login from './components/Login';
 import ProfLogin from './components/ProfLogin';
 import Dashboard from './components/Dashboard';
@@ -22,6 +23,7 @@ function App() {
     <Toaster position='top-center'></Toaster>
     <Routes>
       <Route path = '/signup' element={ <Signup/> }/>
+      <Route path = '/verify/:token' element={ <EmailVerification/> }/>
       <Route path = '/' element={ <Login/> }/>
       <Route path = '/login' element={ <Login/> }/>
       <Route path = '/login/professor' element={ <ProfLogin/> }/>

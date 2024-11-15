@@ -8,11 +8,13 @@ import ccs_logo from '../../assets/ccs_logo.jfif'
 function Login() {
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
-    const navigate = useNavigate();
     const [ warning, setWarning ] = useState(null);
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
+    const navigate = useNavigate();
 
     async function loginAccount(event) {
         event.preventDefault();
+        setIsSubmitting(true);
         try {
             setWarning(null);
 
@@ -40,7 +42,7 @@ function Login() {
             setWarning('An error occured while logging in. Please try again.');
             console.error(e);
         }
-
+        setIsSubmitting(false);
     };
 
     return (
@@ -86,8 +88,10 @@ function Login() {
                             /> 
                         </div>
                     </div>
-                    <div className='input-btn'>
-                        <input type='submit' value='Log In'/>
+                    <div className='input-btn login'>
+                        <input  type='submit' 
+                                value={isSubmitting ? 'Logging In...' : 'Log In'}
+                                disabled={isSubmitting}/>                        
                         <label>New to PnCode? <a href='/signup'>Sign up</a></label>
                     </div>
                 </form>

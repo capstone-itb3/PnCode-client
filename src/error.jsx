@@ -16,7 +16,7 @@ export async function errorHandler(e) {
         window.location.href = '/error/404';
         
     } else if (e?.response && e.response.status === 401) {
-        window.location.href = '/error/404';
+        window.location.href = '/';
 
     } else {
         toast.error('Unable to connect to the server. Try again later.');
