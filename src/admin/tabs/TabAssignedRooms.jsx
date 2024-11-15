@@ -6,6 +6,7 @@ import { FaChevronRight } from 'react-icons/fa';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
+import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabAssignedRooms({ admin, showId, setShowId }) {
   const [assigned_rooms, setAssignedRooms] = useState(null);
@@ -316,6 +317,8 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
           <label><b>Room Name:</b> {selectedRef.current.room_name}</label>
           <label><b>Team:</b> {selectedRef.owner_id !== '' ? selectedRef.current.room_name.slice(0, -7) : <i>None</i>} </label>
           <label><b>Activity:</b> {selectedRef.current.activity_name || parent_activity?.activity_name}</label>
+          <label><b>Created At:</b> {convertToReadable(new Date(selectedRef.current.createdAt), 'long')}</label>
+          <label><b>Updated At:</b> {convertToReadable(new Date(selectedRef.current.updatedAt), 'long')}</label>
         </div>
       }
       <div id='admin-table-buttons'>

@@ -6,6 +6,7 @@ import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import { SearchUserList, searchDropdown } from './SearchList';
 import ShowId from './ShowId';
+import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabTeams({ admin, showId, setShowId }) {
   const [teams, setTeams] = useState(null);
@@ -367,6 +368,8 @@ function TabTeams({ admin, showId, setShowId }) {
           <label><b>Team Name:</b> {selectedRef.current.team_name}</label>
           <label><b>Class:</b> {parent_class.course_code} - {parent_class.section}</label>
           <label><b>No. of Members:</b> {selectedRef.current.members?.length}</label>
+          <label><b>Created At:</b> {convertToReadable(new Date(selectedRef.current.createdAt), 'long')}</label>
+          <label><b>Updated At:</b> {convertToReadable(new Date(selectedRef.current.updatedAt), 'long')}</label>
         </div>
       }            
       <div id='admin-table-buttons'>

@@ -6,6 +6,7 @@ import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
 import convertTime from '../../components/dashboard/utils/convertTime';
+import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabActivities({ admin, showId, setShowId }) {
   const [activites, setActivities] = useState(null);
@@ -109,13 +110,11 @@ function TabActivities({ admin, showId, setShowId }) {
   }
 
   async function showCreateForm() {
-    setLoading(true);
     selectedRef.current = null;
 
     if (showForm === 'create') {
       setShowForm(null);
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
-      setLoading(false);
       return;
     }
     setShowForm('create');
@@ -123,7 +122,6 @@ function TabActivities({ admin, showId, setShowId }) {
     setInstructions('');
     setOpenTime('07:00');
     setCloseTime('20:59');
-    setLoading(false);
     setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
   }
 
@@ -306,6 +304,8 @@ function TabActivities({ admin, showId, setShowId }) {
           <label className='single-line'><b>Instructions:</b> {selectedRef.current.instructions}</label>
           <label><b>Open Time:</b> {convertTime(selectedRef.current.open_time)}</label>
           <label><b>Close Time:</b> {convertTime(selectedRef.current.close_time)}</label>
+          <label><b>Created At:</b> {convertToReadable(new Date(selectedRef.current.createdAt), 'long')}</label>
+          <label><b>Updated At:</b> {convertToReadable(new Date(selectedRef.current.updatedAt), 'long')}</label>
         </div>
       }            
       <div id='admin-table-buttons'>

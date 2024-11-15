@@ -2178,10 +2178,12 @@ header {
 
 #right-section {
     position: relative;
-    height: calc(100% - 10px);
+    height: calc(100% - 27px);
+    max-height: calc(100% - 27px);
+    background-color: var(--near-black);
 }
 
-#output-div, #history-div, #feedback-div {
+#history-div, #feedback-div {
     position: absolute;
     top: 0;
     right: 0;
@@ -2190,8 +2192,26 @@ header {
     display: block;
 }
 
-#output-div.inactive, #history-div.inactive, #feedback-div.inactive {
+#output-div.inactive, #history-div.inactive, #feedback-div.inactive, #console-div.inactive {
     display: none;
+}
+
+#output-div {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    width: 100%;
+    min-height: 50%;
+    overflow: auto;
+}
+
+#output-div.larger {
+    height: calc(100% - 32px); 
+}
+
+#right-body {
+    overflow: hidden;
 }
 
 .output-header {
@@ -2217,10 +2237,113 @@ header {
     align-items: flex-start;
 }
 
+.output-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
 #output-iframe {
     width: 100%;
     height: 100%;
     border: 0;
+    word-break: break-word; 
+    overflow-wrap: break-word; 
+}
+
+#console-div {
+    position: relative;
+    overflow-y: auto;
+}
+
+#console-div.closed {
+    max-height: 30px;
+}
+        
+.console-header {
+    min-height: 30px;
+    padding: 0 15px;
+    justify-content: space-between;
+    background: var(--gray-dark);
+    color: var(--near-white);
+}
+
+.console-header span {
+    font-size: 15px;
+}
+
+.console-header button {
+    background-color: #777;
+    color: var(--near-white);
+    border: none;
+    padding: 2px 8px;
+    margin-left: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.console-header label {
+    font-size: 12px;
+}
+
+.console-container {
+    position: relative;
+    border-top: 1px solid #444;
+    background-color: var(--near-black);
+    overflow: auto;
+}
+
+.console-logs {
+    padding: 4px;   
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.console-log {
+    position: relative;
+    margin: 2px 0;
+    color: var(--near-white);
+}
+
+.console-log .timestamp {
+    white-space: nowrap;
+    color: var(--base-blue-light);
+    margin-right: 8px;
+}
+
+.console-log .message {
+    padding: 2px;
+    word-break: break-word; 
+    overflow-wrap: break-word;
+    border-radius: 4px;
+}
+
+.console-log .message .log-icon {
+    margin-right: 4px;    
+}
+
+.console-log.error .message {
+    background-color: rgba(255, 0, 0, 0.4);
+}
+.console-log.warn .message {
+    background-color: rgba(255, 255, 0, 0.4);
+}
+
+.console-log .message span {
+    color: var(--gray);
+    margin-left: 4px;
+}
+
+.show-console {
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+}
+
+.show-console.closed {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
 }
 
 #feedback-div {
@@ -2742,8 +2865,7 @@ header {
     font-size: 13px;
     letter-spacing: 0.5px;
     padding: 20px 15px !important;
-}
-
+}  
 
 @media (width < 800px) {
 

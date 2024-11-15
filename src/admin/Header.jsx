@@ -39,7 +39,6 @@ function Header({ admin }) {
                     <UserAvatar name={admin.last_name + ', ' + admin.first_name.charAt(0)} size={25}/>
                     {admin.last_name}, {admin.first_name}
                 </div>
-                <button className='btn-icons items-center' onClick={() => setSignOut(!signOut)}><FiSettings size={24} /></button>
                 <div ref={signOutRef}>
                     <button className='btn-icons items-center' onClick={() => setSignOut(!signOut)}><FiLogOut size={24} /></button>
                     {signOut &&

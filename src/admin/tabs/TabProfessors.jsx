@@ -5,6 +5,7 @@ import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
+import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabProfessors({ admin, showId, setShowId }) {
   const [professors, setProfessors] = useState(null);
@@ -111,13 +112,11 @@ function TabProfessors({ admin, showId, setShowId }) {
   }
 
   function showCreateForm() {
-    setLoading(true)
     selectedRef.current = null;
 
     if (showForm === 'create') {
       setShowForm(null);
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
-      setLoading(false)
       return;
     }
 
@@ -127,7 +126,6 @@ function TabProfessors({ admin, showId, setShowId }) {
     setLastName('');
     setPassword('');
     setConfirmPassword('');
-    setLoading(false);
     setTimeout(() => document.getElementById('first_name')?.focus(), 100);
   }
 
@@ -296,6 +294,8 @@ function TabProfessors({ admin, showId, setShowId }) {
           <label><b>Last Name:</b> {selectedRef.current.last_name}</label>
           <label><b>First Name:</b> {selectedRef.current.first_name}</label>
           <label><b>Email:</b> {selectedRef.current.email}</label>
+          <label><b>Created At:</b> {convertToReadable(new Date(selectedRef.current.createdAt), 'long')}</label>
+          <label><b>Updated At:</b> {convertToReadable(new Date(selectedRef.current.updatedAt), 'long')}</label>
         </div>
       }
       <div id='admin-table-buttons'>

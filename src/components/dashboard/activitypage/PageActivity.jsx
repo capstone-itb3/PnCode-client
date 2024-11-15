@@ -145,12 +145,7 @@ function PageActivity() {
                         </div>
                     </div>
                     <div id='activity-room-list'>
-                        <h3 className='flex-row items-center'>Rooms<InfoHover size={18} info={'The list of rooms assigned for each team in this activity.'}/></h3>
-                            {room_list.length === 0 &&
-                                <div className='length-0 flex-column items-center'>
-                                    <label>Rooms will fill in as teams join the activity.</label>
-                                </div>
-                            } 
+                        <h3 className='flex-row items-center'>Rooms<InfoHover size={18} info={'The list of rooms assigned for each team in this activity. Rooms will be created as teams join the activity.'}/></h3>
                             <div className='two-column-grid'>
                             {room_list.length > 0 && room_list.map((room, index) => {
                                 return (
@@ -173,7 +168,7 @@ function PageActivity() {
                                             <label className='single-line'>{team.team_name}</label>
                                         </div>
                                         <div className='col-3 flex-row'>
-                                            <b>No Room</b>
+                                            <b>No Room Yet</b>
                                         </div>
                                     </div>
                                 )

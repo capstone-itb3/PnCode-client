@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { BsSearch } from 'react-icons/bs';
+import { BsSearch, BsPersonPlus } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import { SearchUserList, searchDropdown } from './SearchList';
 import ShowId from './ShowId';
+import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabClasses({ admin, showId, setShowId }) {
   const [classes, setClasses] = useState(null);
@@ -151,7 +152,7 @@ function TabClasses({ admin, showId, setShowId }) {
     selectedRef.current = null;
     setClassStudents([]);
     setClassRequests([]);
-
+    
     if (showForm === 'create') {
       setShowForm(null);
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
@@ -423,6 +424,8 @@ function TabClasses({ admin, showId, setShowId }) {
           <label><b>Professor:</b> {selectedRef.current.professor} {selectedRef.current.professor_uid !== '' && <Link to={`/admin/dashboard/professors/q=${selectedRef.current.professor_uid}&f=uid`}>(View Info)</Link>}</label>
           <label><b>No. of Students:</b> {selectedRef.current.students?.length}</label>
           <label><b>No. of Requests:</b> {selectedRef.current.requests?.length}</label>
+          <label><b>Created At:</b> {convertToReadable(new Date(selectedRef.current.createdAt), 'long')}</label>
+          <label><b>Updated At:</b> {convertToReadable(new Date(selectedRef.current.updatedAt), 'long')}</label>
         </div>
       }      
       <div id='admin-table-buttons'>
@@ -504,28 +507,8 @@ function TabClasses({ admin, showId, setShowId }) {
       <>
         <div className='admin-member-list-container flex-column'>
           <h4>Students</h4>
-          <div className='admin-member-list flex-column'>
-            {class_students.map((stud) => 
-              <div className='item flex-row items-center' key={stud.uid}>
-                <label className='single-line'>{stud.last_name} {stud.first_name}</label>
-                <div className='items-center flex-row'>
-                  <button className='remove-btn' onClick={() => removeStudent(stud.uid)}>Remove</button>
-                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${stud.uid} ${stud.first_name} ${stud.last_name}&f=`, 
-                    { state: { origin_id: selectedRef.current.class_id, origin_name: `${selectedRef.current.course_code} ${selectedRef.current.section}`, origin_path: 'Class' } }
-                  )}>
-                    Student Info
-                  </button>
-                </div>
-              </div>
-            )}
-            {class_students.length === 0 &&
-              <div className='item items-center'>
-                <label className='single-line'>No students.</label>
-              </div>
-            }
-          </div>
-        </div>
           <div className='sub-admin-form flex-row items-center'>
+            <BsPersonPlus size={20} />
             <label>Add Student: </label>
             <div className='search-dropdown-input flex-row'>
               <input  
@@ -545,32 +528,55 @@ function TabClasses({ admin, showId, setShowId }) {
               }
             </div>
           </div>
+          <table className='admin-member-list'>
+            <tbody>
+            {class_students.map((stud) =>
+              <tr className='item' key={stud.uid}>
+                <td className='td-1'><label>{stud.last_name} {stud.first_name}</label></td>
+                <td><label>{stud.email}</label></td>
+                <td className='tbl-acts items-center'>
+                  <button className='remove-btn' onClick={() => removeStudent(stud.uid)}>Remove</button>
+                  <Link className='info-btn' to={`/admin/dashboard/students/q=${stud.uid} ${stud.first_name} ${stud.last_name}&f=`}>
+                    Student Info
+                  </Link>
+                </td>
+              </tr>
+            )}
+            </tbody>
+          </table>
+          {class_students.length === 0 &&
+            <div className='item items-center'>
+              <label className='single-line'>No students.</label>
+            </div>
+          }
+        </div>
       </>
       }
       {showRequestList && selectedRef.current &&
         <div className='admin-member-list-container flex-column'>
           <h4>Requests</h4>
-          <div className='admin-member-list flex-column'>
+          <table className='admin-member-list'>
+            <tbody>
             {class_requests.map((req) =>
-              <div className='item flex-row items-center' key={req.uid}>
-                <label className='single-line'>{req.last_name} {req.first_name}</label>
-                <div className='items-center flex-row'>
+              <tr className='item' key={req.uid}>
+                <td className='td-1'><label>{req.last_name} {req.first_name}</label></td>
+                <td><label>{req.email}</label></td>
+                <td className='tbl-acts items-center'>
                   <button className='accept-btn' onClick={() => acceptRequest(req)}>Accept</button>
                   <button className='remove-btn' onClick={() => rejectRequest(req)}>Reject</button>
-                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${req.uid} ${req.first_name} ${req.last_name}&f=`, 
-                    { state: { origin_id: selectedRef.current.class_id, origin_name: `${selectedRef.current.course_code} ${selectedRef.current.section}`, origin_path: 'Class' } }
-                  )}>
+                  <Link className='info-btn' to={`/admin/dashboard/students/q=${req.uid} ${req.first_name} ${req.last_name}&f=`}>
                     Student Info
-                  </button>
-                </div>
-              </div>
+                  </Link>
+                </td>
+              </tr>
             )}
-            {class_requests.length === 0 &&
-              <div className='item items-center'>
-                <label className='single-line'>No requests.</label>
-              </div>
-            }
-          </div>
+            </tbody>
+          </table>
+          {class_requests.length === 0 &&
+            <div className='item items-center'>
+              <label className='single-line'>No requests.</label>
+            </div>
+          }
         </div>
       }
     </div>

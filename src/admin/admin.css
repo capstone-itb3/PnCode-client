@@ -258,7 +258,7 @@ header.admin {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
-.admin-create, .info-btn {
+.admin-create {
     background-color: #007bff;
 }
 
@@ -344,29 +344,36 @@ header.admin {
 .admin-member-list-container {
     position: relative;
     width: calc(100% - 40px);
-    margin: 0 20px 30px 20px;
-}
-
-.admin-member-list-container {
-    box-shadow: 0 0 2px var(--gray-dark);
+    margin: 0 20px 60px 20px;
 }
 
 .admin-member-list-container h4 {
-    background-color: var(--gray-light);
     border-bottom: 2px solid var(--base);
-    padding: 15px 20px;
+    padding: 10px 20px;
     margin: 0;
+}
+.admin-member-list {
+    border-collapse: collapse;    
+    border-top: 1px solid var(--gray);
 }
 
 .admin-member-list .item {
-    justify-content: space-between;
-    padding: 10px 20px;
+    text-align: left;
     border-bottom: 1px solid var(--gray);
 }
 
-.admin-member-list button {
-    margin: 0 10px;
+.admin-member-list .item td {
+    padding: 15px 5%;
 }
+
+.admin-member-list .item td:nth-child(2) {
+    color: var(--gray);
+}
+
+.admin-member-list .item .tbl-acts {
+    gap: 0 15px;
+    
+} 
 
 #admin-loading-container{
     height: 5px;
@@ -374,19 +381,26 @@ header.admin {
 
 .info-btn {
     font-size: 14px;
-    border: 0;
+    color: #007bff;
+    background-color: white;
+    border: #007bff 1px solid;
     border-radius: 5px;
     font-weight: bold;
     padding: 4px 10px;
-    color: var(--near-white);
+}
+
+#manage-content .remove-btn, #manage-content .accept-btn{
+    background-color: white !important;
+}
+
+#manage-content .remove-btn:hover, .info-btn:hover, #manage-content .accept-btn:hover {
+    background-color: var(--near-white) !important;
 }
 
 .sub-admin-form {
-    margin: 0 20px 60px 20px;
-}
-
-.sub-admin-form label {
-    margin-right: 10px;
+    gap: 8px;
+    padding: 20px 20px 20px 20px;
+    background-color: var(--near-white);
 }
 
 .sub-admin-form .search-dropdown-input {
@@ -394,10 +408,10 @@ header.admin {
     position: relative;
 }
 
-
 .search-dropdown-input .input-data{
     width: 100%;
     border-radius: 10px;
+    background-color: white;
 }
 .admin .chat-box-message:hover {
     background-color: var(--gray);
@@ -514,5 +528,9 @@ header.admin {
 
     .collection-search-list li {
         padding: 10px;
+    }
+
+    .tbl-acts {
+        flex-direction: column !important;
     }
 }

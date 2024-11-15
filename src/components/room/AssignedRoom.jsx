@@ -18,6 +18,7 @@ import Members from './Members';
 import Instructions from './Instructions';
 import EditorTab from './EditorTab';
 import TabOutput from './TabOutput';
+import Console from './Console';
 import History from './History';
 import Chats from './Chats';
 import Feedback from './Feedback';
@@ -54,11 +55,10 @@ function AssignedRoom() {
   const [activity, setActivity] = useState(null);
   const [instructions, setInstructions] = useState(null);
   const [timeframes, setTimeframes] = useState([]);
-  const [activityOpen, setActivityOpen] = useState(null);
-
+  
   const [activeFile, setActiveFile] = useState(null);
   const [cursorColor, setCursorColor] = useState(null);
-
+  
   const [roomUsers, setRoomUsers] = useState([]);
   const [editorUsers, setEditorUsers]  = useState([]);
   const outputRef = useRef(null);
@@ -69,6 +69,9 @@ function AssignedRoom() {
   const [deleteFile, setDeleteFile] = useState(false);
   const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
   
+  const [activityOpen, setActivityOpen] = useState(null);
+  const [consoleOpen, setConsoleOpen] = useState(true);
+
   useEffect(() => {    
     if (user?.position === 'Student') {
       disableCopyPaste();
@@ -85,7 +88,6 @@ function AssignedRoom() {
       setRoom(info.room);
       setRoomFiles(info.files);
       setMembers(info.members);
-
       setActivity(info.activity);
       setInstructions(info.activity.instructions);
       setTimeframes([info.activity.open_time, info.activity.close_time]);
@@ -190,6 +192,7 @@ function AssignedRoom() {
     return () => {
       if (socketRef.current) {
         socketRef.current.off('connect');
+        socketRef.current.off('get_socket_id');
         socketRef.current.off('found_file');
         socketRef.current.off('room_users_updated');
         socketRef.current.off('dates_updated');
@@ -200,18 +203,18 @@ function AssignedRoom() {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (user?.position === 'Student') {
+      if (user?.position === 'Student' && activityOpen) {
         if (event.altKey && event.key === 'a') {
           event.preventDefault();
-          setAddNewFile(true);
           setDeleteFile(false);
+          setAddNewFile(true);
           setLeftDisplay('files');
           return;
         }
         if (event.altKey && event.key === 'x') {
           event.preventDefault();
-          setDeleteFile(true);
           setAddNewFile(false);
+          setDeleteFile(true);
           setLeftDisplay('files');
           return;
         }
@@ -345,7 +348,7 @@ function AssignedRoom() {
                   room={room} 
                   user={user}
                   socket={socketRef.current}
-                  activityOpen={activityOpen}
+                  activityOpen={user.position === 'Professor' ? null : activityOpen}
                   room_files={room_files}
                   setRoomFiles={setRoomFiles}
                   activeFile={activeFile}
@@ -403,12 +406,20 @@ function AssignedRoom() {
                           Feedback
                   </button>
                 </div>
-                <div id='right-section'>
-                  <TabOutput 
-                    rightDisplay={rightDisplay}
-                    outputRef={outputRef}
-                    startRunOutput={startRunOutput}
-                    startRunOutputFullView={startRunOutputFullView}/>
+                <div id='right-section' className={`${rightDisplay === 'output' && 'flex-column'}`}>
+                    <TabOutput 
+                      rightDisplay={rightDisplay}
+                      outputRef={outputRef}
+                      startRunOutput={startRunOutput}
+                      startRunOutputFullView={startRunOutputFullView}
+                      consoleOpen={consoleOpen}/>
+                    <Console 
+                      rightDisplay={rightDisplay}
+                      name={`${user.position === 'Student' && user.last_name}`}
+                      socket={socketRef.current}
+                      socketId={socketId}
+                      consoleOpen={consoleOpen}
+                      setConsoleOpen={setConsoleOpen}/>
                   {activeFile &&
                     <History
                     user={user}

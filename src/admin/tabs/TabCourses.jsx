@@ -4,7 +4,7 @@ import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
-
+import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabCourses({ admin }) {
   const [courses, setCourses] = useState(null);
@@ -97,20 +97,17 @@ function TabCourses({ admin }) {
   }
 
   function showCreateForm() {
-    setLoading(true);
     selectedRef.current = null;
 
     if (showForm === 'create') {
       setShowForm(null);
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
-      setLoading(false);
       return;
     }
 
     setShowForm('create');
     setCourseCode('');
     setCourseTitle('');
-    setLoading(false);
     setTimeout(() => document.getElementById('course_code')?.focus(), 100);
   }
 
@@ -264,6 +261,8 @@ function TabCourses({ admin }) {
         <div id='admin-info-display' className='flex-column'>
           <label><b>Course Code:</b> {selectedRef.current.course_code}</label>
           <label><b>Course Title:</b> {selectedRef.current.course_title}</label>
+          <label><b>Created At:</b> {convertToReadable(new Date(selectedRef.current.createdAt), 'long')}</label>
+          <label><b>Updated At:</b> {convertToReadable(new Date(selectedRef.current.updatedAt), 'long')}</label>
         </div>
       }
       <div id='admin-table-buttons' className='long'>

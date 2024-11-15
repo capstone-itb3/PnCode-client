@@ -4,8 +4,7 @@ import { MdFullscreen } from "react-icons/md";
 import { VscRunAll } from 'react-icons/vsc';
 import { BsMenuButtonWide } from 'react-icons/bs';
 
-
-function TabOutput({ outputRef, rightDisplay, startRunOutput, startRunOutputFullView }) {
+function TabOutput({ outputRef, rightDisplay, startRunOutput, startRunOutputFullView, consoleOpen }) {
   const { room_id } = useParams();
   const navigate = useNavigate();
   const [iframeTitle, setIframeTitle] = useState('Output');
@@ -14,9 +13,10 @@ function TabOutput({ outputRef, rightDisplay, startRunOutput, startRunOutputFull
     current?.src ? setIframeTitle(`Viewing output...`): setIframeTitle('Output');
   };
 
-  return (
-    <div className={`flex-column ${rightDisplay !== 'output' && 'inactive'}`} id='output-div'>
-      <div className='output-header items-center'>
+
+    return (
+      <div className={`flex-column ${rightDisplay !== 'output' && 'inactive'} ${!consoleOpen && 'larger'}`} id='output-div'>
+        <div className='output-header items-center'>
           <label className='single-line'><b>{iframeTitle}</b></label>
           <div className='items-center'>
             <button 
@@ -30,11 +30,13 @@ function TabOutput({ outputRef, rightDisplay, startRunOutput, startRunOutputFull
               <MdFullscreen color={'#505050'} size={20}/>
             </button>
         </div>
+        </div>
+        <div className="output-container">
+          <iframe title='Output' id='output-iframe' ref={outputRef} onLoad={() => updateTitle(outputRef?.current)}>
+          </iframe>
+        </div>              
       </div>
-        <iframe title='Output' id='output-iframe' ref={outputRef} onLoad={() => updateTitle(outputRef?.current)}>
-        </iframe>              
-    </div>
-  )
+    )
 }
 
 export default TabOutput

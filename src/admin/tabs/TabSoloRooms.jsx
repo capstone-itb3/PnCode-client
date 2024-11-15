@@ -6,6 +6,7 @@ import { FaChevronRight } from 'react-icons/fa';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
+import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabSoloRooms({ admin, showId, setShowId }) {
   const [solo_rooms, setSoloRooms] = useState(null);
@@ -273,6 +274,8 @@ function TabSoloRooms({ admin, showId, setShowId }) {
           <label><b>Room ID:</b> {selectedRef.current.room_id}</label>
           <label><b>Room Name:</b> {selectedRef.current.room_name}</label>
           <label><b>Owner:</b> {parent_user?.last_name}, {parent_user?.first_name}</label>
+          <label><b>Created At:</b> {convertToReadable(new Date(selectedRef.current.createdAt), 'long')}</label>
+          <label><b>Updated At:</b> {convertToReadable(new Date(selectedRef.current.updatedAt), 'long')}</label>
         </div>
       }
       <div id='admin-table-buttons'>
