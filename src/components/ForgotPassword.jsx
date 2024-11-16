@@ -1,45 +1,48 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import pnc from '../../assets/pamantasan.jpg'
 import full_logo from '../../assets/full_logo.jpg'
 import ccs_logo from '../../assets/ccs_logo.jfif'
+import { showAlertPopup } from './reactPopupService';
 
-function Login() {
+function ForgotPassword() {
     const [ email, setEmail ] = useState('');
-    const [ password, setPassword ] = useState('');
     const [ warning, setWarning ] = useState(null);
     const [ isSubmitting, setIsSubmitting ] = useState(false);
     const navigate = useNavigate();
 
-    async function loginAccount(event) {
+    async function confirmReset(event) {
         event.preventDefault();
         setIsSubmitting(true);
         try {
             setWarning(null);
 
-            const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/login', {
+            const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/forgot-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'   
                 },
                 body: JSON.stringify({
                     email,
-                    password,
                 })
             })
     
             const data = await response.json(); 
             
-            if (data.status === 'ok' && data.token) {
-                Cookies.set('token', data.token, { expires : 90 });
-                navigate(`/dashboard/`);
+            if (data.status === 'ok') {
+                await showAlertPopup({
+                    title: 'Reset Link Sent',
+                    message: 'The link for password reset has been sent to your email.',
+                    type: 'success',
+                    okay_text: 'Okay'
+                });
+                navigate(`/login`);
                 
             } else if (data.message) {
                 setWarning(data.message);
             }
         } catch (e) {
-            setWarning('An error occured while logging in. Please try again.');
+            setWarning('An error occured. Please try again.');
             console.error(e);
         }
         setIsSubmitting(false);
@@ -52,12 +55,13 @@ function Login() {
                 <div id='orange-hue'/>
             </main>
             <main className='form-container items-center login'>
-                <form className='form-account login' onSubmit={ loginAccount }>
-                    <div className='items-center ccs-logo'>
-                        <img src={ccs_logo} alt='ccs_logo' />
+                <form className='form-account login' onSubmit={ confirmReset }>
+                    <div className='items-center ccs-logo prof'>
+                        <img src={ccs_logo} alt='ccs_logo'/>
+                        <img src={full_logo} alt='full_logo'/>
                     </div>
                     <section className='head items-center login'>
-                        <label>Log-in to </label><img src={full_logo} alt='full-logo'/>
+                        <label>Forgot Password</label>
                     </section>
                     <div className='account-warning'>
                     {warning && 
@@ -66,7 +70,7 @@ function Login() {
                     </div>
                     <div className='input-form login'>
                         <div className='input-div'>
-                            <label>Email</label>
+                            <label>Confirm your Email</label>
                             <input 
                                 className='input-data'
                                 type='text'
@@ -76,26 +80,14 @@ function Login() {
                                 required
                             /> 
                         </div>
-                        <div className='input-div'>
-                            <label>Password</label>
-                            <input 
-                                className='input-data'
-                                type='password' 
-                                value={password} 
-                                placeholder='Enter your password'
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            /> 
-                        </div>
                     </div>
-                    <div className='input-btn items-center'>
+                    <div className='input-btn items-center signup'>
                         <input  type='submit' 
-                                value={isSubmitting ? 'Logging In...' : 'Log In'}
+                                value={isSubmitting ? 'Processing...' : 'Send Reset Link'}
                                 disabled={isSubmitting}/>                        
-                        <label>New to PnCode? <a href='/signup'>Sign up</a></label>
                     </div>
                     <div className='input-btn items-center'>
-                        <a href='/forgot-password'>Forgot Password?</a>
+                        <label>Back to <a href='/'>Log In</a></label>
                     </div>
                 </form>
             </main>
@@ -103,4 +95,4 @@ function Login() {
     )
 }
 
-export default Login
+export default ForgotPassword

@@ -79,7 +79,7 @@ function AdminLogin() {
                             /> 
                         </div>
                     </div>
-                    <div className='input-btn'>
+                    <div className='input-btn items-center'>
                         <input type='submit' value='Log In'/>
                     </div>
                 </form>

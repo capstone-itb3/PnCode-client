@@ -205,10 +205,69 @@ input:checked + .slider:before {
     padding: 5px 12px;
     font-size: 16px;
     border: var(--gray) 1px solid;
-    margin: 15px 5px 0 25px;
+    margin: 15px 10px 0 0;
     color: var(--gray-dark);
     border-radius: 8px;
 }
+
+.separator .create-btn, .separator .cancel-btn {
+    margin-left: 25px;
+}
+
+.dashboard-add, .dashboard-cancel {
+    border: 0;
+    background-color: transparent;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.dashboard-add {
+    gap: 3px;
+    color: rgb(255, 132, 49);
+}
+.separator .dashboard-add {
+    gap: 2px;
+    margin: 0 0 20px 25px;
+}
+.dashboard-add:hover {
+    color: rgb(255, 102, 0);
+}
+
+.dashboard-cancel {
+    color: var(--gray);
+}
+
+.add-student {
+    position: relative;
+    width: calc(100% - 70px);
+    margin: 0 0 20px 0px;
+    gap: 20px;
+}
+
+.add-input {
+    width: 100%;
+    position: relative;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.add-input div {
+    position: relative;
+    width: 90%;
+}
+
+.add-student input[type='text'] {
+    width: calc(90% - 40px);
+    padding: 10px;
+    border: 0;
+    border-bottom: 2px solid var(--gray);
+}
+
+.add-student .create-btn, .add-student .cancel-btn {
+    margin-top: 0 !important;
+}
+
 
 .accept-btn, .remove-btn {
     font-size: 14px;
@@ -478,7 +537,8 @@ input:checked + .slider:before {
 
 .input-btn {
     margin-top: 30px;
-    text-align: center;
+    justify-content: center;
+    gap: 0 15px;
 }
 
 
@@ -509,7 +569,6 @@ input:checked + .slider:before {
 
 
 .input-btn label {
-    margin-left: 15px;
     color: var(--gray-dark);
     text-decoration: none;
 }
@@ -851,7 +910,7 @@ header {
 
 .section-title {
     font-size: 20px;
-    padding: 0 0 2px 10px;
+    padding: 0 0 4px 10px;
     margin: 0 15px 20px 15px;
     width: 90%;  
     border-bottom: var(--gray) 2px solid;
@@ -1005,7 +1064,7 @@ header {
     border: var(--gray-light) 1px solid;
 }
 
-.student-list tr {
+.student-list tbody tr {
     cursor: pointer
 }
 
@@ -1017,7 +1076,7 @@ header {
     background-color: var(--near-white);
 }
 
-.student-list tr:hover {
+.student-list tbody tr:hover {
     background-color: var(--gray-light) !important;
 }
 .student-list .name {
@@ -1302,7 +1361,8 @@ header {
     width: 100%;
     height: 100%;
     background-color: var(--near-white);
-    border-radius: 40px;
+    border-top-right-radius: 20px 50%;
+    border-bottom-right-radius: 20px 50%;
     z-index: -1;
     transition: left .5s ease;
 }
@@ -1561,10 +1621,18 @@ header {
     border-radius: 20px;
     gap: 5%;
     overflow-x: hidden;
+}
+
+.member-search-item:not(.zero) {
     cursor: pointer;
 }
 
-.member-search-item:hover {
+
+.member-search-item .email {
+    color: var(--gray)
+}
+
+.member-search-item:not(.zero):hover {
     background-color: rgba(128, 189, 255, .3);
 }
 
@@ -2901,8 +2969,7 @@ header {
     padding: 20px 15px !important;
 }  
 
-@media (width < 800px) {
-
+@media (width < 750px) {
     /*? DASHBOARD ?*/
 
     .top-profile {
@@ -2928,6 +2995,11 @@ header {
     #sb-remove {
         display: block;
         transition: 0.3 ease;
+    }
+
+    .add-student {
+        flex-direction: column;
+        align-items: start;
     }
 
     .activity-box .dates {
@@ -2958,16 +3030,6 @@ header {
         gap: 20px 0;
     }
     
-}   
-
-@media (width < 750px) {
-    /* #editor-tab {
-        margin: 0;
-    }    
-    #left-body {
-        margin: 0;
-    } */
-
     #switch-rooms select {
         width: 100px;
     }

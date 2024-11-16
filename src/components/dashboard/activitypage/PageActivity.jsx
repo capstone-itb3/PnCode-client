@@ -49,26 +49,12 @@ function PageActivity() {
         navigate(`/room/${room_id}`);
     }
 
-    function toggleInstructions() {
-        setShowInstructionInputs(!showInstructionInputs);
-
-        const edit = document.getElementById('edit-instructions');
-
-        if (showInstructionInputs === false) {
-            edit.textContent = 'Cancel';
-            edit.classList.value = 'cancel-btn'
-        } else {
-            edit.textContent = 'Edit Instructions';
-            edit.classList.value = 'create-btn'
-        }
-
-    }
-
     async function updateInstructions () {
+        setShowInstructionInputs(false);
+
         const result = await activity.updateInstructions(instructions);
         if (result) {
-            toast.success('Instructions saved.');
-            toggleInstructions();
+            toast.success('Instructions successfully updated.');
             await renderActivity();
         }
     }
@@ -137,10 +123,9 @@ function PageActivity() {
                                 <button className='create-btn' onClick={updateInstructions}>Save</button>
                             }
                             <button 
-                                id='edit-instructions' 
-                                className='create-btn' 
-                                onClick={() => toggleInstructions()}>
-                                Edit Instructions
+                                className={`${!showInstructionInputs ? 'create-btn' : 'cancel-btn'}`} 
+                                onClick={() => setShowInstructionInputs(!showInstructionInputs)}>
+                                {!showInstructionInputs ? 'Edit Instructions' : 'Cancel'}
                             </button>
                         </div>
                     </div>

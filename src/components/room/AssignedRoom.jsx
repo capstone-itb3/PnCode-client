@@ -74,7 +74,7 @@ function AssignedRoom() {
 
   useEffect(() => {    
     if (user?.position === 'Student') {
-      disableCopyPaste();
+      // disableCopyPaste();
     }   
 
     async function initRoom () {
@@ -415,9 +415,10 @@ function AssignedRoom() {
                       consoleOpen={consoleOpen}/>
                     <Console 
                       rightDisplay={rightDisplay}
-                      name={`${user.position === 'Student' && user.last_name}`}
+                      name={user.position === 'Student' ? user.last_name : undefined}
                       socket={socketRef.current}
                       socketId={socketId}
+                      sharedEnabled={true}
                       consoleOpen={consoleOpen}
                       setConsoleOpen={setConsoleOpen}/>
                   {activeFile &&

@@ -136,7 +136,7 @@ function Signup() {
                         <label className='label-warning'>{warning}</label>
                     }
                     </div>
-                    <div className='input-btn signup'>
+                    <div className='input-btn items-center signup'>
                         <input  type='submit' 
                                 value={isSubmitting ? 'Creating Account...' : 'Create Account'}
                                 disabled={isSubmitting}/>

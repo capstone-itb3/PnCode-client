@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import UserAvatar from '../../UserAvatar';
+import SearchStudents from '../SearchStudents';
 import { BsPersonPlus } from 'react-icons/bs';
 import { showConfirmPopup, showAlertPopup } from '../../reactPopupService';
 import handleMenu from '../utils/handleMenu';
@@ -32,7 +32,7 @@ function AddMember({team, user}) {
         return () => {
           document.removeEventListener("mousedown", handleClickOutside);
         };
-      }, [addMemberRef]);    
+    }, [addMemberRef]);    
 
     async function addStudentToTeam(student) {
         setSearch(`${student.first_name} ${student.last_name}`);
@@ -81,38 +81,12 @@ function AddMember({team, user}) {
                 />
                 {showResults &&
                     <div id='search-results-div' className='width-100'>
-                        <SearchStudents students_list={student_list} search={search} addStudentToTeam={addStudentToTeam}/>
+                        <SearchStudents students_list={student_list} search={search} addFunction={addStudentToTeam}/>
                     </div>
                 }
             </div>
         </div>
     )
-}
-  
-
-function SearchStudents({ students_list, search, addStudentToTeam }) {
-    const filter = students_list.filter((s) => {
-        if (search === '') {
-            return students_list;
-        }
-        const firstThenLast = `${s.first_name} ${s.last_name}`.toLowerCase().includes(search.toLowerCase());
-        const lastThenFirst = `${s.last_name}, ${s.first_name}`.toLowerCase().includes(search.toLowerCase());
-        return (firstThenLast || lastThenFirst)
-    });
-    
-    return (
-      <ul id='member-search-list'>
-      {filter ? filter.map((s, index) => {
-            return (
-              <li key={index} className='member-search-item flex-row items-center' onClick={() => (addStudentToTeam(s))}>
-                <UserAvatar name={`${s.last_name}, ${s.first_name.charAt(0)}`} size={24}/>
-                <label className='single-line'>{s.last_name}, {s.first_name}</label>
-              </li>
-            );  
-        }) : null}
-      </ul>
-    )
-  }
-  
+}  
 
 export default AddMember

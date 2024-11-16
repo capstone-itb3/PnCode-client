@@ -7,6 +7,8 @@ import SoloRoom from './components/room/SoloRoom';
 import Signup from './components/Signup';
 import EmailVerification from './components/EmailVerification';
 import Login from './components/Login';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import ProfLogin from './components/ProfLogin';
 import Dashboard from './components/Dashboard';
 import PageTeam from './components/dashboard/teampage/PageTeam';
@@ -26,6 +28,8 @@ function App() {
       <Route path = '/verify/:token' element={ <EmailVerification/> }/>
       <Route path = '/' element={ <Login/> }/>
       <Route path = '/login' element={ <Login/> }/>
+      <Route path = '/forgot-password' element={ <ForgotPassword/> }/>
+      <Route path = '/reset-password/:reset_link' element={ <ResetPassword/> }/>
       <Route path = '/login/professor' element={ <ProfLogin/> }/>
       <Route path = '/dashboard/' element={ <Dashboard/> }/>
       <Route path = '/dashboard/:class_id' element={ <Dashboard/> }/>

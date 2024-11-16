@@ -34,12 +34,12 @@ function Notifications({ user, notifications, setNotifications }) {
       } else {
         setNoUnread(true);
       }
+      console.log(notifications);
   }, [notifications]);
 
   async function clickTeamNotif(notif) {
-    navigate(`/team/${notif.subject_id}`);
-
     filterOut(notif.notif_id);
+    navigate(`/team/${notif.subject_id}`);
   }
 
   async function clickClassNotif(notif) {
@@ -54,8 +54,8 @@ function Notifications({ user, notifications, setNotifications }) {
         message: `${notif.source} has ${notif.for} your request to join ${notif.subject_name}. If this is a mistake, you can request again and contact your professor to accept you.`,
         okay_text: 'Okay'
       })
+      await filterOut(notif.notif_id);
     }
-
   }  
 
   async function clickActivityNotif(notif) {
@@ -70,14 +70,11 @@ function Notifications({ user, notifications, setNotifications }) {
         } else {
           return;
         }
-      } else if (user.position === 'Professor') {
-        navigate(`/activity/${notif.subject_id}`);
       }
-
-      filterOut(notif.notif_id);
     } catch (e) {
       console.error(e.message)
     }
+    filterOut(notif.notif_id);
   }      
 
   async function clickRoomNotif(notif) {
@@ -119,6 +116,11 @@ function Notifications({ user, notifications, setNotifications }) {
     filterOut(notif.notif_id);
   };
 
+  async function clickAddNotif(notif) {
+    navigate(`/${notif.for !== 'class' ? notif.for : 'dashboard' }/${notif.subject_id}`);
+    filterOut(notif.notif_id);
+  }
+
   async function filterOut(notif_id) {
     setNotifications(notifications.filter(n => n.notif_id !== notif_id));
     await user.updateNotifications([notif_id]);
@@ -126,7 +128,6 @@ function Notifications({ user, notifications, setNotifications }) {
 
   async function markAllAsRead() {
     setNotifications([]);
-    console.log(notifications.map(n => n.notif_id));
     await user.updateNotifications(notifications.map(n => n.notif_id));
   }
 
@@ -149,6 +150,7 @@ function Notifications({ user, notifications, setNotifications }) {
                   {...(notif.type === 'room' && { onClick: () => clickRoomNotif(notif) })}
                   {...(notif.type === 'invite' && { onClick: () => clickInviteNotif(notif) })}
                   {...(notif.type === 'remove' && { onClick: () => clickRemoveNotif(notif) })}
+                  {...(notif.type === 'add' && { onClick: () => clickAddNotif(notif) })}
                   key={index}>
                   <div className='content'>
                     {notif.type === 'team' &&
@@ -169,6 +171,10 @@ function Notifications({ user, notifications, setNotifications }) {
                     {notif.type === 'remove' &&
                       <label><b>{notif.source}</b> has removed you from {notif.for} <b>{notif.subject_name}</b>.</label>
                     }
+                    {notif.type === 'add' &&
+                      <label><b>{notif.source}</b> has added you to {notif.for} <b>{notif.subject_name}</b>.</label>
+                    }
+
                   </div>
                   <div className='time'>
                     {createdAt(notif)}

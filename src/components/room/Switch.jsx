@@ -8,7 +8,6 @@ function Switch({ room, activity }) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log(activity.other_rooms);
         setRoomLinks(activity.other_rooms);
     }, [room, activity]);
 

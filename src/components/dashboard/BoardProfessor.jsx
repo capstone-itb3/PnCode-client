@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsListUl } from 'react-icons/bs';
+import { FaPlus } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -211,9 +212,12 @@ function BoardProfessor({ auth }) {
                                     <>
                                     {list_activities &&
                                         <>
+                                        <button className='dashboard-add blue items-center' onClick={openActivityPopup}>
+                                                <FaPlus size={18}/>
+                                                Create Activity
+                                            </button>
                                             <ActivityBoard
                                                 activities={list_activities}/>
-                                            <button className='create-btn' onClick={openActivityPopup}>Create Activity</button>
                                         </>
                                     }
                                     {!list_activities &&

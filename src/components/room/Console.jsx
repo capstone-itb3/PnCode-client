@@ -4,9 +4,9 @@ import { BsExclamationTriangleFill } from 'react-icons/bs';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 import { useParams } from 'react-router-dom';
 
-function Console({rightDisplay, name, socket, socketId, consoleOpen, setConsoleOpen}) {
+function Console({rightDisplay, name, socket, socketId, sharedEnabled, consoleOpen, setConsoleOpen}) {
   const [logs, setLogs] = useState([]);
-  const [showShared, setShowShared] = useState(true);
+  const [showShared, setShowShared] = useState(sharedEnabled ? true : false );
   const logsRef = useRef(null);
   const { room_id } = useParams();
   const [filteredLogs, setFilteredLogs] = useState(logs);
@@ -25,7 +25,7 @@ function Console({rightDisplay, name, socket, socketId, consoleOpen, setConsoleO
         
         setLogs(prev => [...prev, log]);
 
-        if (name !== '' && socket) {
+        if (name && socket) {
             socket.emit('share_log', {
                 room_id,
                 log,
@@ -42,7 +42,10 @@ function Console({rightDisplay, name, socket, socketId, consoleOpen, setConsoleO
   }, [socket]);
 
   useEffect(() => {
-    socket.on('add_shared_log', ({new_log, socket_id}) => {
+    if (!socket) {
+      return;
+    }
+    socket.on('add_shared_log', ({ new_log, socket_id }) => {
         if (new_log.logger === name && socket_id === socketId ) {
             return;
         }
@@ -51,7 +54,7 @@ function Console({rightDisplay, name, socket, socketId, consoleOpen, setConsoleO
     })
 
     return () => {
-        socket.off('add_shared_log');
+        socket ? socket?.off('add_shared_log') : null;
     }
   }, [socketId, room_id])
 
@@ -70,6 +73,7 @@ function Console({rightDisplay, name, socket, socketId, consoleOpen, setConsoleO
         <div className="console-header items-center">
         <span>Console</span>
         <div className="items-center">
+          {sharedEnabled &&
             <label className='shared-console items-center'>
                 <input 
                         type="checkbox" 
@@ -79,8 +83,9 @@ function Console({rightDisplay, name, socket, socketId, consoleOpen, setConsoleO
                 />
                 Show Shared
             </label>
-            <button className='clear-console' onClick={() => setLogs([])}>Clear</button>
-            <RiArrowDropDownLine size={20} onClick={() => setConsoleOpen(!consoleOpen)} className={`show-console ${!consoleOpen && 'closed'}`}/>
+          }
+          <button className='clear-console' onClick={() => setLogs([])}>Clear</button>
+          <RiArrowDropDownLine size={20} onClick={() => setConsoleOpen(!consoleOpen)} className={`show-console ${!consoleOpen && 'closed'}`}/>
         </div>
     </div>
     {consoleOpen && (

@@ -1,23 +1,78 @@
-import React, { useEffect, useState } from 'react'
-import { BsXLg } from 'react-icons/bs';
+import React, { useEffect, useState, useRef } from 'react'
+import toast from 'react-hot-toast';
 import { MdLoop } from 'react-icons/md';
+import { FaPlus } from 'react-icons/fa6';
+import SearchStudents from './SearchStudents';
 import { showConfirmPopup } from '../reactPopupService';
-
+import handleMenu from './utils/handleMenu';
 
 function StudentList({user, class_info, showStudents}) {
     const [students, setStudents] = useState([]);
     const [requests, setRequests] = useState([]);
     const [switchView, setSwitchView] = useState(false);
+    
+    const [newStudent, setNewStudent] = useState('');
+    const [otherStudents, setOtherStudents] = useState(null);
+    const [showAddStudent, setShowAddStudent] = useState(false);
+    const [showOtherStudentList, setShowOtherStudentList] = useState(false);
+    const addStudentRef = useRef(null);
 
     useEffect(() => {
         getStudents();
     }, [class_info?.class_id]);
 
+    useEffect(() => {
+        if (showAddStudent) {
+            getOtherStudents();
+        }
+    }, [showAddStudent]);
+
+    useEffect(() => {  
+        function handleClickOutside(e) {
+          handleMenu(addStudentRef.current, setShowOtherStudentList, e.target);
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [addStudentRef]);    
+
+
     async function getStudents() {
-        const info = await user.getCourseStudents(class_info.class_id, 'all');
-        if (info) {
-            setStudents(info.students);
-            setRequests(info.requests);
+        try {
+            const info = await user.getCourseStudents(class_info.class_id, 'all');
+            if (info) {
+                setStudents(info.students);
+                setRequests(info.requests);
+            }
+        } catch (e) {
+            toast.error('An error occured while retrieving class students.');
+            console.error(e);
+        }
+    }
+
+    async function getOtherStudents() {
+        try {
+            document.getElementById('new-student-input').focus();
+
+            const others = await user.getOtherStudents(class_info.class_id);
+            others ? setOtherStudents(others) : null;
+        } catch (e) {
+            toast.error('An error occured while retrieving students.');
+            console.error(e);
+        }
+    }
+
+    async function addStudentToClass(student) {
+        setShowAddStudent('');
+        setNewStudent(`${student.last_name}, ${student.first_name}`);
+        const added = user.addStudentToClass(class_info.class_id, student.uid);
+
+        if (added) {
+            setOtherStudents(prev => prev.filter(s => s.uid !== student.uid));
+            setRequests(prev => prev.filter(s => s.uid !== student.uid));
+            setStudents(prev => [...prev, student].sort((a, b) => a.last_name.localeCompare(b.last_name)));
         }
     }
 
@@ -64,6 +119,35 @@ function StudentList({user, class_info, showStudents}) {
             </div>                 
             {students && !switchView &&
                 <>
+                <div className='add-student items-center'>
+                    <button 
+                        className={`dashboard-${!showAddStudent ? 'add' : 'cancel'} items-center`} 
+                        onClick={() => setShowAddStudent(!showAddStudent)}>
+                        {!showAddStudent && <><FaPlus size={18}/> Add Student</>}
+                        {showAddStudent && 'Cancel'}
+                    </button>
+                    {showAddStudent &&
+                        <div className='add-input items-center'>
+                            <label>Add Student: </label>
+                            <div className='items-center' ref={addStudentRef}>
+                                <input 
+                                    id='new-student-input'
+                                    type='text' 
+                                    value={newStudent}
+                                    onFocus={() => {setShowOtherStudentList(true)}}
+                                    onChange={(e) => setNewStudent(e.target.value)}
+                                    placeholder='Enter the name of the student...' />
+                                    {showOtherStudentList && newStudent !== '' && 
+                                        <div id='search-results-div' className='width-100'>
+                                        {otherStudents &&
+                                            <SearchStudents students_list={otherStudents} search={newStudent} addFunction={addStudentToClass} showEmail={true}/>
+                                        }
+                                        </div>
+                                    }
+                            </div>
+                        </div>
+                    }
+                </div>
                 <table className='student-list'>
                     <thead>
                         <tr>

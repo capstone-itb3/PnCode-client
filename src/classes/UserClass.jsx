@@ -259,7 +259,7 @@ export class User {
             }
             return null;
         } catch (e) {
-            errorHandler(e);
+            console.error(e.message);
             return null;
         }
     }
@@ -429,6 +429,41 @@ export class Professor extends User {
             return null;
         }
     }
+
+    async getOtherStudents(class_id) {
+        try {
+            const response = await api.post('/api/get-other-students', {
+                class_id,
+            });
+            const data = response.data;
+            if (data.status === 'ok') {
+                return data.other_students;
+            }
+            return null;
+        } catch(e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    }
+
+    async addStudentToClass(class_id, uid) {
+        try {
+            const response = await api.post('/api/add-student-to-class', {
+                class_id,
+                uid
+            });
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                toast.success('Student is added to the class.');
+                return true;
+            }
+            return null;
+        } catch(e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    };
 
     async createActivity(class_id, activity_name, instructions, open_time, close_time) {
         try {

@@ -20,7 +20,7 @@ function Sidebar({ user, courses, setShowAddClass, setShowStudents }) {
   useEffect(() => {
     const handleResize = () => {
       const sidebar = document.getElementById('sidebar-main');
-      sidebar.style.left = window.innerWidth < 800 ? '-239px' : '0px';
+      sidebar.style.left = window.innerWidth < 750 ? '-239px' : '0px';
     };
 
     window.addEventListener('resize', handleResize);
