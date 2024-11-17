@@ -97,12 +97,15 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     if (editorRef.current) {
       socket.emit('add_edit_count', {
         file_id: file.file_id,
+        room_id: room_id,
         user_id: editing_user_id,
+        first_name: user.first_name,
+        last_name: user.last_name,
       });
 
       updateCode(editorRef.current);
     }
-  }, 200);
+  }, 300);
 
   function updateAwareness(new_line) {
     if (!providerRef.current || !editorRef.current) {
@@ -308,7 +311,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     
     const interval = setInterval(() => {
       storeInHistoryRef.current = true;
-    }, 30000);
+    }, 300000);
 
     return () => {
       clearInterval(interval);

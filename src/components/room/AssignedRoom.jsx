@@ -74,7 +74,7 @@ function AssignedRoom() {
 
   useEffect(() => {    
     if (user?.position === 'Student') {
-      // disableCopyPaste();
+      disableCopyPaste();
     }   
 
     async function initRoom () {

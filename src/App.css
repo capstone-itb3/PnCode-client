@@ -2934,6 +2934,26 @@ header {
     font-size: 13px;
 }
 
+.history-item .edit-count-label {
+    font-size: 14px;
+}
+
+.history-item .count {
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.history-item .count span{
+    /* font-weight: normal !important; */
+    color: var(--gray)
+}
+
+.history-item .contribution-div {
+    padding: 5px;
+}
+
+
+
 .history-editor {
     position: relative;
     overflow-y: auto;
@@ -2948,14 +2968,6 @@ header {
     bottom: 0;
     background-color: transparent;
     z-index: 20 !important;
-}
-
-.history-item .edit-count {
-    font-size: 14px;
-}
-
-.history-item .contribution-div {
-    padding: 5px;
 }
 
 .length-0 {    

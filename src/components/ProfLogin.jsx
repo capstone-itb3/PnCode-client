@@ -33,9 +33,11 @@ function ProfLogin() {
         const data = await response.json(); 
         
         if (data.status === 'ok' && data.token) {
-            Cookies.set('token', data.token, { expires : 90 });
-            navigate(`/dashboard/`);
-            
+            Cookies.set('token', data.token, { 
+                expires: 1,
+                domain: import.meta.env.VITE_APP_DOMAIN,
+            });
+            navigate(`/dashboard/`);        
         } else {
             alert (data.message);
             console.error(data.message);

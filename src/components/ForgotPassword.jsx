@@ -32,7 +32,7 @@ function ForgotPassword() {
             if (data.status === 'ok') {
                 await showAlertPopup({
                     title: 'Reset Link Sent',
-                    message: 'The link for password reset has been sent to your email.',
+                    message: 'The reset password link has been sent to your email. Please check your email within 1 hour.',
                     type: 'success',
                     okay_text: 'Okay'
                 });

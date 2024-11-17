@@ -31,9 +31,9 @@ function FileDrawer({room, socket, room_files, activityOpen, setRoomFiles, activ
             let files = room_files.filter(file => file.file_id !== file_id);
             setRoomFiles(prevFiles => prevFiles.filter(file => file.file_id !== file_id));
 
-            if (files.length !== 0) {
+            if (files.length !== 0 && activeFile && activeFile.file_id === file_id) {
                 displayFile(files[0]);
-            } else {
+            } else if (files.length === 0) {
                 displayFile(null);
             }
         } else {

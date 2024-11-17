@@ -65,7 +65,7 @@ function ResetPassword() {
                         <img src={full_logo} alt='full_logo'/>
                     </div>
                     <section className='head items-center login'>
-                        <label>Forgot Password</label>
+                        <label>Reset Password</label>
                     </section>
                     <div className='account-warning'>
                     {warning && 
@@ -79,7 +79,7 @@ function ResetPassword() {
                                 className='input-data'
                                 type='password'
                                 value={password}
-                                placeholder='Enter your password'
+                                placeholder='Enter your new password'
                                 required
                                 onChange={(e) => setPassword(e.target.value)}
                             />
@@ -90,7 +90,7 @@ function ResetPassword() {
                                 className='input-data'
                                 type='password'
                                 value={conf_password}
-                                placeholder='Re-type your password'
+                                placeholder='Re-type your new password'
                                 onChange={(e) => setConfPassword(e.target.value)}
                                 required
                             /> 

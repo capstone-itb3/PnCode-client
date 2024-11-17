@@ -35,7 +35,10 @@ function AdminLogin() {
         alert (data.message);
 
         if (data.status === 'ok' && data.token) {
-            Cookies.set('token', data.token, { expires : 90 });
+            Cookies.set('token', data.token, { 
+                expires: 1,
+                domain: import.meta.env.VITE_APP_DOMAIN,
+            });
             navigate(`/admin/dashboard/students/`);
 
         } else {
