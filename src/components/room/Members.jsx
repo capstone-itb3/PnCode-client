@@ -45,7 +45,7 @@ function Members({ members, roomUsers, inSolo }) {
         {displayMembers}
         {!members &&
             <section className='items-center user-section length-0'>
-              The team owning this room was deleted.
+              The team owning this room has been deleted.
             </section>
         }
       </div>

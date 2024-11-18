@@ -34,7 +34,6 @@ function Notifications({ user, notifications, setNotifications }) {
       } else {
         setNoUnread(true);
       }
-      console.log(notifications);
   }, [notifications]);
 
   async function clickTeamNotif(notif) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
+import toast from 'react-hot-toast';
 import { initSocket } from '../socket';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsXLg } from 'react-icons/bs';
@@ -11,33 +12,34 @@ import FileDrawer from '../components/room/FileDrawer';
 import TabOutput from '../components/room/TabOutput';
 import Members from '../components/room/Members';
 import Instructions from '../components/room/Instructions';
+import History from '../components/room/History';
+import Console from '../components/room/Console';
 import Options from './room/AdminOptions';
 import Notepad from './room/AdminNotepad';
 import EditorTab from './room/AdminEditorTab';
-import History from './room/AdminHistory';
 import Chats from './room/AdminChats';
 import Feedback from './room/AdminFeedback';
 
 function AdminRoom() {  
   const { room_id } = useParams();
   const navigate = useNavigate();
-  const [admin, setAdmin] = useState(getAdminClass());
+  const [admin, setAdmin] = useState(null);
   const [room, setRoom] = useState(null);
   const [room_files,  setRoomFiles] = useState([]);
   const [members, setMembers] = useState ([]);
   
   const [activity, setActivity] = useState(null);
   const [instructions, setInstructions] = useState(null);
-  const [open_time, setOpenTime] = useState(null);
-  const [close_time, setCloseTime] = useState(null);
 
   const [activeFile, setActiveFile] = useState(null);
   const [cursorColor, setCursorColor] = useState(null);
 
   const [roomUsers, setRoomUsers] = useState([]);
   const [editorUsers, setEditorUsers]  = useState([]);
-  const socketRef = useRef(null);
   const outputRef = useRef(null);
+
+  const socketRef = useRef(null);
+  const [socketId, setSocketId] = useState(null);
   
   const [leftDisplay, setLeftDisplay] = useState('files');
   const [rightDisplay, setRightDisplay] = useState('output');
@@ -45,8 +47,17 @@ function AdminRoom() {
   const [deleteFile, setDeleteFile] = useState(false);
   const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
   
-  useEffect(() => {    
-    async function initRoom () {
+  const [consoleOpen, setConsoleOpen] = useState(true);
+
+  useEffect(() => {
+    if (!admin) {
+      const init = async () => await getAdminClass();
+      init().then(data => data ? setAdmin(data) : navigate('/error/404'));
+    } else {
+      startRoom();
+    }
+
+    async function startRoom () {
       const info = await admin.getAssignedRoomDetails(room_id);
       setRoom(info.room);
       setRoomFiles(info.files);
@@ -54,59 +65,92 @@ function AdminRoom() {
 
       setActivity(info.activity);
       setInstructions(info.activity.instructions);
-      setOpenTime(info.activity.open_time);
-      setCloseTime(info.activity.close_time);
 
       document.title = `PnCode Admin - ${info.activity.activity_name}`;
 
       socketRef.current = await initSocket();
-      
+
+      socketRef.current.on('connect_timeout', () => {
+        console.error('Connection timeout');
+        socketConnectError('Timeout');
+      });
+
+      socketRef.current.on('error', (error) => {
+        console.error('Socket error:', error);
+        socketConnectError('Error');
+      });
+  
+      if (info.files.length > 0) {
+        displayFile(info.files[0]);
+      }
+    }
+    
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('connect_timeout');
+        socketRef.current.off('error');
+        socketRef.current.disconnect();
+      }
+    }
+  }, [admin, room_id]);
+
+  useEffect(() => {
+    if (!admin || !socketRef.current) {
+      return;
+    }
+    socketRef.current.on('connect', () => {
       socketRef.current.emit('join_room', { 
-        room_id: info.room.room_id, 
+        room_id: room_id, 
         user_id: 'user_admin',
         first_name: 'PnCode',
         last_name: 'Admin',
         position: 'Admin'
       })
-
-      socketRef.current.on('room_users_updated', ({ users }) => {
-          setRoomUsers(users);
-          setCursorColor(users.find((u) => u.user_id === 'user_admin')?.cursor || '#808080');
-      });
-  
-      socketRef.current.on('found_file', ({ file }) => {
-        setActiveFile(file);
-      });
-    
-      if (info.files.length > 0) {
-        displayFile(info.files[0]);
+      
+      if (activeFile !== null) {
+        socketRef.current.emit('join_editor', {
+          room_id,
+          file_id: activeFile.file_id,
+          user_id: 'user_admin',
+        });
       }
-    }
-    initRoom();
+    });
     
+    socketRef.current.on('get_socket_id', ({ socket_id }) => {
+      setSocketId(socket_id);
+    });
+
+    socketRef.current.on('room_users_updated', ({ users, message }) => {
+      setRoomUsers(users);
+      setCursorColor({ color: 'gray', light: '#80808033' });
+
+      if (message) {
+        toast.success(message);
+      }
+    });
+    
+    socketRef.current.on('editor_users_updated', ({ editors }) => {
+      setEditorUsers(editors);
+    });
+
+    socketRef.current.on('found_file', ({ file }) => {
+      setActiveFile(file);
+    });
+
     return () => {
-      if (socketRef.current) {
-        socketRef.current.off('found_file');
-        socketRef.current.off('room_users_updated');
-        socketRef.current.off('editor_users_updated');  
-        socketRef.current.disconnect();
-      }
-    }
-  }, [room_id]);
+      socketRef.current.off('connect');
+      socketRef.current.off('get_socket_id');
+      socketRef.current.off('found_file');
+      socketRef.current.off('room_users_updated');
+      socketRef.current.off('editor_users_updated');  
+    };
+  }, [admin, socketRef.current, activeFile]);  
 
   useEffect(() => {
-    if (socketRef.current) {
-      socketRef.current.on('editor_users_updated', ({ editors }) => {
-        setEditorUsers(editors);
-      });
-  
-      return () => {
-        socketRef.current.off('editor_users_updated');
-      };
+    if (!admin) {
+      return;
     }
-  }, [activeFile]);  
 
-  useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.altKey && event.key === 'a') {
         event.preventDefault();
@@ -130,9 +174,11 @@ function AdminRoom() {
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      if (handleKeyDown) {
+        document.removeEventListener('keydown', handleKeyDown);
+      }
     }  
-  }, [room_files, activeFile]);
+  }, [admin, room_files, activeFile]);
 
   function displayFile(file) {
     if (file === null) {
@@ -147,11 +193,11 @@ function AdminRoom() {
   }
 
   function startRunOutput() {
-    runOutput(outputRef.current, room_id, room_files, activeFile);
+    runOutput(outputRef.current, room_id, room_files, activeFile, 'admin/');
   }
 
   function startRunOutputFullView() {
-    runOutputFullView(room_id, room_files, activeFile);
+    runOutputFullView(room_id, room_files, activeFile, 'admin/');
   }
 
   function leaveRoom () {
@@ -162,6 +208,8 @@ function AdminRoom() {
   }  
 
   return (
+    <>
+    {admin &&
     <main className='room-main'>
       <div className='flex-row items-center' id='room-header'>
           <div className='items-center'>
@@ -170,8 +218,6 @@ function AdminRoom() {
               type={'assigned'} 
               room={room} 
               socket={socketRef.current}
-              open_time={activity.open_time}
-              close_time={activity.close_time}
               setLeftDisplay={setLeftDisplay}
               setRightDisplay={setRightDisplay}
               reloadFile={() => displayFile(activeFile)}
@@ -254,8 +300,6 @@ function AdminRoom() {
                 room={room}
                 cursorColor={cursorColor}
                 socket={socketRef.current}
-                open_time={open_time}
-                close_time={close_time}
                 activeFile={activeFile}
                 editorTheme={editorTheme}
                 rightDisplay={rightDisplay}/>
@@ -277,13 +321,24 @@ function AdminRoom() {
                           Feedback
                   </button>
                 </div>
-                <div id='right-section'>
+                <div id='right-section' className={`${rightDisplay === 'output' && 'column'}`}>
                   <TabOutput 
                     rightDisplay={rightDisplay}
                     outputRef={outputRef}
-                    startRunOutputFullView={startRunOutputFullView}/>
+                    startRunOutput={startRunOutput}
+                    startRunOutputFullView={startRunOutputFullView}
+                    consoleOpen={consoleOpen}/>
+                  <Console 
+                    rightDisplay={rightDisplay}
+                    name={undefined}
+                    socketId={socketId}
+                    socket={socketRef.current}
+                    sharedEnabled={true}
+                    consoleOpen={consoleOpen}
+                    setConsoleOpen={setConsoleOpen}/>
                   {activeFile &&
                     <History
+                      viewCount={true}
                       rightDisplay={rightDisplay}
                       socket={socketRef.current}
                       file={activeFile}/>                         
@@ -291,6 +346,7 @@ function AdminRoom() {
                   <Feedback 
                     room={room}
                     socket={socketRef.current}
+                    socketId={socketId}
                     rightDisplay={rightDisplay}
                     setRightDisplay={setRightDisplay}/>
                 </div>
@@ -301,6 +357,8 @@ function AdminRoom() {
         </div>
       }
     </main>  
+    }
+    </>
   )
 }
 

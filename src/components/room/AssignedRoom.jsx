@@ -43,8 +43,7 @@ async function socketConnectError(error_type) {
 function AssignedRoom() {  
   const { room_id } = useParams();
   const navigate = useNavigate();
-  const [auth, setAuth] = useState(getToken(Cookies.get('token')));
-  const [user, setUser] = useState(getClass(auth, auth.position));
+  const [user, setUser] = useState(null);
   const [room, setRoom] = useState(null);
   const [room_files,  setRoomFiles] = useState([]);
   const [members, setMembers] = useState ([]);
@@ -72,12 +71,19 @@ function AssignedRoom() {
   const [activityOpen, setActivityOpen] = useState(null);
   const [consoleOpen, setConsoleOpen] = useState(true);
 
-  useEffect(() => {    
-    if (user?.position === 'Student') {
-      disableCopyPaste();
-    }   
+  useEffect(() => {
+    if (!user) {
+      const init = async () => await getToken();
+      init().then(token => token ? setUser(getClass(token, token.position)) : navigate('/error/404'));
+    } else {
+      startRoom();
+    }
 
-    async function initRoom () {
+    async function startRoom() {
+      if (user?.position === 'Student') {
+        disableCopyPaste();
+      }   
+  
       const info = await user.getAssignedRoomDetails(room_id);
 
       if (!info?.access) {
@@ -97,12 +103,12 @@ function AssignedRoom() {
         socketRef.current = await initSocket();
 
         socketRef.current.on('connect_timeout', () => {
-          console.log('Connection timeout');
+          console.error('Connection timeout');
           socketConnectError('Timeout');
         });
 
         socketRef.current.on('error', (error) => {
-          console.log('Socket error:', error);
+          console.error('Socket error:', error);
           socketConnectError('Error');
         });
         
@@ -111,14 +117,12 @@ function AssignedRoom() {
         }
     
       } else {
-        windows.location.href = '/error/404';
+        window.location.href = '/error/404';
       }
     }
-    initRoom();
     
     return () => {
       if (socketRef.current) {
-        socketRef.current.off('connect_error');
         socketRef.current.off('connect_timeout');
         socketRef.current.off('error');
         socketRef.current.disconnect();
@@ -137,8 +141,7 @@ function AssignedRoom() {
       setDeleteFile(false);
       socketRef.current = null;
     }
-  }, [room_id]);
-
+  }, [user, room_id]);
 
   useEffect(() => {
     if (!user || !socketRef.current) {
@@ -151,7 +154,8 @@ function AssignedRoom() {
         user_id: user.uid,
         first_name: user.first_name,
         last_name: user.last_name,
-        position: user.position
+        position: user.position,
+        cursorColor
       });
 
       if (activeFile !== null) {
@@ -202,6 +206,10 @@ function AssignedRoom() {
   }, [socketRef.current, activeFile]);
 
   useEffect(() => {
+    if (!user) {
+      return;
+    }
+
     const handleKeyDown = (event) => {
       if (user?.position === 'Student' && activityOpen) {
         if (event.altKey && event.key === 'a') {
@@ -225,9 +233,11 @@ function AssignedRoom() {
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      if (handleKeyDown) {
+        document.removeEventListener('keydown', handleKeyDown);
+      }
     }
-  }, [room_files, activeFile]);
+  }, [user, room_files, activeFile]);
 
   useEffect(() => {
     if (!activity || timeframes.length === 0) {
@@ -283,10 +293,12 @@ function AssignedRoom() {
   }  
 
   return (
+    <>
+    {user &&
     <main className='room-main'>
       <div className='flex-row items-center' id='room-header'>
           <div className='items-center'>
-          {room && activity && members && socketRef.current &&
+          {room && activity && socketRef.current &&
             <Options 
               type={'assigned'} 
               room={room} 
@@ -321,12 +333,12 @@ function AssignedRoom() {
           </div>
         }
       </div>
-      {!(room && activity && members && socketRef.current) &&
+      {!(room && activity && socketRef.current) &&
           <div className='loading'>
             <div className='loading-spinner'/>
           </div>
       }
-      {room && activity && members && socketRef.current && (activityOpen !== null) && 
+      {room && activity && socketRef.current && (activityOpen !== null) && 
         <div id='editor-tab' className='flex-row'>
           <aside className={`flex-column ${leftDisplay === '' && 'none'}`} id='left-body'>
             <div className='flex-column side-tab top'>
@@ -407,26 +419,26 @@ function AssignedRoom() {
                   </button>
                 </div>
                 <div id='right-section' className={`${rightDisplay === 'output' && 'column'}`}>
-                    <TabOutput 
-                      rightDisplay={rightDisplay}
-                      outputRef={outputRef}
-                      startRunOutput={startRunOutput}
-                      startRunOutputFullView={startRunOutputFullView}
-                      consoleOpen={consoleOpen}/>
-                    <Console 
-                      rightDisplay={rightDisplay}
-                      name={user.position === 'Student' ? user.last_name : undefined}
-                      socket={socketRef.current}
-                      socketId={socketId}
-                      sharedEnabled={true}
-                      consoleOpen={consoleOpen}
-                      setConsoleOpen={setConsoleOpen}/>
+                  <TabOutput 
+                    rightDisplay={rightDisplay}
+                    outputRef={outputRef}
+                    startRunOutput={startRunOutput}
+                    startRunOutputFullView={startRunOutputFullView}
+                    consoleOpen={consoleOpen}/>
+                  <Console 
+                    rightDisplay={rightDisplay}
+                    name={user.position === 'Professor' ? undefined : user.last_name}
+                    socket={socketRef.current}
+                    socketId={socketId}
+                    sharedEnabled={true}
+                    consoleOpen={consoleOpen}
+                    setConsoleOpen={setConsoleOpen}/>
                   {activeFile &&
                     <History
-                    user={user}
-                    rightDisplay={rightDisplay}
-                    socket={socketRef.current}
-                    file={activeFile}/>                         
+                      viewCount={user.position === 'Professor' ? true : false}
+                      rightDisplay={rightDisplay}
+                      socket={socketRef.current}
+                      file={activeFile}/>                         
                   }
                   <Feedback 
                     user={user}
@@ -439,12 +451,14 @@ function AssignedRoom() {
               </div>
             </div>
           </div>
-          {user && user?.position === 'Student' &&
+          {user.position === 'Student' &&
             <Chats room={room} user={user} socket={socketRef.current}/>
           }
         </div>
       }
     </main>  
+  }
+  </>
   )
 }
 

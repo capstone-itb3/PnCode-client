@@ -1,17 +1,14 @@
 import React from 'react'
-import Cookies from 'js-cookie'
+import { Link } from 'react-router-dom'
 
 function NotFound() {
   return (
-    <div>
+    <div className='flex-column items-center'>
+        <br/>
         <h1>404 Not Found</h1>
-        <label>The page you're looking for does not exist.</label>
+        <p>{`Looks like something went wrong. :(`}</p>
         <br/>
-        <br/>
-        {Cookies.get('token')
-            ? <a href='/dashboard'>Back To Dashboard</a>
-            : <a href='/login'>Back To Login</a>
-        }
+        <Link to={'/'}>Go to Home Page</Link>
     </div>
   )
 }

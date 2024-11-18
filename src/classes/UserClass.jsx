@@ -273,6 +273,21 @@ export class User {
             errorHandler(e);
         }
     }
+
+    async signOut() {
+        try {
+            const response = await api.post('/api/signout');
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
 }
 
 export class Student extends User {

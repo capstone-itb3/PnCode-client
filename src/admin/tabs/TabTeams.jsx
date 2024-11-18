@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { BsSearch } from 'react-icons/bs';
+import { BsSearch, BsPersonPlus } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import { SearchUserList, searchDropdown } from './SearchList';
 import ShowId from './ShowId';
+import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabTeams({ admin, showId, setShowId }) {
@@ -155,14 +156,10 @@ function TabTeams({ admin, showId, setShowId }) {
       setShowForm(null);
       return;
     }
-    
     setShowForm('edit');
     setTeamName(selectedRef.current.team_name);
 
-    setTimeout(() => {
-      const buttons = document.querySelector('#admin-table-buttons');
-      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
-    }, 200)
+    animateDrop();
   }
 
   async function manageList() {
@@ -171,10 +168,7 @@ function TabTeams({ admin, showId, setShowId }) {
     setMemberInput('');
     setShowStudents(false);
 
-    setTimeout(() => {
-      const buttons = document.querySelector('#admin-table-buttons');
-      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
-    }, 200)
+    animateDrop();
   }
 
   async function addMember(student) {
@@ -419,26 +413,8 @@ function TabTeams({ admin, showId, setShowId }) {
       <>
         <div className='admin-member-list-container flex-column'>
           <h4>Team Members</h4>
-          <div className='admin-member-list flex-column'>
-            {team_members.map((mem) => 
-              <div className='item flex-row items-center' key={mem.uid}>
-                <label className='single-line'>{mem.last_name} {mem.first_name}</label>
-                <div className='items-center flex-row'>
-                  <button className='remove-btn' onClick={() => removeMember(mem.uid)}>Remove</button>
-                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid} ${mem.first_name} ${mem.last_name}&f=`)}>
-                    Student Info
-                  </button>
-                </div>
-              </div>
-            )}
-            {team_members.length === 0 &&
-              <div className='item items-center'>
-                <label className='single-line'>No team members.</label>
-              </div>
-            }
-          </div>
-        </div>
           <div className='sub-admin-form flex-row items-center'>
+            <BsPersonPlus size={20} />
             <label>Add Member: </label>
             <div className='search-dropdown-input flex-row'>
               <input  
@@ -458,6 +434,28 @@ function TabTeams({ admin, showId, setShowId }) {
               }
             </div>
           </div>
+          <table className='admin-member-list'>
+            <tbody>
+            {team_members.map((mem) =>
+              <tr className='item' key={mem.uid}>
+                <td className='td-1'><label>{mem.last_name} {mem.first_name}</label></td>
+                <td><label>{mem.email}</label></td>
+                <td className='tbl-acts items-center'>
+                  <button className='remove-btn' onClick={() => removeMember(mem.uid)}>Remove</button>
+                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid} ${mem.first_name} ${mem.last_name}&f=`)}>
+                    Student Info
+                  </button>
+                  </td>
+              </tr>
+            )}
+            </tbody>
+          </table>
+            {team_members.length === 0 &&
+              <div className='no-results'>
+                <label className='single-line'>This team has no members.</label>
+              </div>
+            }
+        </div>
       </>
       }
     </div>

@@ -41,13 +41,11 @@ function Header({ user, base, name }) {
     };
   }, [settingsRef, notifsRef]);
 
-  function signOutUser() {
-    Cookies.remove('token');
+  async function signOutUser() {
+    const signout = await user.signOut();
 
-    if (user.position === 'Professor') {
-      window.location.href = '/login/professor';
-    } else {
-      window.location.href = '/login';
+    if (signout) {
+      window.location.href = `/login${user.position === 'Professor' ? '/professor' : ''}`;
     }
   }
 

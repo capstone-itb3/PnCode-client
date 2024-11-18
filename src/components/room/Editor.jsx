@@ -16,20 +16,9 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
 import jsLint from './utils/JSesLint'
 import { html5Snippet, linkTagSnippet, jquerySnippet } from './utils/codeSnippets'
-import checkTimeframe from './utils/checkTimeframe'
+import { nonEditingKey, editingKey, unknownKey } from './utils/keyHandler';
 import changeTheme from './utils/changeTheme';
 import _ from 'lodash'
-
-function nonEditingKey(e) {
-  const isModifierKey = e.altKey || e.ctrlKey || e.metaKey;
-  const isNavigationKey = e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown';
-  const isFunctionKey = e.key.startsWith('F') && e.key.length > 1;
-  
-  return isModifierKey || isNavigationKey || isFunctionKey;
-}
-function editingKey(e) {
-  return e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || e.key === 'Enter';
-}
 
 function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, editorTheme, warning, setWarning}) {
   const { room_id } = useParams();
@@ -51,7 +40,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
         return;
       }
 
-      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event))) {
+      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event) || unknownKey(event))) {
         updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
 
         //check the readOnly config and will be used to minimize the number of times the editor
@@ -182,11 +171,6 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
           setWarning(2);
         }        
 
-        providerRef.current.on('connected', () => {
-          setWarning(0);
-          setSaved(<label id='saving'>Successfully connected.</label>);
-        });
-
         providerRef.current.on('synced', () => {
           const users_length = Array.from(providerRef.current.awareness.getStates().values()).length;
 
@@ -242,7 +226,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
 
         providerRef.current.on('connection-close', () => {
           console.warn('YJS Connection Closed.');
-            providerRef.current.connect();
+          providerRef.current.connect();
         });
 
         providerRef.current.on('connection-error', (error) => {

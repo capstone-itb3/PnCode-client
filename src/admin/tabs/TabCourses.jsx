@@ -4,6 +4,8 @@ import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
+import resetInput from '../utils/resetInput';
+import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabCourses({ admin }) {
@@ -106,8 +108,7 @@ function TabCourses({ admin }) {
     }
 
     setShowForm('create');
-    setCourseCode('');
-    setCourseTitle('');
+    resetInput([setCourseCode, setCourseTitle])
     setTimeout(() => document.getElementById('course_code')?.focus(), 100);
   }
 
@@ -121,10 +122,7 @@ function TabCourses({ admin }) {
     setCourseCode(selectedRef.current.course_code);
     setCourseTitle(selectedRef.current.course_title);
 
-    setTimeout(() => {
-      const buttons = document.querySelector('#admin-table-buttons');
-      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
-    }, 200)
+    animateDrop();
   }
 
   async function reloadData() {

@@ -5,6 +5,8 @@ import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
+import resetInput from '../utils/resetInput';
+import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabStudents({ admin, showId, setShowId }) {
@@ -135,13 +137,9 @@ function TabStudents({ admin, showId, setShowId }) {
     setEmail(selectedRef.current.email); 
     setFirstName(selectedRef.current.first_name);
     setLastName(selectedRef.current.last_name);
-    setPassword('');
-    setConfirmPassword('');
-
-    setTimeout(() => {
-      const buttons = document.querySelector('#admin-table-buttons');
-      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
-    }, 200)
+    resetInput([setPassword, setConfirmPassword]);
+    
+    animateDrop();
   }
 
   async function reloadData() {

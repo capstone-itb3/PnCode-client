@@ -2878,7 +2878,7 @@ header {
     position: relative;
 }
 
-.history-header .name.student {
+.history-header .name.view {
     margin: 7px 0px;    
     padding-bottom: 5px;
     border-bottom: 1px var(--gray) solid;

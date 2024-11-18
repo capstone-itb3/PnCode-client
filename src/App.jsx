@@ -2,8 +2,7 @@ import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
 import './App.css';
-import AssignedRoom from './components/room/AssignedRoom';
-import SoloRoom from './components/room/SoloRoom';
+import Home from './components/Home';
 import Signup from './components/Signup';
 import EmailVerification from './components/EmailVerification';
 import Login from './components/Login';
@@ -13,10 +12,12 @@ import ProfLogin from './components/ProfLogin';
 import Dashboard from './components/Dashboard';
 import PageTeam from './components/dashboard/teampage/PageTeam';
 import PageActivity from './components/dashboard/activitypage/PageActivity';
-import NotFound from './components/NotFound';
+import AssignedRoom from './components/room/AssignedRoom';
+import SoloRoom from './components/room/SoloRoom';
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminRoom from './admin/AdminRoom'
+import NotFound from './components/NotFound';
 
 function App() {
 
@@ -26,7 +27,7 @@ function App() {
     <Routes>
       <Route path = '/signup' element={ <Signup/> }/>
       <Route path = '/verify/:token' element={ <EmailVerification/> }/>
-      <Route path = '/' element={ <Login/> }/>
+      <Route path = '/' element={ <Home/> }/>
       <Route path = '/login' element={ <Login/> }/>
       <Route path = '/forgot-password' element={ <ForgotPassword/> }/>
       <Route path = '/reset-password/:reset_link' element={ <ResetPassword/> }/>

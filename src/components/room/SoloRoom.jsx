@@ -12,6 +12,7 @@ import Options from './Options';
 import FileDrawer from './FileDrawer';
 import Members from './Members';
 import TabOutput from './TabOutput';
+import Console from './Console';
 import { EditorView, basicSetup } from 'codemirror'
 import { EditorState, Compartment } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
@@ -28,8 +29,7 @@ import _ from 'lodash'
 function AssignedRoom() {  
   const { room_id } = useParams();
   const navigate = useNavigate();
-  const [auth, setAuth] = useState(getToken(Cookies.get('token')));
-  const [user, setUser] = useState(getClass(auth, auth.position));
+  const [user, setUser] = useState(null);
   const [room, setRoom] = useState(null);
   const [room_files,  setRoomFiles] = useState([]);
   
@@ -42,27 +42,33 @@ function AssignedRoom() {
   const [rightDisplay, setRightDisplay] = useState('output');
   const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
   
+  const [consoleOpen, setConsoleOpen] = useState(true);
+
   const [warning, setWarning] = useState(0);
   const [saved, setSaved] = useState(null);
   const editorRef = useRef(null);
   const compartmentRef = useRef(new Compartment());
 
   useEffect(() => { 
-    if (user?.position === 'Student') {
-      disableCopyPaste();
-    }   
+    if (!user) {
+      const init = async () => await getToken();
+      init().then(token => token ? setUser(getClass(token, token.position)) : navigate('/error/404'));
+    } else {
+      startRoom();
+    }
 
-    async function initRoom () {
+    async function startRoom () {
+      if (user?.position === 'Student') {
+        disableCopyPaste();
+      }   
+
       const info = await user.getSoloRoomDetails(room_id);
       setRoom(info);
       setRoomFiles(info.files);
 
       displayFile(info.files[0]);
       document.title = info.room_name;
-    }
-    initRoom();
 
-    async function init() {
       socketRef.current = await initSocket();
     
       socketRef.current.on('update_result_solo', ({ status }) => {
@@ -79,8 +85,6 @@ function AssignedRoom() {
         }
       });  
     }
-    init();
-
     
     return () => {
       if (socketRef.current) {
@@ -89,7 +93,7 @@ function AssignedRoom() {
         socketRef.current.disconnect();
       }
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -147,7 +151,7 @@ function AssignedRoom() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [room_files, activeFile]);
+  }, [room_files]);
 
 
   function editorListener(e) {
@@ -156,7 +160,6 @@ function AssignedRoom() {
       updateCode(editorRef.current);
     }
   };
-
 
   useEffect(() => {
     if (!activeFile) {
@@ -256,6 +259,8 @@ function AssignedRoom() {
   }
 
   return (
+    <>
+    {user &&
     <main className='room-main'>
       <div className='flex-row items-center' id='room-header'>
           <div className='items-center'>
@@ -351,12 +356,19 @@ function AssignedRoom() {
                           Output
                   </button>
                 </div>
-                <div id='right-section'>
+                <div id='right-section' className='column'>
                   <TabOutput 
                     rightDisplay={rightDisplay}
                     outputRef={outputRef}
                     activeFile={activeFile}
-                    startRunOutputFullView={startRunOutputFullView}/> 
+                    startRunOutput={startRunOutput}
+                    startRunOutputFullView={startRunOutputFullView}
+                    consoleOpen={consoleOpen}/>
+                    <Console 
+                      rightDisplay={rightDisplay}
+                      sharedEnabled={false}
+                      consoleOpen={consoleOpen}
+                      setConsoleOpen={setConsoleOpen}/>
                 </div>
               </div>
             </div>
@@ -364,6 +376,8 @@ function AssignedRoom() {
         </div>
       }
     </main>
+    }
+    </>
   )
 }
 

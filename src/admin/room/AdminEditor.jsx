@@ -15,11 +15,11 @@ import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
 import jsLint from '../../components/room/utils/JSesLint'
-import checkTimeframe from '../../components/room/utils/checkTimeframe'
 import changeTheme from '../../components/room/utils/changeTheme';
+import { nonEditingKey, editingKey, unknownKey } from '../../components/room/utils/keyHandler';
 import _ from 'lodash'
 
-function Editor({ cursorColor, file, socket, open_time, close_time, setSaved, editorTheme, warning, setWarning}) {
+function Editor({ cursorColor, file, socket, setSaved, editorTheme, warning, setWarning}) {
   const { room_id } = useParams();
   const editorRef = useRef(null);
   const providerRef = useRef(null);
@@ -27,8 +27,6 @@ function Editor({ cursorColor, file, socket, open_time, close_time, setSaved, ed
   
   const editorListener = (event) => {
     try {
-      const isEditingKey = event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Tab' || event.key === 'Enter';
-
       //Ctrl + S to save the code
       if (event.ctrlKey && event.key === 's') {
         event.preventDefault();
@@ -38,10 +36,8 @@ function Editor({ cursorColor, file, socket, open_time, close_time, setSaved, ed
         return;
       }    
 
-      if (event.key.length === 1 || isEditingKey) {
-        if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'Enter') {
-          updateAwareness();
-        }
+      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event) || unknownKey(event))) {
+        updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
 
         warning !== 0 ? setWarning(0) : null;
         debounceUserType();
@@ -57,17 +53,15 @@ function Editor({ cursorColor, file, socket, open_time, close_time, setSaved, ed
     }
   }, 200);
 
-  const updateAwareness = () => {
+  const updateAwareness = (new_line) => {
     if (!providerRef.current || !editorRef.current) {
       return;
     }
 
     try {
-      const local_line = editorRef.current?.state?.doc.lineAt(editorRef.current?.state?.selection?.main?.head)?.number;
-
       providerRef.current.awareness.setLocalStateField('user', {
         ...providerRef.current.awareness.getLocalState().user,
-        line: local_line,
+        line: new_line,
       });
     } catch (e) {
       console.error(e);
@@ -107,10 +101,6 @@ function Editor({ cursorColor, file, socket, open_time, close_time, setSaved, ed
         }
         const theme = editorTheme === 'dark' ? oneDark : clouds;
         
-        if (checkTimeframe(open_time, close_time) === false) {
-          setWarning(2);
-        }
-        
         providerRef.current.on('synced', () => {
           const users_length = Array.from(providerRef.current.awareness.getStates().values()).length;
 
@@ -132,6 +122,7 @@ function Editor({ cursorColor, file, socket, open_time, close_time, setSaved, ed
               themeCompartmentRef.current.of([theme]),
               yCollab(ytext, providerRef.current.awareness),
               lintGutter(),
+              EditorView.lineWrapping,
               EditorView.theme({
                 '.cm-ySelectionInfo': {
                   top: '-6px !important',
@@ -154,8 +145,20 @@ function Editor({ cursorColor, file, socket, open_time, close_time, setSaved, ed
           editor_div.addEventListener('keydown', editorListener);
 
           providerRef.current.awareness.on('change', () => {  
-            updateAwareness();
+            updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
           });
+
+          setSaved(<label id='saving'>Successfully connected.</label>);
+        });
+
+        providerRef.current.on('connection-close', () => {
+          console.warn('YJS Connection Closed.');
+          providerRef.current.connect();
+        });
+
+        providerRef.current.on('connection-error', (error) => {
+          console.error('YJS Connection Error:', error);
+          setWarning(5);
         });
       };
       init();
@@ -186,8 +189,6 @@ function Editor({ cursorColor, file, socket, open_time, close_time, setSaved, ed
     
     return () => {
       socket.off('update_result');
-      socket.off('dates_updated');
-      socket.off('editor_users_updated');
 
       if (file) {
         socket.emit('leave_editor', {file_id: file?.file_id })

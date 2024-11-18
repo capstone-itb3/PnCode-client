@@ -6,6 +6,8 @@ import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import { SearchUserList, searchDropdown } from './SearchList';
 import ShowId from './ShowId';
+import resetInput from '../utils/resetInput';
+import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabClasses({ admin, showId, setShowId }) {
@@ -163,9 +165,7 @@ function TabClasses({ admin, showId, setShowId }) {
     setProfessorList(await admin.getAllProfessors());
     setCourseList(await admin.getAllCourses());
     setShowForm('create');
-    setCourseCode('');
-    setSection('');
-    setProfessorUid('');
+    resetInput([setCourseCode, setSection, setProfessorUid]);
     setLoading(false);
     setTimeout(() => document.getElementById('course_code')?.focus(), 100);
   }
@@ -186,10 +186,7 @@ function TabClasses({ admin, showId, setShowId }) {
     setSection(selectedRef.current.section);
     setProfessorUid(selectedRef.current.professor_uid);
 
-    setTimeout(() => {
-      const buttons = document.querySelector('#admin-table-buttons');
-      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
-    }, 200)
+    animateDrop();
   }
 
   function manageList(manage) {
@@ -202,10 +199,7 @@ function TabClasses({ admin, showId, setShowId }) {
       setShowStudentList(false);
     }
     
-    setTimeout(() => {
-      const buttons = document.querySelector('#admin-table-buttons');
-      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
-    }, 200)
+    animateDrop();
   }
 
   async function addStudent(student) {
@@ -545,8 +539,8 @@ function TabClasses({ admin, showId, setShowId }) {
             </tbody>
           </table>
           {class_students.length === 0 &&
-            <div className='item items-center'>
-              <label className='single-line'>No students.</label>
+            <div className='no-results'>
+              <label className='single-line'>There are no students in this class.</label>
             </div>
           }
         </div>
@@ -573,8 +567,8 @@ function TabClasses({ admin, showId, setShowId }) {
             </tbody>
           </table>
           {class_requests.length === 0 &&
-            <div className='item items-center'>
-              <label className='single-line'>No requests.</label>
+            <div className='no-results'>
+              <label className='single-line'>There are no requests for this class.</label>
             </div>
           }
         </div>

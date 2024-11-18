@@ -6,7 +6,7 @@ import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import convertToReadable from './utils/convertToReadable'
 
-function History({ user, file, socket, rightDisplay }) {
+function History({ viewCount, file, socket, rightDisplay }) {
   const [history, setHistory] = useState(null);
   const [contributions, setContributions] = useState(null);
   const [retrieved, setRetrieved] = useState(true);
@@ -30,7 +30,7 @@ function History({ user, file, socket, rightDisplay }) {
     socket.on('get_history_result', ({ status, history, contributions }) => {
       if (status === 'ok') {
         setHistory(history);
-        if (user.position === 'Professor') {
+        if (viewCount) {
           setContributions(contributions);
         }
       } else {
@@ -38,7 +38,7 @@ function History({ user, file, socket, rightDisplay }) {
       }
     });
 
-    if (user.position === 'Professor') {
+    if (viewCount) {
       socket.on('add_edit_count_result', ({ file_id, user_id, first_name, last_name }) => {
         if (file_id === file.file_id) {
           setContributions(prev => {
@@ -105,8 +105,8 @@ function History({ user, file, socket, rightDisplay }) {
             </div>
           }
           <div className='history-header flex-column'>
-            <h4 className={`name ${user?.position === 'Student' && 'student'}`}>{file.name}</h4>
-            {user?.position === 'Professor' &&
+            <h4 className={`name ${!viewCount && 'view'}`}>{file.name}</h4>
+            {viewCount &&
             <div id='history-buttons' className='flex-row'>
               <button 
                 className={`${options === 'all' ? 'active' : ''}`}
@@ -154,15 +154,15 @@ function History({ user, file, socket, rightDisplay }) {
                   key={index}
                   index={index}
                   item={his} 
-                  contributions={user?.position === 'Professor' ? true : false}
+                  contributions={viewCount}
                   file_type={file.type} 
                   options={options}/>
               )
             })}
-            {history && history?.length === 0 && user?.position === 'Student' &&
+            {history && history?.length === 0 && !viewCount &&
               <div className='length-0'>Code history will appear here as you progress.</div>
             }
-            {history && history?.length === 0 && user?.position === 'Professor' &&
+            {history && history?.length === 0 && viewCount &&
               <div className='length-0'>Code history will appear here as students code over time.</div>
             }
           </div>

@@ -1,29 +1,24 @@
-import { jwtDecode } from 'jwt-decode';
-import Cookies from 'js-cookie';
 import { Student, Professor } from '../classes/UserClass';
+import api from '../api'
 
-function restrictStudent() {
-    const token = Cookies.get('token');
-    if (token) {
-        const auth = getToken(token);
-        if (auth && auth?.position === 'Student') {
-            return true;
-        }
+async function restrictStudent() {
+    try {
+        const res = await api.post('/api/login-access');
+        return res?.data?.access;
+    } catch (e) {
+        return e?.response && (e.response.status === 401) ? window.location.href = '/error/404' : true;
     }
-    return false;
 }
 
-function getToken(token) {
-    if (!token) {
-        return removeAccess();
-    }
-
+async function getToken() {
     try {
-        const user = jwtDecode(token);
-        return user;
+        const response = await api.post('/api/verify-token');
+        const data = response.data;
+
+        return data?.status === 'ok' ? data.auth : false;
     } catch (e) {
-        return removeAccess();
-    }    
+        return e?.response && (e.response.status === 401) ? window.location.href = '/' : false;
+    }
 }
 
 function getClass(auth, position) {
@@ -49,7 +44,7 @@ function getClass(auth, position) {
 }
 
 function removeAccess() {
-    window.location.href = '/login';
+    window.location.href = '/error/404';
     return null;
 }
 

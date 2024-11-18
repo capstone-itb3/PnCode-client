@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { BsTrash, BsPlus } from 'react-icons/bs';
 import { FaChevronRight } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
-import Cookies from 'js-cookie';
 import Header from '../Header';
 import InfoHover from '../../InfoHover';
 import { getToken, getClass } from '../../validator';
@@ -14,8 +13,7 @@ import { showConfirmPopup } from '../../reactPopupService'
 function PageActivity() {
     const { activity_id } = useParams();
     const navigate = useNavigate();
-    const [auth, getAuth] = useState(getToken(Cookies.get('token')));
-    const [professor, setProfessor ] = useState(getClass(auth, 'Professor'));
+    const [professor, setProfessor ] = useState(null);
     const [activity, setActivity] = useState(null);
     const [room_list, setRoomList] = useState([]);
     const [no_rooms_list, setNoRoomsList] = useState([]);
@@ -25,11 +23,13 @@ function PageActivity() {
     const [section, setSection] = useState(null);
   
     useEffect(() => {
-        async function init () {
-            await renderActivity();
+        if (!professor) {
+            const init = async () => await getToken();
+            init().then(token => token ? setProfessor(getClass(token, 'Professor')) : navigate('/error/404'));
+        } else {
+            renderActivity();
         }
-        init()
-    }, [])
+    }, [professor])
 
     async function renderActivity () {
         const act_info = await professor.getActivityDetails(activity_id);
@@ -59,8 +59,6 @@ function PageActivity() {
         }
     }
 
-
-
     async function deleteActivity () {
         const confirm1 = await showConfirmPopup({
             title: 'Delete An Activity',
@@ -86,11 +84,9 @@ function PageActivity() {
         }
     }
 
-
     return (
         <>
-        {activity && room_list &&
-        (
+        {professor && activity && room_list &&
         <>
             <Header user={professor} base={'Activity'} name={activity.activity_name}/>
             <div id='activity-main'> 
@@ -170,7 +166,7 @@ function PageActivity() {
                 </div>
             </div>
         </>
-        )}
+        }
         </>
     )
 }

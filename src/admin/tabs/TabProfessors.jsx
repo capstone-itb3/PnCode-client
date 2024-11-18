@@ -5,6 +5,8 @@ import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
+import resetInput from '../utils/resetInput';
+import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 
 function TabProfessors({ admin, showId, setShowId }) {
@@ -121,11 +123,7 @@ function TabProfessors({ admin, showId, setShowId }) {
     }
 
     setShowForm('create');
-    setEmail('');
-    setFirstName('');
-    setLastName('');
-    setPassword('');
-    setConfirmPassword('');
+    resetInput([setEmail, setFirstName, setLastName, setPassword, setConfirmPassword]);
     setTimeout(() => document.getElementById('first_name')?.focus(), 100);
   }
 
@@ -139,13 +137,9 @@ function TabProfessors({ admin, showId, setShowId }) {
     setEmail(selectedRef.current.email); 
     setFirstName(selectedRef.current.first_name);
     setLastName(selectedRef.current.last_name);
-    setPassword('');
-    setConfirmPassword('');
+    resetInput([setPassword, setConfirmPassword]);
 
-    setTimeout(() => {
-      const buttons = document.querySelector('#admin-table-buttons');
-      window.scrollTo({ top: buttons?.scrollHeight + 500 , behavior: 'smooth' });
-    }, 200)
+    animateDrop();
   }
 
   async function reloadData() {

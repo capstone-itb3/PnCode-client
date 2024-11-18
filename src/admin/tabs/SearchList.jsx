@@ -16,7 +16,7 @@ export function SearchUserList({ list, filter, selectUser }) {
                 <li key={item.uid}
                     className='flex-row items-center'
                     onClick={() => selectUser(item)}>
-                    {item.first_name} {item.last_name}<span>{item.uid}</span>
+                    {item.first_name} {item.last_name}<span>{item.email}</span>
                 </li>
             ))}
         </ul>

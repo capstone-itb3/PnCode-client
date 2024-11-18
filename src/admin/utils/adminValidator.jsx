@@ -1,27 +1,13 @@
-import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
 import Admin from '../AdminClass';
+import api from '../../api';
 
-export default function getAdminClass() {
-    const token = Cookies.get('token');
+export default async function getAdminClass() {
+  try {
+    const response = await api.post('/api/admin/verify-token');
+    const data = response.data;
+    return data?.status === 'ok' ? new Admin(data.auth.admin_uid, data.auth.first_name, data.auth.last_name) : false;
 
-    if (!token) {
-      window.location.href = '/login';
-      return null;
-    }
-
-    try {
-      const user = jwtDecode(token);
-      
-      if (user?.position === 'Student' || user?.position === 'Professor') {
-        window.location.href = '/error/404';
-        return null;
-      }
-      
-      return new Admin(user.admin_uid, user.first_name, user.last_name);
-
-    } catch (e) {
-      window.location.href = '/login';
-      return null;
-    }    
+  } catch (e) {
+    return e?.response && (e.response.status === 401) ? window.location.href = '/error/404' : false;
+  }
 }

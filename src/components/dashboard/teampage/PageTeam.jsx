@@ -3,7 +3,6 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { BsTrash  } from 'react-icons/bs';
 import { LuPencilLine } from 'react-icons/lu';
 import { MdLoop } from 'react-icons/md';
-import Cookies from 'js-cookie';
 import toast from 'react-hot-toast';
 import { getToken, getClass } from '../../validator';
 import Header from '../Header';
@@ -15,8 +14,7 @@ import { showConfirmPopup } from '../../reactPopupService'
 function PageTeam() {
   const { team_id } = useParams();
   const navigate = useNavigate();
-  const [auth, getAuth] = useState(getToken(Cookies.get('token')));
-  const [user, setUser ] = useState(getClass(auth, auth.position));
+  const [user, setUser ] = useState(null);
   const [team, setTeam] = useState(null);
   const [team_name, setTeamName] = useState('');
   const [showTeamNameInputs, setShowTeamNameInputs] = useState(false);
@@ -25,14 +23,14 @@ function PageTeam() {
   const [course_code, setCourseCode] = useState(null);
   const [section, setSection] = useState(null);
 
-
-
   useEffect(() => {
-    async function init () { 
-      await renderTeam(); 
+    if (!user) {
+      const init = async () => await getToken();
+      init().then(token => token ? setUser(getClass(token, token.position)) : navigate('/error/404'));
+    } else {
+      renderTeam();
     }
-    init()
-  }, [])
+  }, [user])
 
   async function renderTeam () {
     const team_info = await user.getTeamDetails(team_id);
@@ -117,7 +115,7 @@ function PageTeam() {
 
   return (
     <>
-    {team &&
+    {user && team &&
     (
       <>
         <Header user={user} base={'Team'} name={team.team_name} />

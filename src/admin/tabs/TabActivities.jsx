@@ -5,6 +5,8 @@ import { FiPlus, FiFilter } from 'react-icons/fi';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
+import resetInput from '../utils/resetInput';
+import animateDrop from '../utils/animateDrop';
 import convertTime from '../../components/dashboard/utils/convertTime';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 
@@ -118,8 +120,7 @@ function TabActivities({ admin, showId, setShowId }) {
       return;
     }
     setShowForm('create');
-    setActivityName('');
-    setInstructions('');
+    resetInput([setActivityName, setInstructions]);
     setOpenTime('07:00');
     setCloseTime('20:59');
     setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
@@ -139,7 +140,7 @@ function TabActivities({ admin, showId, setShowId }) {
     setOpenTime(selectedRef.current.open_time);
     setCloseTime(selectedRef.current.close_time);
 
-    setTimeout(() => document.getElementById('activity_name')?.focus(), 100);
+    animateDrop();
   }
 
   async function reloadData() {

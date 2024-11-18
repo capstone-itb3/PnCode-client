@@ -4,47 +4,37 @@ import Cookies from 'js-cookie';
 import pnc from '../../assets/pamantasan.jpg'
 import full_logo from '../../assets/full_logo.jpg'
 import ccs_logo from '../../assets/ccs_logo.jfif'
+import api from '../api';
 import { restrictStudent } from '../components/validator';
 
 
 function AdminLogin() {    
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
+    const [ warning, setWarning ] = useState(null);
     const [ hasAccess, setHasAccess ] = useState(false);
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        !restrictStudent() ? setHasAccess(true) : navigate('/error/404');
+        const init = async () => await restrictStudent() ? setHasAccess(true) : navigate('/error/404');
+        init();
     }, []);
 
     async function loginAccount(event) {
         event.preventDefault();
-
-        const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/login/admin', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'   
-            },
-            body: JSON.stringify({
-                email,
-                password,
-            })
-        })
-
-        const data = await response.json(); 
-        alert (data.message);
-
-        if (data.status === 'ok' && data.token) {
-            Cookies.set('token', data.token, { 
-                expires: 1,
-                domain: import.meta.env.VITE_APP_DOMAIN,
-            });
-            navigate(`/admin/dashboard/students/`);
-
-        } else {
-            console.log(data.message);
-        } 
-    };
+        setIsSubmitting(true);
+        setWarning(null);
+    
+        try {
+            await api.post('/api/login/admin', { email, password });            
+            navigate('/admin/dashboard/students');            
+        } catch (e) {
+            setWarning(e?.response?.data?.message || 'Something went wrong. Please try again later.');
+            console.error(e.message);
+        }
+        setIsSubmitting(false);
+    }
 
     return (
         <>
@@ -58,6 +48,11 @@ function AdminLogin() {
                     <section className='head items-center admin'>
                         <img src={full_logo} alt='full-logo'/><label>Admin</label>
                     </section>
+                    <div className='account-warning'>
+                    {warning && 
+                        <label className='label-warning'>{warning}</label>
+                    }
+                    </div>
                     <div className='input-form login'>
                         <div className='input-div'>
                             <label>Email</label>
@@ -83,7 +78,9 @@ function AdminLogin() {
                         </div>
                     </div>
                     <div className='input-btn items-center'>
-                        <input type='submit' value='Log In'/>
+                        <input  type='submit' 
+                                value={isSubmitting ? 'Logging In...' : 'Log In'}
+                                disabled={isSubmitting}/>                        
                     </div>
                 </form>
             </main>

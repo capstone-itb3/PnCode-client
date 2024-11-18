@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import pnc from '../../assets/pamantasan.jpg'
 import full_logo from '../../assets/full_logo.jpg'
 import ccs_logo from '../../assets/ccs_logo.jfif'
+import api from '../api';
 
 function Login() {
     const [ email, setEmail ] = useState('');
@@ -15,39 +15,18 @@ function Login() {
     async function loginAccount(event) {
         event.preventDefault();
         setIsSubmitting(true);
-        try {
-            setWarning(null);
-
-            const response = await fetch(import.meta.env.VITE_APP_BACKEND_URL + '/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'   
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                })
-            })
+        setWarning(null);
     
-            const data = await response.json(); 
-            
-            if (data.status === 'ok' && data.token) {
-                Cookies.set('token', data.token, { 
-                    expires: 1,
-                    domain: import.meta.env.VITE_APP_DOMAIN,
-                });
-                navigate(`/dashboard/`);
-                
-            } else if (data.message) {
-                setWarning(data.message);
-            }
+        try {
+            await api.post('/api/login', { email, password });            
+            navigate('/dashboard');            
         } catch (e) {
-            setWarning('An error occured while logging in. Please try again.');
-            console.error(e);
+            setWarning(e?.response?.data?.message || 'Something went wrong. Please try again later.');
+            console.error(e.message);
         }
         setIsSubmitting(false);
-    };
-
+    }
+    
     return (
         <div id='login-signup'>
             <main className='photo-container'>

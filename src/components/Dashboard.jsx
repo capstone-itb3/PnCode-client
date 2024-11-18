@@ -1,24 +1,27 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Cookies from 'js-cookie';
+import React, { useEffect, useState } from 'react';
 import BoardStudent from './dashboard/BoardStudent';
 import BoardProfessor from './dashboard/BoardProfessor';
 import { getToken } from './validator';
+import NotFound from './NotFound';
 
 function Dashboard() {
-    const [auth, getAuth] = useState(getToken(Cookies.get('token')));
+    const [auth, setAuth] = useState({});
 
     useEffect(() => {
+        const init = async () => setAuth(await getToken());
+        init();
         document.title = 'Dashboard · PnCode: Real-Time Collaborative Coding Website for College of Computing Studies Department of University of Cabuyao PNC(UC)';
     },[]);
    
     return (
         <>
-            {auth.position === 'Student' &&
+            {auth && auth?.position === 'Student' &&
                 <BoardStudent auth={auth}/> 
             }
-            {auth.position === 'Professor' &&
+            {auth && auth?.position === 'Professor' &&
                 <BoardProfessor auth={auth}/>
             }
+            {auth === false && <NotFound />}
         </>
     );
 }

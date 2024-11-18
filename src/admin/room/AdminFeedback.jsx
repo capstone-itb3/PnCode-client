@@ -5,12 +5,12 @@ import converToReadable from '../../components/room/utils/convertToReadable';
 import updateFeedbackReacts from '../../components/room/utils/updateFeedbackReacts';
 import { showConfirmPopup } from '../../components/reactPopupService';
 
-function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
+function Feedback({ room, socket, socketId, rightDisplay, setRightDisplay }) {
   const [feedback, setFeedback] = useState([]);
   const [new_feedback, setNewFeedback] = useState('');
 
   useEffect(() => {  
-    try {            
+    try {
       function getFeedback() {
         socket.emit('load_feedback', {
             room_id: room.room_id,
@@ -33,7 +33,7 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
             return new Date(b.createdAt) - new Date(a.createdAt);
           });
         });
-
+        
         setRightDisplay('feedback');
       });
 
@@ -41,12 +41,13 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
         setFeedback(prev => prev.filter(item => item.feedback_id !== feedback_id));
       });
 
-      socket.on('new_feedback_react', ({ feedback_id, react }) => {
-        updateFeedbackReacts(setFeedback, feedback_id, react);
-      })
-
+      socket.on('new_feedback_react', ({ feedback_id, react, socket_id, action }) => {
+        if (socket_id !== socketId) {
+          updateFeedbackReacts(setFeedback, feedback_id, react, action);
+        }
+      });
     } catch (e) {
-      alert('An error occured while rendering feedback');
+      alert('An error occured while rendering feedback.');
       console.error(e);
     }
 
@@ -54,8 +55,9 @@ function Feedback({ room, socket, rightDisplay, setRightDisplay }) {
       socket.off('feedback_loaded');
       socket.off('submit_feedback_result');
       socket.off('delete_feedback_result');
+      socket.off('new_feedback_react');
     }
-  }, [room]);
+  }, [room, socketId]);
 
   function submitFeedback(e) {
     e.preventDefault();
