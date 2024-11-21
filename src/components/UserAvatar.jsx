@@ -5,7 +5,7 @@ function UserAvatar({ name, size }) {
 
   return (
     <div className='avatar'>
-      <Avatar name={name} size={size} round='30px'/>
+      <Avatar name={name} size={size} round='50%'/>
     </div>
   )
 }

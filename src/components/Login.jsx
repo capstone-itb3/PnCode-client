@@ -14,15 +14,17 @@ function Login() {
 
     async function loginAccount(event) {
         event.preventDefault();
+        document.querySelectorAll('.input-data').forEach(input => input.classList.remove('error-2'));
         setIsSubmitting(true);
         setWarning(null);
     
         try {
             await api.post('/api/login', { email, password });            
-            navigate('/dashboard');            
+            navigate('/dashboard');
         } catch (e) {
             setWarning(e?.response?.data?.message || 'Something went wrong. Please try again later.');
             console.error(e.message);
+            e?.response?.status === 401 ? document.querySelectorAll('.input-data').forEach(input => input.classList.add('error-2')) : null;
         }
         setIsSubmitting(false);
     }

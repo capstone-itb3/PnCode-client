@@ -16,7 +16,8 @@ function PageActivity() {
     const [professor, setProfessor ] = useState(null);
     const [activity, setActivity] = useState(null);
     const [room_list, setRoomList] = useState([]);
-    const [no_rooms_list, setNoRoomsList] = useState([]);
+    const [no_room_list, setNoRoomList] = useState([]);
+    const [deleted_list, setDeletedList] = useState([]);
     const [instructions, setInstructions] = useState('');
     const [showInstructionInputs, setShowInstructionInputs] = useState(false);
     const [course_code, setCourseCode] = useState(null);
@@ -33,11 +34,11 @@ function PageActivity() {
 
     async function renderActivity () {
         const act_info = await professor.getActivityDetails(activity_id);
-
         setActivity(act_info.activity_class);
         setInstructions(act_info.activity_class.instructions);
-        setRoomList(act_info.rooms);
-        setNoRoomsList(act_info.no_rooms);
+        setRoomList(act_info.rooms.filter(room => room.owner_id !== ''));
+        setDeletedList(act_info.rooms.filter(room => room.owner_id === ''));
+        setNoRoomList(act_info.no_rooms);
 
         setCourseCode(act_info.course_code);
         setSection(act_info.section);
@@ -130,7 +131,7 @@ function PageActivity() {
                             <div className='two-column-grid'>
                             {room_list.length > 0 && room_list.map((room, index) => {
                                 return (
-                                    <div className={`assigned-item flex-row items-center ${room.owner_id === '' && 'team-deleted'}`} onClick={() => {spectateRoom(room.room_id)}} key={index}>
+                                    <div className={`assigned-item flex-row items-center`} onClick={() => {spectateRoom(room.room_id)}} key={index}>
                                         <div className='col-1'>{index + 1}</div>
                                         <div className='col-2'>
                                             <label className='single-line'>{room.room_name.slice(0, -4)}<span>{room.room_name.slice(-4)}</span></label>
@@ -141,10 +142,23 @@ function PageActivity() {
                                     </div>
                                 )
                             })}
-                            {no_rooms_list.length > 0 && no_rooms_list.map((team, index) => {
+                            {deleted_list.length > 0 && deleted_list.map((del, index) => {
+                                return (
+                                    <div className={`assigned-item flex-row items-center team-deleted`} key={index}>
+                                        <div className='col-1'>{room_list.length + index + 1}</div>
+                                        <div className='col-2'>
+                                            <label className='single-line'>{del.room_name.slice(0, -4)}<span>{del.room_name.slice(-4)}</span></label>
+                                        </div>
+                                        <div className='col-3 flex-row'>
+                                            <label><Link to={`/room/${del.room_id}`} className='items-center'>View Room <FaChevronRight size={18}/></Link></label>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                            {no_room_list.length > 0 && no_room_list.map((team, index) => {
                                 return (
                                     <div className={`assigned-item flex-row items-center no-room`} key={index}>
-                                        <div className='col-1'>{index + 1}</div>
+                                        <div className='col-1'>{room_list.length + deleted_list.length + index + 1}</div>
                                         <div className='col-2'>
                                             <label className='single-line'>{team.team_name}</label>
                                         </div>

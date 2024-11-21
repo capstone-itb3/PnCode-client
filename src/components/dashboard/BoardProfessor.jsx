@@ -212,11 +212,8 @@ function BoardProfessor({ auth }) {
                                     <>
                                     {list_activities &&
                                         <>
-                                        <button className='dashboard-add blue items-center' onClick={openActivityPopup}>
-                                                <FaPlus size={18}/>
-                                                Create Activity
-                                            </button>
-                                            <ActivityBoard
+                                            <ActivityBoard 
+                                                openActivityPopup={openActivityPopup}
                                                 activities={list_activities}/>
                                         </>
                                     }
@@ -305,13 +302,14 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
                     key={team.team_id} 
                     uid={uid} 
                     team={team} 
+                    hoverable={true}
                 />
             ))}
         </div>
     )
 }
 
-function ActivityBoard({activities}) {
+function ActivityBoard({activities, openActivityPopup}) {
     const navigate = useNavigate();
 
     function goToActivity(activity_id) {
@@ -325,6 +323,13 @@ function ActivityBoard({activities}) {
         );
     } else {
         return (<div id='activity-selection' className='flex-column'>
+                    <button className='create-activity' onClick={openActivityPopup}>
+                        <div className='dashboard-add blue items-center'>
+                            <FaPlus size={18}/>
+                            Create Activity
+                        </div>
+                    </button>
+
                     {activities.map((activity, index) => (
                         <SelectActivity 
                             key={activity.activity_id}  

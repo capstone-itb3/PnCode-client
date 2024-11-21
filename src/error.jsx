@@ -49,3 +49,8 @@ export async function errorHandlerForms(e) {
         toast.error('Unable to connect to the server. Try again later.');
     }
 }
+
+export function handleInput(errors, width) {
+    console.log(errors);
+    errors.forEach(error => document.getElementById(error).classList.add(`error-${width}`));
+}
