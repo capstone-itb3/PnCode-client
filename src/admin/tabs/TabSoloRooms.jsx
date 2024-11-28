@@ -6,8 +6,10 @@ import { FaChevronRight } from 'react-icons/fa';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
+import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
+import { toggleOne, untoggleAll } from '../utils/toggleButtons';
 
 function TabSoloRooms({ admin, showId, setShowId }) {
   const [solo_rooms, setSoloRooms] = useState(null);
@@ -121,18 +123,18 @@ function TabSoloRooms({ admin, showId, setShowId }) {
 
   async function showEditForm() {
     if (showForm === 'edit' || !selectedRef.current?.room_name) {
+      untoggleAll()
       setShowForm(null);
       
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
       return;
     }
     
+    toggleOne('edit');
     setShowForm('edit');
     setRoomName(selectedRef.current.room_name);
-
-    setTimeout(() => document.getElementById('room_name')?.focus(), 100);
+    animateDrop();
   }
-
 
   async function reloadData() {
     await getAllSoloRooms();
@@ -223,7 +225,7 @@ function TabSoloRooms({ admin, showId, setShowId }) {
           </div>
           <div className='flex-row width-100 items-center'>
             <input 
-              type='text' 
+              type='text'
               id='search-bar'
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -294,17 +296,14 @@ function TabSoloRooms({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
           <>
-            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/${foreign_name}s/q=${parent_user.uid} ${parent_user.last_name}, ${parent_user.first_name}&f=`)}>
+            <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/${foreign_name}s/q=${parent_user.uid} ${parent_user.last_name}, ${parent_user.first_name}&f=`)}>
               View {foreign_name.charAt(0).toUpperCase()}{foreign_name.slice(1)}
             </button>
-          <button className='admin-manage' onClick={() => navigate(`/solo/${selectedRef.current.room_id}`)}>
+          <button className='selected-btn' onClick={() => navigate(`/solo/${selectedRef.current.room_id}`)}>
             Manage Room
           </button>
-          <button className='admin-edit' onClick={showEditForm}>
+          <button className='selected-btn select-edit' onClick={showEditForm}>
             Edit Room Name
-          </button>
-          <button className='admin-delete' onClick={deleteSoloRoom}>
-            Delete Solo Room
           </button>
         </>
         }
@@ -316,6 +315,7 @@ function TabSoloRooms({ admin, showId, setShowId }) {
             <input
               type='text'
               id='room_name'
+              className='input-data' 
               value={room_name}
               onChange={e => setRoomName(e.target.value)}
               required />

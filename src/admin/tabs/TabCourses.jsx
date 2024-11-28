@@ -8,6 +8,7 @@ import resetInput from '../utils/resetInput';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
+import { toggleOne, untoggleAll } from '../utils/toggleButtons';
 
 function TabCourses({ admin }) {
   const [courses, setCourses] = useState(null);
@@ -116,10 +117,12 @@ function TabCourses({ admin }) {
 
   function showEditForm() {
     if (showForm === 'edit' || !selectedRef.current?.course_code) {
+      untoggleAll()
       setShowForm(null);
       return;
     }
 
+    toggleOne('edit');
     setShowForm('edit');
     setCourseCode(selectedRef.current.course_code);
     setCourseTitle(selectedRef.current.course_title);
@@ -279,10 +282,10 @@ function TabCourses({ admin }) {
       <div id='admin-table-buttons' className='long'>
         {selectedRef.current &&
           <>
-            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`)}>
+            <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`)}>
               View Classes Within this Course
             </button>
-            <button className='selected-btn' onClick={showEditForm}>
+            <button className='selected-btn select-edit' onClick={showEditForm}>
               Edit Course
             </button>
           </>

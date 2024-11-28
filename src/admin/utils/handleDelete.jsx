@@ -24,3 +24,20 @@ export async function handleBulkDelete(deleteFunction, selectedItems, collection
     } 
     return null
 };
+
+export async function handleBulkRemove(removeFunction, selectedItems, parent_id, item, parent, load) {
+    if (selectedItems.length === 0) return null;
+
+    const conf = await showConfirmPopup({
+        title: 'Removal Warning',
+        message: `Are you sure you want to remove ${selectedItems.length} selected ${item} from this ${parent}?`,
+        confirm_text: 'Confirm Remove',
+        cancel_text: 'Cancel'
+    });   
+
+    if (conf) {
+        load(true);
+        return await removeFunction(parent_id, selectedItems);
+    } 
+    return null
+};

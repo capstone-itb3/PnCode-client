@@ -9,7 +9,8 @@ import { SearchUserList, searchDropdown } from './SearchList';
 import ShowId from './ShowId';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
-import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
+import { handleCheckboxChange, handleBulkDelete, handleBulkRemove } from '../utils/handleDelete';
+import { toggleOne, untoggleAll } from '../utils/toggleButtons';
 
 function TabTeams({ admin, showId, setShowId }) {
   const [teams, setTeams] = useState(null);
@@ -35,6 +36,7 @@ function TabTeams({ admin, showId, setShowId }) {
   const [showStudents, setShowStudents] = useState(false);
   
   const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -156,9 +158,11 @@ function TabTeams({ admin, showId, setShowId }) {
     setShowMemberList(false);
 
     if (showForm === 'edit' || !selectedRef.current?.team_name) {
+      untoggleAll();
       setShowForm(null);
       return;
     }
+    toggleOne('edit')
     setShowForm('edit');
     setTeamName(selectedRef.current.team_name);
 
@@ -167,6 +171,7 @@ function TabTeams({ admin, showId, setShowId }) {
 
   async function manageList() {
     showForm ? setShowForm(null) : null;
+    showMemberList ? untoggleAll() : toggleOne('mem');
     setShowMemberList(!showMemberList);
     setMemberInput('');
     setShowStudents(false);
@@ -182,26 +187,25 @@ function TabTeams({ admin, showId, setShowId }) {
       toast.success('Student added to the team successfully.');
       await reloadData();
       setTeamMembers([...team_members, student]);
+      selectedRef.current.members.push(student);
     } else {
       setLoading(false);
     }
   }
    
-  async function removeMember(uid) {
-    if (confirm('Are you sure you want to remove this member from the team?')) {
-      setLoading(true);
-      const res = await admin.removeMember(selectedRef.current.team_id, uid);
-
-      if (res) {
-        toast.success('Student is removed from the team.');
-        await reloadData();
-        setTeamMembers(team_members.filter(m => m.uid !== uid));
-      } else {
-        setLoading(false);
-      }
+  async function removeMember() {
+    const success = await handleBulkRemove(admin.removeMember, selectedMembers, selectedRef.current.team_id, 'members', 'team', setLoading);
+  
+    if (success) {
+      toast.success(`Successfully removed ${selectedMembers.length} members.`);
+      setSelectedMembers([]);
+      await reloadData();
+      setTeamMembers(team_members.filter(m => !selectedMembers.includes(m.uid)));
+      selectedRef.current.members = selectedRef.current.members.filter(m => !selectedMembers.includes(m.uid));
     }
+    setLoading(false);
   }
-
+  
   async function showDropdown(bool) {
     await searchDropdown(bool, setShowStudents, async () => setStudentList(await admin.getClassStudents(foreign_key)));
   }
@@ -385,16 +389,16 @@ function TabTeams({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
       {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${foreign_key}&f=class_id`)}>
+          <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/classes/q=${foreign_key}&f=class_id`)}>
             View Class
           </button>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/team/${selectedRef.current.team_id}/assigned-rooms/q=&f=`)}>
+          <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/team/${selectedRef.current.team_id}/assigned-rooms/q=&f=`)}>
             View Assigned Rooms 
           </button>
-          <button className='selected-btn' onClick={manageList}>
+          <button className='selected-btn select-mem' onClick={manageList}>
             Manage Members
           </button>
-          <button className='selected-btn' onClick={showEditForm}>
+          <button className='selected-btn select-edit' onClick={showEditForm}>
             Edit Team Name
           </button>
         </>
@@ -427,47 +431,62 @@ function TabTeams({ admin, showId, setShowId }) {
         <div className='admin-member-list-container flex-column'>
           <h4>Team Members</h4>
           <div className='sub-admin-form flex-row items-center'>
-            <BsPersonPlus size={20} />
-            <label>Add Member: </label>
-            <div className='search-dropdown-input flex-row'>
-              <input  
-                type='text'
-                className='input-data'
-                value={member_input}
-                onChange={e => setMemberInput(e.target.value)}
-                onFocus={() => showDropdown(true)}
-                onBlur={() => showDropdown(false)}
-                placeholder='Add a student for this class...'
-              />
-              {showStudents && student_list &&
-                <SearchUserList 
-                  list={student_list.filter(sl => !team_members.some(st => st.uid === sl.uid))} 
-                  filter={member_input} 
-                  selectUser={addMember}/>
-              }
-            </div>
+            <input 
+              type="checkbox"
+              onChange={(e) => setSelectedMembers(e.target.checked ? team_members.map(m => m.uid) : [])}
+              checked={team_members?.length > 0 && selectedMembers.length === team_members.length}
+            />
+            {selectedMembers.length === 0 &&
+            <>
+              <BsPersonPlus size={20} />
+              <label>Add Member: </label>
+              <div className='search-dropdown-input flex-row'>
+                <input  
+                  type='text'
+                  className='input-data'
+                  value={member_input}
+                  onChange={e => setMemberInput(e.target.value)}
+                  onFocus={() => showDropdown(true)}
+                  onBlur={() => showDropdown(false)}
+                  placeholder='Add a student for this class...'
+                />
+                {showStudents && student_list &&
+                  <SearchUserList 
+                    list={student_list.filter(sl => !team_members.some(st => st.uid === sl.uid))} 
+                    filter={member_input} 
+                    selectUser={addMember}/>
+                }
+              </div>
+            </>
+            }
+            {selectedMembers.length > 0 && (
+              <button className='remove-btn' onClick={removeMember}>
+                Remove Selected ({selectedMembers.length})
+              </button>
+            )}
           </div>
           <table className='admin-member-list'>
             <tbody>
-            {team_members.map((mem) =>
-              <tr className='item' key={mem.uid}>
-                <td className='td-1'><label>{mem.last_name} {mem.first_name}</label></td>
-                <td><label>{mem.email}</label></td>
-                <td className='tbl-acts items-center'>
-                  <button className='remove-btn' onClick={() => removeMember(mem.uid)}>Remove</button>
-                  <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid} ${mem.first_name} ${mem.last_name}&f=`)}>
-                    Student Info
-                  </button>
+              {team_members.map((mem) =>
+                <tr className='item' key={mem.uid}>
+                  <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedMembers.includes(mem.uid)}
+                      onChange={() => handleCheckboxChange(mem.uid, setSelectedMembers)}
+                    />
                   </td>
-              </tr>
-            )}
+                  <td className='td-1'><label>{mem.last_name} {mem.first_name}</label></td>
+                  <td><label>{mem.email}</label></td>
+                  <td className='tbl-acts items-center'>
+                    <button className='info-btn' onClick={() => navigate(`/admin/dashboard/students/q=${mem.uid} ${mem.first_name} ${mem.last_name}&f=`)}>
+                      Student Info
+                    </button>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
-            {team_members.length === 0 &&
-              <div className='no-results'>
-                <label className='single-line'>This team has no members.</label>
-              </div>
-            }
         </div>
       </>
       }

@@ -11,6 +11,7 @@ import animateDrop from '../utils/animateDrop';
 import convertTime from '../../components/dashboard/utils/convertTime';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
+import { toggleOne, untoggleAll } from '../utils/toggleButtons';
 
 function TabActivities({ admin, showId, setShowId }) {
   const [activites, setActivities] = useState(null);
@@ -131,12 +132,14 @@ function TabActivities({ admin, showId, setShowId }) {
 
   async function showEditForm() {
     if (showForm === 'edit' || !selectedRef.current?.activity_id) {
+      untoggleAll();
       setShowForm(null);
       
       setTimeout(() => document.getElementById('search-bar')?.focus(), 100);
       return;
     }
     
+    toggleOne('edit');
     setShowForm('edit');
     setActivityName(selectedRef.current.activity_name);
     setInstructions(selectedRef.current.instructions);
@@ -328,13 +331,13 @@ function TabActivities({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${parent_class.course_code} ${parent_class.section}&f=`)}>
+          <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.class_id} ${parent_class.course_code} ${parent_class.section}&f=`)}>
             View Class
           </button>
-          <button className='admin-view' onClick={() => navigate (`/admin/dashboard/activity/${selectedRef.current.activity_id}/assigned-rooms/q=&f=`)}>
+          <button className='selected-btn' onClick={() => navigate (`/admin/dashboard/activity/${selectedRef.current.activity_id}/assigned-rooms/q=&f=`)}>
             View Assigned Rooms
           </button>
-          <button className='selected-btn' onClick={showEditForm}>
+          <button className='selected-btn select-edit' onClick={showEditForm}>
             Edit Activity
           </button>
         </>

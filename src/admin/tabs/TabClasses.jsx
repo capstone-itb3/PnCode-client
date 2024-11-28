@@ -9,7 +9,8 @@ import ShowId from './ShowId';
 import resetInput from '../utils/resetInput';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
-import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
+import { handleCheckboxChange, handleBulkDelete, handleBulkRemove } from '../utils/handleDelete';
+import { toggleOne, untoggleAll } from '../utils/toggleButtons';
 
 function TabClasses({ admin, showId, setShowId }) {
   const [classes, setClasses] = useState(null);
@@ -56,24 +57,6 @@ function TabClasses({ admin, showId, setShowId }) {
     
     doSearch(data);
   }
-
-  async function bulkRemoveStudents() {
-    const success = await handleBulkDelete(
-      (uids) => Promise.all(uids.map(uid => admin.removeStudent(selectedRef.current.class_id, uid))), 
-      selectedStudents, 
-      'students', 
-      setLoading
-    );
-  
-    if (success) {
-      toast.success(`Successfully removed ${selectedStudents.length} students`);
-      setSelectedStudents([]);
-      await reloadData();
-      setClassStudents(class_students.filter(s => !selectedStudents.includes(s.uid)));
-    }
-    setLoading(false);
-  }
-  
 
   function doSearch (list = []) {
     const q = new URLSearchParams(query).get('q') || '';
@@ -161,8 +144,9 @@ function TabClasses({ admin, showId, setShowId }) {
       navigate(-1);
       return;
     }
-
+    
     selectedRef.current = class_data;
+    setSelectedStudents([]);
     setClassStudents(class_data.students);
     setClassRequests(class_data.requests);
     navigate(`/admin/dashboard/classes/q=${class_data.class_id}&f=class_id`);
@@ -196,10 +180,12 @@ function TabClasses({ admin, showId, setShowId }) {
     setShowRequestList(false);
 
     if (showForm === 'edit' || !selectedRef.current?.course_code) {
+      untoggleAll();
       setShowForm(null);
       return;
     }
     
+    toggleOne('edit');
     setProfessorList(await admin.getAllProfessors());
     setCourseList(await admin.getAllCourses());
     setShowForm('edit');
@@ -213,9 +199,11 @@ function TabClasses({ admin, showId, setShowId }) {
   function manageList(manage) {
     showForm ? setShowForm(null) : null;
     if (manage === 'students') {
+      showStudentList ?  untoggleAll() : toggleOne('stud')
       setShowStudentList(!showStudentList);
       setShowRequestList(false);
     } else if (manage === 'requests') {
+      showRequestList ?  untoggleAll() : toggleOne('req')
       setShowRequestList(!showRequestList);
       setShowStudentList(false);
     }
@@ -231,24 +219,25 @@ function TabClasses({ admin, showId, setShowId }) {
       toast.success('Student added successfully.');
       await reloadData();
       setClassStudents([...class_students, student]);
+      selectedRef.current.students.push(student);
     } else {
       setLoading(false);
     }
   }
    
-  async function removeStudent(uid) {
-    if (confirm('Are you sure you want to remove this student from this class?')) {
-      setLoading(true);
-      const res = await admin.removeStudent(selectedRef.current.class_id, uid);
+  async function removeStudent() {
+    if (!selectedRef.current) return;
 
-      if (res) {
-        toast.success('Student is rejected from the class.');
-        await reloadData();
-        setClassStudents(class_students.filter(s => s.uid !== uid));
-      } else {
-        setLoading(false);
-      }
+    const success = await handleBulkRemove(admin.removeStudent, selectedStudents, selectedRef.current.class_id, 'students', 'class', setLoading);
+  
+    if (success) {
+      toast.success(`${selectedStudents.length} students removed successfully.`);
+      await reloadData();
+      setSelectedStudents([]);
+      setClassStudents(class_students.filter(s => !selectedStudents.includes(s.uid)));
+      selectedRef.current.students = selectedRef.current.students.filter(s => !selectedStudents.includes(s.uid));
     }
+    setLoading(false);
   }
 
   async function acceptRequest(student) {
@@ -260,9 +249,11 @@ function TabClasses({ admin, showId, setShowId }) {
       await reloadData();
       setClassStudents([...class_students, student]);
       setClassRequests(class_requests.filter(r => r.uid !== student.uid));
+      selectedRef.current.students.push(student);
+      selectedRef.current.requests = selectedRef.current.requests.filter(r => r.uid !== student.uid);
     } else {
       setLoading(false);
-    }
+    }    
   }
 
   async function rejectRequest(student) {
@@ -273,6 +264,7 @@ function TabClasses({ admin, showId, setShowId }) {
       toast.success('Rejected request successfully.');
       await reloadData();
       setClassRequests(class_requests.filter(r => r.uid !== student.uid));
+      selectedRef.current.requests = selectedRef.current.requests.filter(r => r.uid !== student.uid);
     } else {
       setLoading(false);
     }
@@ -455,19 +447,19 @@ function TabClasses({ admin, showId, setShowId }) {
       <div id='admin-table-buttons'>
         {selectedRef.current &&
         <>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${selectedRef.current.class_id}/teams/q=&f=`)}>
+          <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/class/${selectedRef.current.class_id}/teams/q=&f=`)}>
             View Teams
           </button>
-          <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${selectedRef.current.class_id}/activities/q=&f=`)}>
+          <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/class/${selectedRef.current.class_id}/activities/q=&f=`)}>
             View Activities
           </button>
-          <button className='selected-btn' onClick={() => manageList('students')}>
+          <button className='selected-btn select-stud' onClick={() => manageList('students')}>
             Manage Students
           </button>
-          <button className='selected-btn' onClick={() => manageList('requests')}>
+          <button className='selected-btn select-req' onClick={() => manageList('requests')}>
             Manage Requests 
           </button>
-          <button className='selected-btn' onClick={showEditForm}>
+          <button className='selected-btn select-edit' onClick={showEditForm}>
             Edit Class
           </button>
         </>
@@ -534,27 +526,31 @@ function TabClasses({ admin, showId, setShowId }) {
               onChange={(e) => setSelectedStudents(e.target.checked ? class_students.map(s => s.uid) : [])}
               checked={class_students?.length > 0 && selectedStudents.length === class_students.length}
             />
-            <BsPersonPlus size={20} />
-            <label>Add Student: </label>
-            <div className='search-dropdown-input flex-row'>
-              <input  
-                type='text'
-                className='input-data'
-                value={student_input}
-                onChange={e => setStudentInput(e.target.value)}
-                onFocus={() => showDropdown(true)}
-                onBlur={() => showDropdown(false)}
-                placeholder='Add a student for this class...'
-              />
-              {showStudents && student_list &&
-                <SearchUserList 
-                  list={student_list.filter(sl => !class_students.some(st => st.uid === sl.uid))} 
-                  filter={student_input} 
-                  selectUser={addStudent}/>
-              }
-            </div>
+            {selectedStudents.length === 0 &&
+            <>
+              <BsPersonPlus size={20} />
+              <label>Add Student: </label>
+              <div className='search-dropdown-input flex-row'>
+                <input  
+                  type='text'
+                  className='input-data'
+                  value={student_input}
+                  onChange={e => setStudentInput(e.target.value)}
+                  onFocus={() => showDropdown(true)}
+                  onBlur={() => showDropdown(false)}
+                  placeholder='Add a student for this class...'
+                />
+                {showStudents && student_list &&
+                  <SearchUserList 
+                    list={student_list.filter(sl => !class_students.some(st => st.uid === sl.uid))} 
+                    filter={student_input} 
+                    selectUser={addStudent}/>
+                }
+              </div>
+            </>
+            }
             {selectedStudents.length > 0 && (
-              <button className='admin-delete' onClick={bulkRemoveStudents}>
+              <button className='remove-btn' onClick={removeStudent}>
                 Remove Selected ({selectedStudents.length})
               </button>
             )}
@@ -570,10 +566,9 @@ function TabClasses({ admin, showId, setShowId }) {
                       onChange={() => handleCheckboxChange(stud.uid, setSelectedStudents)}
                       />
                   </td>
-                  <td className='td-1'><label>{stud.last_name} {stud.first_name}</label></td>
+                  <td className='td-1'><label>{stud.last_name}, {stud.first_name}</label></td>
                   <td><label>{stud.email}</label></td>
                   <td className='tbl-acts items-center'>
-                    <button className='remove-btn' onClick={() => removeStudent(stud.uid)}>Remove</button>
                     <Link className='info-btn' to={`/admin/dashboard/students/q=${stud.uid} ${stud.first_name} ${stud.last_name}&f=`}>
                       Student Info
                     </Link>
@@ -597,7 +592,7 @@ function TabClasses({ admin, showId, setShowId }) {
             <tbody>
             {class_requests.map((req) =>
               <tr className='item' key={req.uid}>
-                <td className='td-1'><label>{req.last_name} {req.first_name}</label></td>
+                <td className='td-1'><label>{req.last_name}, {req.first_name}</label></td>
                 <td><label>{req.email}</label></td>
                 <td className='tbl-acts items-center'>
                   <button className='accept-btn' onClick={() => acceptRequest(req)}>Accept</button>

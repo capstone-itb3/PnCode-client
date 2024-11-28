@@ -175,9 +175,7 @@ input:checked + .slider:before {
     outline: 1px solid var(--error-color) !important;
 }
 .input-data.error-2 {
-    /* border: 1px solid var(--error-color) !important; */
-    outline-offset: 1px;
-    border: 2px solid var(--error-color) !important;
+    border-color: var(--error-color) !important;
 }
 
 .account-warning{
@@ -544,18 +542,18 @@ input:checked + .slider:before {
 .input-form {
     display: grid;
     justify-content: space-around;
-    grid-template-columns: auto auto;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px 30px;
+    margin: 30px 0 60px 0;
 }
 
 .input-form.login {
     grid-template-columns: auto;
-    margin-bottom: 10px;
 }
 
 .input-div {
     display: flex;
     flex-direction: column;
-    margin: 20px 15px;
 }
 
 .input-div label {
@@ -564,13 +562,17 @@ input:checked + .slider:before {
 }
 
 .input-div .input-data {
-    width: 190px;
-    border-radius: 10px 0;
-    border: 2px solid var(--gray);
+    background-color: var(--near-white);
+    border:0;
+    border-bottom: 2px solid var(--gray);
+}
+
+.login .input-div .input-data {
+    width: 220px;
 }
 
 .input-btn {
-    margin-top: 30px;
+    margin-top: 25px;
     justify-content: center;
     gap: 0 15px;
 }

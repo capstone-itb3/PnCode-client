@@ -268,11 +268,11 @@ header.admin {
 }
 
 .selected-btn {
-    background-color: rgb(79, 79, 255);
+    background-color: rgb(49, 114, 255);
 }
 
-.unselect-btn {
-    background: var(--gray-light);
+.selected-btn.inactive {
+    background-color: var(--gray-light);
 }
 
 .admin-edit {
@@ -292,7 +292,7 @@ header.admin {
     text-align: center !important;
 }
 
-#admin-table input[type="checkbox"] {
+#admin-table input[type="checkbox"], .admin-member-list-container input[type="checkbox"] {
     width: 16px;
     height: 16px;
 }
@@ -366,6 +366,10 @@ header.admin {
     margin: 0 20px 60px 20px;
 }
 
+.sub-admin-form input[type="checkbox"] {
+    margin-right: 10px;
+}
+
 .admin-member-list-container h4 {
     border-bottom: 2px solid var(--base);
     padding: 10px 20px;
@@ -389,8 +393,8 @@ header.admin {
 }
 
 .admin-member-list .item td, .admin-member-list th{
-    padding-right: 5%;
-    padding-left: 5%;
+    padding-right: 3%;
+    padding-left: 3%;
 }
 
 .admin-member-list .item td {
@@ -398,19 +402,13 @@ header.admin {
     padding-bottom: 15px;
 }
 
-.admin-member-list .item td:nth-child(2) {
+.admin-member-list .item td:nth-child(3) {
     color: var(--gray);
 }
 
 .admin-member-list .item .tbl-acts {
     gap: 0 15px;
 } 
-
-.admin-member-list input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-}
-
 
 #admin-loading-container{
     height: 5px;
@@ -436,7 +434,7 @@ header.admin {
 
 .sub-admin-form {
     gap: 8px;
-    padding: 20px 20px 20px 20px;
+    padding: 20px 3%;
     background-color: var(--near-white);
 }
 
@@ -466,11 +464,10 @@ header.admin {
     border: 1px solid var(--gray);
     margin-bottom: 5px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    padding: 0;
 }
 
 .collection-search-list {
-    padding: 10px 0;
-    position: relative;
     padding: 0;
     list-style: none;
     width: 100%;

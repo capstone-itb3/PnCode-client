@@ -9,6 +9,7 @@ import resetInput from '../utils/resetInput';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
 import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
+import { toggleOne, untoggleAll } from '../utils/toggleButtons';
 
 function TabStudents({ admin, showId, setShowId }) {
   const [students, setStudents] = useState(null);
@@ -132,9 +133,11 @@ function TabStudents({ admin, showId, setShowId }) {
   function showEditForm() {
     if (showForm === 'edit' || !selectedRef.current?.uid) {
       setShowForm(null);
+      untoggleAll();
       return;
     }
-
+    
+    toggleOne('edit');
     setShowForm('edit');
     setEmail(selectedRef.current.email); 
     setFirstName(selectedRef.current.first_name);
@@ -305,16 +308,16 @@ function TabStudents({ admin, showId, setShowId }) {
         {selectedRef.current &&
           <>
             <button 
-              className='admin-view' 
+              className='selected-btn' 
               onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=student`)}>
               View Student's Classes
             </button>
             <button
-              className='admin-view'
+              className='selected-btn'
               onClick={() => navigate(`/admin/dashboard/student/${selectedRef.current.uid}/solo-rooms/q=&f=`)}>
               View Solo Rooms
             </button>
-            <button className='selected-btn' onClick={showEditForm}>
+            <button className='selected-btn select-edit' onClick={showEditForm}>
               Edit Student
             </button>
           </>

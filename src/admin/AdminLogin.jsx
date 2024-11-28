@@ -23,7 +23,7 @@ function AdminLogin() {
 
     async function loginAccount(event) {
         event.preventDefault();
-        document.querySelectorAll('.input-data').forEach(input => input.classList.add('error-2'));
+        document.querySelectorAll('.input-data').forEach(input => input.classList.remove('error-2'));
         setIsSubmitting(true);
         setWarning(null);
     

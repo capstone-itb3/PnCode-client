@@ -385,11 +385,11 @@ export default class Admin {
         }
     }
 
-    async removeStudent(class_id, uid) {
+    async removeStudent(class_id, uids) {
         try {
             const response = await api.post('/api/admin/remove-student', {
                 class_id,
-                uid
+                uids
             });
             const data = response.data;
 
@@ -477,11 +477,11 @@ export default class Admin {
         }
     }
     
-    async removeMember(team_id, uid) {
+    async removeMember(team_id, uids) {
         try {
             const response = await api.post('/api/admin/remove-member', {
                 team_id,
-                uid
+                uids
             });
 
             const data = response.data;

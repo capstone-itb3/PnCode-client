@@ -340,12 +340,12 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
         {selectedRef.current &&
         <>
           {foreign_name === 'team' &&
-            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${parent_team.class_id}/activities/q=${selectedRef.current.activity_id}&f=activity_id`)}>
+            <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/class/${parent_team.class_id}/activities/q=${selectedRef.current.activity_id}&f=activity_id`)}>
               View Activity
             </button>
           }
           {foreign_name === 'activity' && selectedRef.current.owner_id !== '' &&
-            <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${parent_activity.class_id}/teams/q=${selectedRef.current.owner_id}&f=team_id`)}>
+            <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/class/${parent_activity.class_id}/teams/q=${selectedRef.current.owner_id}&f=team_id`)}>
               View Team
             </button>
           }
