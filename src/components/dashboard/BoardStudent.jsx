@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BsListUl } from 'react-icons/bs';
+import { FaPlus } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -280,7 +281,7 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
         <div id='team-selection' className='flex-row'>
             {showPlus &&
                 <button className='team-plus flex-column items-center' onClick={openTeamPopup}>
-                    <span>+</span>
+                    <span><FaPlus size={35}/></span>
                     <label>Create Team</label>
                 </button> 
             }

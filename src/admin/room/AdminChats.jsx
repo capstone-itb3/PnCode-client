@@ -10,7 +10,6 @@ function Chats({ room, socket }) {
 
     useEffect(() => {
         try {
-
             socket.emit('load_messages', {
                 room_id: room.room_id,
             });

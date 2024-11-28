@@ -8,6 +8,7 @@ import ShowId from './ShowId';
 import resetInput from '../utils/resetInput';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
+import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
 
 function TabProfessors({ admin, showId, setShowId }) {
   const [professors, setProfessors] = useState(null);
@@ -27,6 +28,7 @@ function TabProfessors({ admin, showId, setShowId }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -180,26 +182,15 @@ function TabProfessors({ admin, showId, setShowId }) {
   }
 
   async function deleteProfessor() {
-    if (!selectedRef.current?.uid) {
-      return;
+    const success = await handleBulkDelete(admin.deleteProfessor, selectedItems, 'professors', setLoading);
+
+    if (success) {
+      toast.success(`Successfully deleted ${selectedItems.length} professors.`);
+      setSelectedItems([]);
+      await reloadData();
+      navigate('/admin/dashboard/professors/q=&f=');
     }
-
-    const res = confirm('Are you sure you want to delete this professor? All data related to this professor will be lost.');
-    if (res) {
-      setLoading(true);
-      const deleted = await admin.deleteProfessor(selectedRef.current.uid);
-      
-      if (deleted) {
-        toast.success('Professor deleted successfully!');
-        await reloadData();
-        selectedRef.current = null;
-        navigate('/admin/dashboard/professors/q=&f=');
-      } else {
-        setLoading(false);
-      }
-    }
-
-
+    setLoading(false);
   }
 
   return (
@@ -220,10 +211,15 @@ function TabProfessors({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          <button className='admin-create items-center' onClick={showCreateForm}>
-            Create Professor<FiPlus size={17}/>
+        {selectedItems.length > 0 && (
+          <button className='admin-delete' onClick={deleteProfessor}>
+            Delete ({selectedItems.length})
           </button>
-        </div>
+        )}
+        <button className='admin-create items-center' onClick={showCreateForm}>
+          Create Professor<FiPlus size={17}/>
+        </button>
+      </div>
       </div>
       <div className='search-div flex-row items-center'>
         <form className='flex-row items-center width-100' onSubmit={(e) => searchProfessors(e)}>
@@ -255,22 +251,35 @@ function TabProfessors({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              <th className="checkbox-column">
+                <input 
+                  type="checkbox"
+                  onChange={(e) => setSelectedItems(e.target.checked ? results.map(p => p.uid) : [])}
+                  checked={results?.length > 0 && selectedItems.length === results.length}
+                />
+              </th>
               {showId && <th>UID</th>}
               <th>Last Name</th>
               <th>First Name</th>
               <th>Email</th>
-              </tr>
+            </tr>
           </thead>
           <tbody>
             {results && results.map(res => (
               <tr 
                 key={res.uid} 
-                onClick={() => selectProfessor(res)} 
                 className={`${selectedRef.current?.uid === res.uid && 'selected'}`}>
-                {showId && <td>{res.uid}</td>}
-                <td>{res.last_name}</td>
-                <td>{res.first_name}</td>
-                <td>{res.email}</td>
+                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(res.uid)}
+                    onChange={() => handleCheckboxChange(res.uid, setSelectedItems)}
+                  />
+                </td>
+                {showId && <td onClick={() => selectProfessor(res)}>{res.uid}</td>}
+                <td onClick={() => selectProfessor(res)}>{res.last_name}</td>
+                <td onClick={() => selectProfessor(res)}>{res.first_name}</td>
+                <td onClick={() => selectProfessor(res)}>{res.email}</td>
               </tr>
             ))}
           </tbody>
@@ -303,11 +312,8 @@ function TabProfessors({ admin, showId, setShowId }) {
             onClick={() => navigate(`/admin/dashboard/professor/${selectedRef.current.uid}/solo-rooms/q=&f=`)}>
             View Solo Rooms
           </button>
-          <button className='admin-edit' onClick={showEditForm}>
+          <button className='selected-btn' onClick={showEditForm}>
             Edit Professor
-          </button>
-          <button className='admin-delete' onClick={deleteProfessor}>
-            Delete Professor
           </button>
         </>
         }

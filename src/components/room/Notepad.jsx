@@ -107,7 +107,7 @@ function Notepad({room, user, socket, cursorColor, activityOpen}) {
     }, 500);
 
     return (    
-        <div id='note-container'>
+        <div className='room-top-left'>
             <div id='notepad'/>
         </div>
     )

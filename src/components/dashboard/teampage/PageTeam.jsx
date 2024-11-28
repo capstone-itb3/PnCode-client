@@ -174,7 +174,7 @@ function PageTeam() {
                 {team && team.members.length === 0 &&
                   <tr className='team-member'>
                     <td className='col-1'>
-                       This team has no members.
+                       This team has no members yet.
                     </td>
                   </tr>
 
@@ -182,7 +182,11 @@ function PageTeam() {
                 </tbody>
               </table>
               {permitted &&
-                <button id='add-member' className='create-btn' onClick={() => {showSearch()}}>Add Member</button>
+                <button 
+                  className={`${!showMemberSearch ? 'create' : 'cancel'}-btn`} 
+                  onClick={() => {setShowMemberSearch(!showMemberSearch)}}>
+                  {!showMemberSearch ? 'Add A Member' : 'Cancel'}
+                </button>
               }
               {permitted && showMemberSearch &&
                 <AddMember team={team} user={user} renderTeam={renderTeam}/>

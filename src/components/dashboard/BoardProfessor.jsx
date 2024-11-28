@@ -294,7 +294,7 @@ function TeamBoard({uid,  teams, openTeamPopup }) {
     return (
         <div id='team-selection' className='flex-row'>
             <button className='team-plus flex-column items-center' onClick={openTeamPopup}>
-                <span>+</span>
+                <span><FaPlus size={35}/></span>
                 <label>Create Team</label>
             </button> 
             {teams.map((team) => (

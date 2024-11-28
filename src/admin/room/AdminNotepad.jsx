@@ -104,7 +104,7 @@ function Notepad({room, socket, cursorColor}) {
     }, 200);
 
     return (    
-        <div id='note-container'>
+        <div className="room-top-left">
             <div id='notepad'/>
         </div>
     )

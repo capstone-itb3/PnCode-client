@@ -5,6 +5,7 @@ import { FaPlus } from 'react-icons/fa6';
 import SearchStudents from './SearchStudents';
 import { showConfirmPopup } from '../reactPopupService';
 import handleMenu from './utils/handleMenu';
+import { keySelectors, scrollIntoView } from './utils/searchKeyHandler';
 
 function StudentList({user, class_info, showStudents}) {
     const [students, setStudents] = useState([]);
@@ -15,6 +16,7 @@ function StudentList({user, class_info, showStudents}) {
     const [otherStudents, setOtherStudents] = useState(null);
     const [showAddStudent, setShowAddStudent] = useState(false);
     const [showOtherStudentList, setShowOtherStudentList] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
     const addStudentRef = useRef(null);
 
     useEffect(() => {
@@ -32,12 +34,29 @@ function StudentList({user, class_info, showStudents}) {
           handleMenu(addStudentRef.current, setShowOtherStudentList, e.target);
         }
         document.addEventListener("mousedown", handleClickOutside);
-
         return () => {
           document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [addStudentRef]);    
 
+    useEffect(() => {
+        if (selectedIndex >= 0) {
+            scrollIntoView('.member-search-item.selected', '#search-results-div');
+        }
+    }, [selectedIndex]);
+
+    function handleKeyDown(e) {
+        if (!showOtherStudentList || newStudent === '') {
+            return;
+        }
+        
+        const filtered = otherStudents.filter((stud) => 
+            `${stud.first_name} ${stud.last_name}`.toLowerCase().includes(newStudent.toLowerCase()) || 
+            `${stud.last_name}, ${stud.first_name}`.toLowerCase().includes(newStudent.toLowerCase())
+        );
+
+        keySelectors(e, filtered, selectedIndex, setSelectedIndex, addStudentToClass);
+    }
 
     async function getStudents() {
         try {
@@ -55,7 +74,6 @@ function StudentList({user, class_info, showStudents}) {
     async function getOtherStudents() {
         try {
             document.getElementById('new-student-input').focus();
-
             const others = await user.getOtherStudents(class_info.class_id);
             others ? setOtherStudents(others) : null;
         } catch (e) {
@@ -65,14 +83,17 @@ function StudentList({user, class_info, showStudents}) {
     }
 
     async function addStudentToClass(student) {
-        setShowAddStudent('');
+        setShowOtherStudentList(false);
         setNewStudent(`${student.last_name}, ${student.first_name}`);
-        const added = user.addStudentToClass(class_info.class_id, student.uid);
+        setSelectedIndex(-1);
+        
+        const added = await user.addStudentToClass(class_info.class_id, student.uid);
 
         if (added) {
             setOtherStudents(prev => prev.filter(s => s.uid !== student.uid));
             setRequests(prev => prev.filter(s => s.uid !== student.uid));
             setStudents(prev => [...prev, student].sort((a, b) => a.last_name.localeCompare(b.last_name)));
+            setNewStudent('');
         }
     }
 
@@ -91,12 +112,14 @@ function StudentList({user, class_info, showStudents}) {
             }
         }
     }
+
     async function acceptRequest(uid) {
         const info = await user.acceptRequest(class_info.class_id, uid);
         if (info) {
             getStudents();
         }
     }
+
     async function rejectRequest(uid) {
         const info = await user.rejectRequest(class_info.class_id, uid);
         if (info) {
@@ -120,12 +143,6 @@ function StudentList({user, class_info, showStudents}) {
             {students && !switchView &&
                 <>
                 <div className='add-student items-center'>
-                    <button 
-                        className={`dashboard-${!showAddStudent ? 'add' : 'cancel'} items-center`} 
-                        onClick={() => setShowAddStudent(!showAddStudent)}>
-                        {!showAddStudent && <><FaPlus size={18}/> Add Student</>}
-                        {showAddStudent && 'Cancel'}
-                    </button>
                     {showAddStudent &&
                         <div className='add-input items-center'>
                             <label>Add Student: </label>
@@ -136,17 +153,30 @@ function StudentList({user, class_info, showStudents}) {
                                     value={newStudent}
                                     onFocus={() => {setShowOtherStudentList(true)}}
                                     onChange={(e) => setNewStudent(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     placeholder='Enter the name of the student...' />
                                     {showOtherStudentList && newStudent !== '' && 
                                         <div id='search-results-div' className='width-100'>
                                         {otherStudents &&
-                                            <SearchStudents students_list={otherStudents} search={newStudent} addFunction={addStudentToClass} showEmail={true}/>
+                                            <SearchStudents 
+                                                students_list={otherStudents} 
+                                                search={newStudent} 
+                                                addFunction={addStudentToClass}
+                                                showEmail={true}
+                                                selectedIndex={selectedIndex}
+                                            />
                                         }
                                         </div>
                                     }
                             </div>
                         </div>
                     }
+                    <button 
+                        className={`dashboard-${!showAddStudent ? 'add' : 'cancel'} items-center`} 
+                        onClick={() => setShowAddStudent(!showAddStudent)}>
+                        {!showAddStudent && <><FaPlus size={18}/> Add Student</>}
+                        {showAddStudent && 'Cancel'}
+                    </button>
                 </div>
                 <table className='student-list'>
                     <thead>

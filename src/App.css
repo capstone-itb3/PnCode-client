@@ -226,14 +226,14 @@ input:checked + .slider:before {
 .create-activity {
     display: flex;
     justify-content: center;
-    width: calc(100% - 10px);
+    width: calc(100% - 5px);
     margin: 0 0 15px 12px;
     border-radius: 10px;
-    background-color: var(--near-white);
-    box-shadow: 0 0 3px var(--gray-light);
     padding: 15px 0;
     border: 0;
     color: rgb(255, 132, 49);
+    background-color: var(--near-white);
+    box-shadow: 0px 0px 3px var(--gray) inset;
     transition: 0.2s;
     letter-spacing: 1px;
 }
@@ -275,24 +275,23 @@ input:checked + .slider:before {
 .add-student {
     position: relative;
     width: calc(100% - 70px);
-    margin: 0 0 20px 0px;
-    gap: 20px;
+    margin: 0 0 20px 10px;
 }
 
 .add-input {
-    width: 100%;
     position: relative;
+    width: 80%;
     gap: 10px;
     white-space: nowrap;
 }
 
 .add-input div {
     position: relative;
-    width: 90%;
+    width: 100%;
 }
 
 .add-student input[type='text'] {
-    width: calc(90% - 40px);
+    width: calc(100% - 40px);
     padding: 10px;
     border: 0;
     border-bottom: 2px solid var(--gray);
@@ -411,6 +410,7 @@ input:checked + .slider:before {
     position: absolute;
     bottom: 100%;
     left: -90px;
+    min-width: 200px;
     z-index: 20;
     border-radius: 8px;
     padding: 5px 10px;   
@@ -670,12 +670,15 @@ header {
     font-size: 16px;
 }
 
+.right-nav {
+    gap: 30px;
+}
+
 .right-nav .btn-icons {
     position: relative;
     background-color: transparent;
     border: 0;
     color: var(--gray);
-    padding-left: 30px;
 }
 
 #signout-btn, #notification {
@@ -1144,6 +1147,7 @@ header {
     overflow-y: hidden;
     width: 60%;
     max-width: 1000px;
+    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.2) inset;
 }
 
 .scroll {
@@ -1275,7 +1279,8 @@ header {
 }
 
 .team-box:hover, .team-plus:hover {
-    background-color: var(--base-light);
+    background-color: rgba(253, 186, 61, 0.8);
+    box-shadow: unset;
 }
 
 .team-plus {
@@ -1283,13 +1288,14 @@ header {
     height: 190px;
     border: 0;
     transition: all 0.3s;
+    box-shadow: 0px 0px 3px var(--gray) inset;
 }
 
 .team-plus span {
-    font-size: 60px;
     color: var(--base-light);
     text-shadow: 10px var(--base);
     transition: all 0.3s;
+    margin: 10px 0;
 }
 .team-plus label {
     color: var(--gray);
@@ -1363,7 +1369,7 @@ header {
     box-shadow: 0 0 5px var(--gray);
     z-index: 100;
     min-width: 150px;
-    transform: translate(10px, 10px);
+    transform: translate(10px, 10px );
 }
 
 .team-hover-members .member-name {
@@ -1583,6 +1589,7 @@ header {
     border-radius: 10px;
     transition: .2s ease;    
     color: var(--gray-dark);
+    box-shadow: 0 0 4px var(--gray) inset;
 }
 
 .assigned-item:not(.no-room), .assigned-item:not(.no-room) *, .team-member.hoverable {
@@ -1634,7 +1641,7 @@ header {
 .add-member-div {
     margin: 20px 40px 120px 40px;
     padding-bottom: 10px;
-    border-bottom: 10px solid var(--base-light);
+    border-bottom: 7px solid var(--base-light);
     gap: 10px;
 }
 
@@ -1689,7 +1696,7 @@ header {
     color: var(--gray)
 }
 
-.member-search-item:not(.zero):hover {
+.member-search-item:not(.zero):hover, .member-search-item.selected {
     background-color: rgba(128, 189, 255, .3);
 }
 
@@ -1986,16 +1993,14 @@ header {
 .room-top-left {
     position: relative;
     overflow-y: auto;
+    height: calc(100% - 27px);
+    max-height: calc(100% - 27px);
 }
 
 #file-drawer {
     padding: 10px;
     width: calc(100% - 20px);
-}
 
-#note-container {
-    position: relative;
-    overflow-y: auto;
 }
 
 #file-drawer #notepad {
@@ -3126,6 +3131,18 @@ header {
         width: 100% !important;
         height: 100% !important;
     }
+
+    .info-hover-container .info-hover label {
+        white-space: unset;
+    }
+
+    .info-hover-container {
+        justify-content: center;
+    }
+    
+    .info-hover {
+        left: unset;
+    }    
 }
 
 @media (width < 500px) {

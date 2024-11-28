@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { BsSearch, BsPersonPlus } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
+import { FaChevronRight } from 'react-icons/fa';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import { SearchUserList, searchDropdown } from './SearchList';
 import ShowId from './ShowId';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
+import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
 
 function TabTeams({ admin, showId, setShowId }) {
   const [teams, setTeams] = useState(null);
@@ -32,6 +34,7 @@ function TabTeams({ admin, showId, setShowId }) {
   const [member_input, setMemberInput] = useState('');
   const [showStudents, setShowStudents] = useState(false);
   
+  const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -244,22 +247,17 @@ function TabTeams({ admin, showId, setShowId }) {
   }
 
   async function deleteTeam() {
-    if (confirm('Are you sure you want to delete this team?')) {
-      setLoading(true);
-      const res = await admin.deleteTeam(selectedRef.current.team_id, selectedRef.current.team_name);
-
-      if (res) {
-        toast.success('Team deleted successfully!');
-        await reloadData();
-        navigate(-1);
-        selectedRef.current = null;
-        setTeamMembers([]);
-      } else {
-        setLoading(false);
-      }
+    const success = await handleBulkDelete(admin.deleteTeam, selectedItems, 'teams', setLoading);
+  
+    if (success) {
+      toast.success(`Successfully deleted ${selectedItems.length} teams.`);
+      setSelectedItems([]);
+      await reloadData();
+      navigate(`/admin/dashboard/class/${foreign_key}/teams/q=&f=`);
     }
+    setLoading(false);
   }
-
+  
   return (
     <div id='manage-content' className='sub'>
       <div id='admin-loading-container'>
@@ -274,7 +272,7 @@ function TabTeams({ admin, showId, setShowId }) {
           <>
             Class:
             <b><Link to={`/admin/dashboard/classes/q=${parent_class.class_id}&f=class_id`}>{parent_class.course_code} {parent_class.section}</Link></b>
-            <label className='items-center'>&gt;</label>
+            <label className='items-center'><FaChevronRight size={17}/></label>
             Teams
           </>
         }
@@ -288,7 +286,12 @@ function TabTeams({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          <button className='admin-create items-center' onClick={() => showCreateForm('new')}>
+          {selectedItems.length > 0 && (
+            <button className='admin-delete' onClick={deleteTeam}>
+              Delete ({selectedItems.length})
+            </button>
+          )}
+          <button className='admin-create items-center' onClick={showCreateForm}>
             Create Team<FiPlus size={17}/>
           </button>
         </div>
@@ -322,6 +325,13 @@ function TabTeams({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              <th className="checkbox-column">
+                <input 
+                  type="checkbox"
+                  onChange={(e) => setSelectedItems(e.target.checked ? results.map(t => t.team_id) : [])}
+                  checked={results?.length > 0 && selectedItems.length === results.length}
+                />
+              </th>
               {showId && <th>Team ID</th>}
               <th>Team Name</th>
               <th>Members</th>
@@ -331,11 +341,17 @@ function TabTeams({ admin, showId, setShowId }) {
             {results && results.map(res => (
               <tr 
                 key={res.team_id} 
-                onClick={() => selectTeam(res)} 
                 className={`${selectedRef.current?.team_id === res.team_id && 'selected'}`}>
-                {showId && <td>{res.team_id}</td>}
-                <td>{res.team_name}</td>
-                <td>{res.members.length}</td>
+                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(res.team_id)}
+                    onChange={() => handleCheckboxChange(res.team_id, setSelectedItems)}
+                  />
+                </td>
+                {showId && <td onClick={() => selectTeam(res)}>{res.team_id}</td>}
+                <td onClick={() => selectTeam(res)}>{res.team_name}</td>
+                <td onClick={() => selectTeam(res)}>{res.members.length}</td>
               </tr>
             ))}
           </tbody>
@@ -375,14 +391,11 @@ function TabTeams({ admin, showId, setShowId }) {
           <button className='admin-view' onClick={() => navigate(`/admin/dashboard/team/${selectedRef.current.team_id}/assigned-rooms/q=&f=`)}>
             View Assigned Rooms 
           </button>
-          <button className='admin-manage' onClick={manageList}>
+          <button className='selected-btn' onClick={manageList}>
             Manage Members
           </button>
-          <button className='admin-edit' onClick={showEditForm}>
+          <button className='selected-btn' onClick={showEditForm}>
             Edit Team Name
-          </button>
-          <button className='admin-delete' onClick={deleteTeam}>
-            Delete Team
           </button>
         </>
       }

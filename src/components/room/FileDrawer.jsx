@@ -181,7 +181,7 @@ function FileDrawer({room, socket, room_files, activityOpen, setRoomFiles, activ
                         {warning && <label className='label-warning'>{warning}</label>}
                     </form>
                 }
-                {!addNewFile && activityOpen === true &&
+                {!addNewFile && activityOpen === true && !deleteFile &&
                     <button className='add-file items-center' onClick={() => setAddNewFile(true)}>
                         <FiPlus size={17}/> Add File
                     </button>

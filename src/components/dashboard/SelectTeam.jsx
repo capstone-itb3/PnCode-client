@@ -64,6 +64,7 @@ function SelectTeam({uid, team, hoverable}) {
                             {member.last_name}, {member.first_name}
                         </div>
                     ))}
+                    {team.members.length === 0 && <div className='member-name'>No team members yet.</div>}
                 </div>
             )}
         </>

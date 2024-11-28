@@ -7,6 +7,7 @@ import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
 import convertToReadable from '../../components/room/utils/convertToReadable';
+import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
 
 function TabSoloRooms({ admin, showId, setShowId }) {
   const [solo_rooms, setSoloRooms] = useState(null);
@@ -25,6 +26,7 @@ function TabSoloRooms({ admin, showId, setShowId }) {
   
   const [room_name, setRoomName] = useState('');
 
+  const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
     
   useEffect(() => {
@@ -147,32 +149,28 @@ function TabSoloRooms({ admin, showId, setShowId }) {
     e.preventDefault();
     setLoading(true);
 
-  if (showForm === 'edit') {
-    const res = await admin.updateSoloRoomName(selectedRef.current.room_id, room_name);
-    if (res) {
-      toast.success('Solo room updated successfully!');
-      await reloadData();
-      selectedRef.current = null;
-    } else {
-      setLoading(false);
-    }
-  }
-}
-
-  async function deleteSoloRoom() {
-    if (confirm('Are you sure you want to delete this solo room?')) {
-      setLoading(true);
-      const res = await admin.deleteSoloRoom(selectedRef.current.room_id);
-
+    if (showForm === 'edit') {
+      const res = await admin.updateSoloRoomName(selectedRef.current.room_id, room_name);
       if (res) {
-        toast.success('Room deleted successfully!');
+        toast.success('Solo room updated successfully!');
         await reloadData();
-        navigate(-1);
         selectedRef.current = null;
       } else {
         setLoading(false);
       }
     }
+  }
+
+  async function deleteSoloRoom() {
+    const success = await handleBulkDelete(admin.deleteSoloRoom, selectedItems, 'rooms', setLoading);
+
+    if (success) {
+      toast.success(`Successfully deleted ${selectedItems.length} rooms`);
+      setSelectedItems([]);
+      await reloadData();
+      navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/solo-rooms/q=&f=`);
+    }
+    setLoading(false);
   }
 
   return (
@@ -203,6 +201,11 @@ function TabSoloRooms({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
+          {selectedItems.length > 0 && (
+            <button className='admin-delete' onClick={deleteSoloRoom}>
+              Delete ({selectedItems.length})
+            </button>
+          )}
           <button className='admin-create items-center' onClick={showCreateForm}>
             Create Solo Room<FiPlus size={17}/>
           </button>
@@ -235,23 +238,33 @@ function TabSoloRooms({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
-              <th className='num-td'>#</th>
+              <th className="checkbox-column">
+                <input 
+                  type="checkbox"
+                  onChange={(e) => setSelectedItems(e.target.checked ? results.map(r => r.room_id) : [])}
+                  checked={results?.length > 0 && selectedItems.length === results.length}
+                />
+              </th>
               {showId && <th>Room ID</th>}
               <th>Room Name</th>
-              </tr>
+            </tr>
           </thead>
           <tbody>
-            {results && results.map((res, index) => {
-              return (
+            {results && results.map((res, index) => (
               <tr 
                 key={res.room_id} 
-                onClick={() => selectRoom(res)} 
                 className={`${selectedRef.current?.room_id === res.room_id && 'selected'}`}>
-                <td className='num-td'>{index + 1}</td>
-                {showId && <td>{res.room_id}</td>}
-                <td>{res.room_name}</td>
+                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(res.room_id)}
+                    onChange={() => handleCheckboxChange(res.room_id, setSelectedItems)}
+                  />
+                </td>
+                {showId && <td onClick={() => selectRoom(res)}>{res.room_id}</td>}
+                <td onClick={() => selectRoom(res)}>{res.room_name}</td>
               </tr>
-            )})}
+            ))}
           </tbody>
         </table>
         {results && results.length < 1 &&

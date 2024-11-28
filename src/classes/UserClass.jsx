@@ -137,6 +137,7 @@ export class User {
             return null;
         } catch (e) {
             errorHandlerForms(e);
+            return null;
         }
     }
 

@@ -624,10 +624,10 @@ export default class Admin {
         }
     }
 
-    async deleteStudent(uid) {
+    async deleteStudent(uids) {
         try {
             const response = await api.post('/api/admin/delete-student', {
-                uid
+                uids
             });
 
             const data = response.data;
@@ -642,10 +642,10 @@ export default class Admin {
         }
     }
 
-    async deleteProfessor(uid) {
+    async deleteProfessor(uids) {
         try {
             const response = await api.post('/api/admin/delete-professor', {
-                uid
+                uids
             });
 
             const data = response.data;
@@ -660,10 +660,10 @@ export default class Admin {
         }
     }
 
-    async deleteCourse(course_code) {
+    async deleteCourse(course_codes) {
         try {
             const response = await api.post('/api/admin/delete-course', {
-                course_code
+                course_codes
             });
 
             const data = response.data;
@@ -678,10 +678,10 @@ export default class Admin {
         }
     }
 
-    async deleteClass(class_id) {
+    async deleteClass(class_ids) {
         try {
             const response = await api.post('/api/admin/delete-class', {
-                class_id
+                class_ids
             });
 
             const data = response.data;
@@ -696,11 +696,10 @@ export default class Admin {
         }
     }
 
-    async deleteTeam(team_id, team_name) {
+    async deleteTeam(team_ids) {
         try {
             const response = await api.post('/api/admin/delete-team', {
-                team_id,
-                team_name
+                team_ids,
             });
 
             const data = response.data;
@@ -715,10 +714,10 @@ export default class Admin {
         }
     }
 
-    async deleteActivity(activity_id) {
+    async deleteActivity(activity_ids) {
         try {
             const response = await api.post('/api/admin/delete-activity', {
-                activity_id
+                activity_ids
             });
 
             const data = response.data;
@@ -733,10 +732,10 @@ export default class Admin {
         }
     }
 
-    async deleteAssignedRoom(room_id) {
+    async deleteAssignedRoom(room_ids) {
         try {
             const response = await api.post('/api/admin/delete-assigned-room', {
-                room_id
+                room_ids
             });
 
             const data = response.data;
@@ -751,10 +750,10 @@ export default class Admin {
         }
     }
 
-    async deleteSoloRoom(room_id) {
+    async deleteSoloRoom(room_ids) {
         try {
             const response = await api.post('/api/admin/delete-solo-room', {
-                room_id
+                room_ids
             });
 
             const data = response.data;

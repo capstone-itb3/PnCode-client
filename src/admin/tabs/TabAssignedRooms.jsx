@@ -7,6 +7,7 @@ import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
 import convertToReadable from '../../components/room/utils/convertToReadable';
+import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
 
 function TabAssignedRooms({ admin, showId, setShowId }) {
   const [assigned_rooms, setAssignedRooms] = useState(null);
@@ -29,6 +30,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
 
   const [team_list, setTeamList] = useState([]);
 
+  const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
     
   useEffect(() => {
@@ -169,21 +171,17 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
   }
 
   async function deleteAssignedRoom() {
-    if (confirm('Are you sure you want to delete this room?')) {
-      setLoading(true);
-      const res = await admin.deleteAssignedRoom(selectedRef.current.room_id);
-
-      if (res) {
-        toast.success('Room deleted successfully!');
-        await reloadData();
-        navigate(-1);
-        selectedRef.current = null;
-      } else {
-        setLoading(false);
-      }
+    const success = await handleBulkDelete(admin.deleteAssignedRoom, selectedItems, 'rooms', setLoading);
+  
+    if (success) {
+      toast.success(`Successfully deleted ${selectedItems.length} rooms`);
+      setSelectedItems([]);
+      await reloadData();
+      navigate(`/admin/dashboard/${foreign_name}/${foreign_key}/assigned-rooms/q=&f=`);
     }
+    setLoading(false);
   }
-
+  
   return (
     <div id='manage-content' className='sub'>
       <div id='admin-loading-container'>
@@ -234,6 +232,11 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
+          {selectedItems.length > 0 && (
+            <button className='admin-delete' onClick={deleteAssignedRoom}>
+              Delete ({selectedItems.length})
+            </button>
+          )}
           {foreign_name === 'activity' &&
             <button className='admin-create items-center' onClick={showCreateForm}>
               Create Room<FiPlus size={17}/>
@@ -270,6 +273,13 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              <th className="checkbox-column">
+                <input 
+                  type="checkbox"
+                  onChange={(e) => setSelectedItems(e.target.checked ? results.map(r => r.room_id) : [])}
+                  checked={results?.length > 0 && selectedItems.length === results.length}
+                />
+              </th>
               {showId && <th>Room ID</th>}
               <th>Room Name</th>
               {foreign_name === 'team' && <th>Activity</th>}
@@ -277,22 +287,27 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
             </tr>
           </thead>
           <tbody>
-            {results && results.map(res => {
-              return (
+            {results && results.map(res => (
               <tr 
                 key={res.room_id} 
-                onClick={() => selectRoom(res)} 
                 className={`${selectedRef.current?.room_id === res.room_id && 'selected'}`}>
-                {showId && <td>{res.room_id}</td>}
-                <td>{res.room_name}</td>
-                {foreign_name === 'team' && <td>{res.activity_name}</td>}
+                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(res.room_id)}
+                    onChange={() => handleCheckboxChange(res.room_id, setSelectedItems)}
+                  />
+                </td>
+                {showId && <td onClick={() => selectRoom(res)}>{res.room_id}</td>}
+                <td onClick={() => selectRoom(res)}>{res.room_name}</td>
+                {foreign_name === 'team' && <td onClick={() => selectRoom(res)}>{res.activity_name}</td>}
                 {foreign_name === 'activity' &&
-                  <td>
+                  <td onClick={() => selectRoom(res)}>
                     {res.owner_id !== '' ? res.room_name.slice(0, -7) : <i>None</i>}
                   </td>
                 }
               </tr>
-            )})}
+            ))}
           </tbody>
         </table>
         {results && results.length < 1 &&
@@ -334,11 +349,8 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
               View Team
             </button>
           }
-          <button className='admin-manage' onClick={() => navigate(`/admin/room/${selectedRef.current.room_id}`)}>
+          <button className='selected-btn' onClick={() => navigate(`/admin/room/${selectedRef.current.room_id}`)}>
             Manage Room
-          </button>
-          <button className='admin-delete' onClick={deleteAssignedRoom}>
-            Delete Assigned Room
           </button>
         </>
         }

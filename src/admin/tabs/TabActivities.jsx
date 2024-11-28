@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { BsSearch } from 'react-icons/bs';
 import { FiPlus, FiFilter } from 'react-icons/fi';
+import { FaChevronRight } from 'react-icons/fa';
 import { MdLoop } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import ShowId from './ShowId';
@@ -9,6 +10,7 @@ import resetInput from '../utils/resetInput';
 import animateDrop from '../utils/animateDrop';
 import convertTime from '../../components/dashboard/utils/convertTime';
 import convertToReadable from '../../components/room/utils/convertToReadable';
+import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
 
 function TabActivities({ admin, showId, setShowId }) {
   const [activites, setActivities] = useState(null);
@@ -30,6 +32,7 @@ function TabActivities({ admin, showId, setShowId }) {
   const [open_time, setOpenTime] = useState('07:00');
   const [close_time, setCloseTime] = useState('20:59');
 
+  const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
     
   useEffect(() => {
@@ -181,21 +184,17 @@ function TabActivities({ admin, showId, setShowId }) {
   }
 
   async function deleteActivity() {
-    if (confirm('Are you sure you want to delete this activity?')) {
-      setLoading(true);
-      const res = await admin.deleteActivity(selectedRef.current.activity_id);
-
-      if (res) {
-        toast.success('Activity deleted successfully!');
-        await reloadData();
-        navigate(-1);
-        selectedRef.current = null;
-      } else {
-        setLoading(false);
-      }
+    const success = await handleBulkDelete(admin.deleteActivity, selectedItems, 'activities', setLoading);
+  
+    if (success) {
+      toast.success(`Successfully deleted ${selectedItems.length} activities`);
+      setSelectedItems([]);
+      await reloadData();
+      navigate(`/admin/dashboard/class/${foreign_key}/activities/q=&f=`);
     }
+    setLoading(false);
   }
-
+  
   return (
     <div id='manage-content' className='sub'>
       <div id='admin-loading-container'>
@@ -210,7 +209,7 @@ function TabActivities({ admin, showId, setShowId }) {
           <>
             Class:
             <b><Link to={`/admin/dashboard/classes/q=${parent_class.class_id}&f=class_id`}>{parent_class.course_code} {parent_class.section}</Link></b>
-            <label className='items-center'>&gt;</label>
+            <label className='items-center'><FaChevronRight size={17}/></label>
             Activities
           </>
         }
@@ -224,6 +223,11 @@ function TabActivities({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
+          {selectedItems.length > 0 && (
+            <button className='admin-delete' onClick={deleteActivity}>
+              Delete ({selectedItems.length})
+            </button>
+          )}
           <button className='admin-create items-center' onClick={showCreateForm}>
             Create Activity<FiPlus size={17}/>
           </button>
@@ -258,6 +262,13 @@ function TabActivities({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              <th className="checkbox-column">
+                <input 
+                  type="checkbox"
+                  onChange={(e) => setSelectedItems(e.target.checked ? results.map(a => a.activity_id) : [])}
+                  checked={results?.length > 0 && selectedItems.length === results.length}
+                />
+              </th>
               {showId && <th>Activity ID</th>}
               <th>Activity Name</th>
               <th>Instructions</th>
@@ -266,19 +277,24 @@ function TabActivities({ admin, showId, setShowId }) {
             </tr>
           </thead>
           <tbody>
-            {results && results.map(res => {
-              return (
+            {results && results.map(res => (
               <tr 
                 key={res.activity_id} 
-                onClick={() => selectActivity(res)} 
                 className={`${selectedRef.current?.activity_id === res.activity_id && 'selected'}`}>
-                {showId && <td>{res.activity_id}</td>}
-                <td>{res.activity_name}</td>
-                <td><label className='single-line'>{res.instructions}</label></td>
-                <td>{convertTime(res.open_time)}</td>
-                <td>{convertTime(res.close_time)}</td>
+                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(res.activity_id)}
+                    onChange={() => handleCheckboxChange(res.activity_id, setSelectedItems)}
+                  />
+                </td>
+                {showId && <td onClick={() => selectActivity(res)}>{res.activity_id}</td>}
+                <td onClick={() => selectActivity(res)}>{res.activity_name}</td>
+                <td onClick={() => selectActivity(res)}><label className='single-line'>{res.instructions}</label></td>
+                <td onClick={() => selectActivity(res)}>{convertTime(res.open_time)}</td>
+                <td onClick={() => selectActivity(res)}>{convertTime(res.close_time)}</td>
               </tr>
-            )})}
+            ))}
           </tbody>
         </table>
         {results && results.length < 1 &&
@@ -318,11 +334,8 @@ function TabActivities({ admin, showId, setShowId }) {
           <button className='admin-view' onClick={() => navigate (`/admin/dashboard/activity/${selectedRef.current.activity_id}/assigned-rooms/q=&f=`)}>
             View Assigned Rooms
           </button>
-          <button className='admin-edit' onClick={showEditForm}>
+          <button className='selected-btn' onClick={showEditForm}>
             Edit Activity
-          </button>
-          <button className='admin-delete' onClick={deleteActivity}>
-            Delete Activity
           </button>
         </>
         }

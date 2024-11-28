@@ -9,6 +9,7 @@ import ShowId from './ShowId';
 import resetInput from '../utils/resetInput';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
+import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
 
 function TabClasses({ admin, showId, setShowId }) {
   const [classes, setClasses] = useState(null);
@@ -38,6 +39,8 @@ function TabClasses({ admin, showId, setShowId }) {
   const [student_input, setStudentInput] = useState('');
   const [showStudents, setShowStudents] = useState(false);
 
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -53,6 +56,24 @@ function TabClasses({ admin, showId, setShowId }) {
     
     doSearch(data);
   }
+
+  async function bulkRemoveStudents() {
+    const success = await handleBulkDelete(
+      (uids) => Promise.all(uids.map(uid => admin.removeStudent(selectedRef.current.class_id, uid))), 
+      selectedStudents, 
+      'students', 
+      setLoading
+    );
+  
+    if (success) {
+      toast.success(`Successfully removed ${selectedStudents.length} students`);
+      setSelectedStudents([]);
+      await reloadData();
+      setClassStudents(class_students.filter(s => !selectedStudents.includes(s.uid)));
+    }
+    setLoading(false);
+  }
+  
 
   function doSearch (list = []) {
     const q = new URLSearchParams(query).get('q') || '';
@@ -304,26 +325,17 @@ function TabClasses({ admin, showId, setShowId }) {
   }
 
   async function deleteClass() {
-    if (confirm('Are you sure you want to delete this class?')) {
-
-      if (confirm('Deleting this class will result in deletion of all teams, activities, rooms, and files related to this class. Do you want to continue?')) {
-        setLoading(true);
-        const res = await admin.deleteClass(selectedRef.current.class_id);
+    const success = await handleBulkDelete(admin.deleteClass, selectedItems, 'classes', setLoading);
   
-        if (res) {
-          toast.success('Class deleted successfully!');
-          await reloadData();
-          navigate(-1);
-          selectedRef.current = null;
-          setClassStudents([]);
-          setClassRequests([]);
-        } else {
-          setLoading(false);
-        }
-      }
+    if (success) {
+      toast.success(`Successfully deleted ${selectedItems.length} classes.`);
+      setSelectedItems([]);
+      await reloadData();
+      navigate('/admin/dashboard/classes/q=&f=');
     }
+    setLoading(false);
   }
-
+  
   return (
     <div id='manage-content'>
       <div id='admin-loading-container'>
@@ -342,6 +354,11 @@ function TabClasses({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
+          {selectedItems.length > 0 && (
+            <button className='admin-delete' onClick={deleteClass}>
+              Delete ({selectedItems.length})
+            </button>
+          )}
           <button className='admin-create items-center' onClick={showCreateForm}>
             Create Class<FiPlus size={17}/>
           </button>
@@ -379,6 +396,13 @@ function TabClasses({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              <th className="checkbox-column">
+                <input 
+                  type="checkbox"
+                  onChange={(e) => setSelectedItems(e.target.checked ? results.map(c => c.class_id) : [])}
+                  checked={results?.length > 0 && selectedItems.length === results.length}
+                />
+              </th>
               {showId && <th>Class ID</th>}
               <th>Course Code</th>
               <th>Section</th>
@@ -391,14 +415,20 @@ function TabClasses({ admin, showId, setShowId }) {
             {results && results.map(res => (
               <tr 
                 key={res.class_id} 
-                onClick={() => selectClass(res)} 
                 className={`${selectedRef.current?.class_id === res.class_id && 'selected'}`}>
-                {showId && <td>{res.class_id}</td>}
-                <td>{res.course_code}</td>
-                <td>{res.section}</td>
-                <td>{res.professor}</td>
-                <td>{res.students.length}</td>
-                <td>{res.requests.length}</td>
+                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(res.class_id)}
+                    onChange={() => handleCheckboxChange(res.class_id, setSelectedItems)}
+                  />
+                </td>
+                {showId && <td onClick={() => selectClass(res)}>{res.class_id}</td>}
+                <td onClick={() => selectClass(res)}>{res.course_code}</td>
+                <td onClick={() => selectClass(res)}>{res.section}</td>
+                <td onClick={() => selectClass(res)}>{res.professor}</td>
+                <td onClick={() => selectClass(res)}>{res.students.length}</td>
+                <td onClick={() => selectClass(res)}>{res.requests.length}</td>
               </tr>
             ))}
           </tbody>
@@ -431,17 +461,14 @@ function TabClasses({ admin, showId, setShowId }) {
           <button className='admin-view' onClick={() => navigate(`/admin/dashboard/class/${selectedRef.current.class_id}/activities/q=&f=`)}>
             View Activities
           </button>
-          <button className='admin-manage' onClick={() => manageList('students')}>
+          <button className='selected-btn' onClick={() => manageList('students')}>
             Manage Students
           </button>
-          <button className='admin-manage' onClick={() => manageList('requests')}>
+          <button className='selected-btn' onClick={() => manageList('requests')}>
             Manage Requests 
           </button>
-          <button className='admin-edit' onClick={showEditForm}>
+          <button className='selected-btn' onClick={showEditForm}>
             Edit Class
-          </button>
-          <button className='admin-delete' onClick={deleteClass}>
-            Delete Class
           </button>
         </>
         }
@@ -502,6 +529,11 @@ function TabClasses({ admin, showId, setShowId }) {
         <div className='admin-member-list-container flex-column'>
           <h4>Students</h4>
           <div className='sub-admin-form flex-row items-center'>
+            <input 
+              type="checkbox"
+              onChange={(e) => setSelectedStudents(e.target.checked ? class_students.map(s => s.uid) : [])}
+              checked={class_students?.length > 0 && selectedStudents.length === class_students.length}
+            />
             <BsPersonPlus size={20} />
             <label>Add Student: </label>
             <div className='search-dropdown-input flex-row'>
@@ -521,21 +553,33 @@ function TabClasses({ admin, showId, setShowId }) {
                   selectUser={addStudent}/>
               }
             </div>
+            {selectedStudents.length > 0 && (
+              <button className='admin-delete' onClick={bulkRemoveStudents}>
+                Remove Selected ({selectedStudents.length})
+              </button>
+            )}
           </div>
           <table className='admin-member-list'>
             <tbody>
-            {class_students.map((stud) =>
-              <tr className='item' key={stud.uid}>
-                <td className='td-1'><label>{stud.last_name} {stud.first_name}</label></td>
-                <td><label>{stud.email}</label></td>
-                <td className='tbl-acts items-center'>
-                  <button className='remove-btn' onClick={() => removeStudent(stud.uid)}>Remove</button>
-                  <Link className='info-btn' to={`/admin/dashboard/students/q=${stud.uid} ${stud.first_name} ${stud.last_name}&f=`}>
-                    Student Info
-                  </Link>
-                </td>
-              </tr>
-            )}
+              {class_students.map((stud) =>
+                <tr className='item' key={stud.uid}>
+                  <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.includes(stud.uid)}
+                      onChange={() => handleCheckboxChange(stud.uid, setSelectedStudents)}
+                      />
+                  </td>
+                  <td className='td-1'><label>{stud.last_name} {stud.first_name}</label></td>
+                  <td><label>{stud.email}</label></td>
+                  <td className='tbl-acts items-center'>
+                    <button className='remove-btn' onClick={() => removeStudent(stud.uid)}>Remove</button>
+                    <Link className='info-btn' to={`/admin/dashboard/students/q=${stud.uid} ${stud.first_name} ${stud.last_name}&f=`}>
+                      Student Info
+                    </Link>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
           {class_students.length === 0 &&

@@ -8,6 +8,7 @@ import ShowId from './ShowId';
 import resetInput from '../utils/resetInput';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
+import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
 
 function TabStudents({ admin, showId, setShowId }) {
   const [students, setStudents] = useState(null);
@@ -27,6 +28,7 @@ function TabStudents({ admin, showId, setShowId }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -180,24 +182,15 @@ function TabStudents({ admin, showId, setShowId }) {
   }
 
   async function deleteStudent() {
-    if (!selectedRef.current?.uid) {
-      return;
-    }
+    const success = await handleBulkDelete(admin.deleteStudent, selectedItems, 'students', setLoading);
 
-    const res = confirm('Are you sure you want to delete this student? All data related to this student will be lost.');
-    if (res) {
-      setLoading(true);
-      const deleted = await admin.deleteStudent(selectedRef.current.uid);
-      
-      if (deleted) {
-        toast.success('Student deleted successfully!');
-        await reloadData();
-        selectedRef.current = null;
-        navigate('/admin/dashboard/students/q=&f=');
-      } else {
-        setLoading(false);
-      }
+    if (success) {
+      toast.success(`Successfully deleted ${selectedItems.length} students.`);
+      setSelectedItems([]);
+      await reloadData();
+      navigate('/admin/dashboard/students/q=&f=');
     }
+    setLoading(false);
   }
 
   return (
@@ -218,6 +211,11 @@ function TabStudents({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
+          {selectedItems.length > 0 && (
+            <button className='admin-delete' onClick={deleteStudent}>
+              Delete ({selectedItems.length})
+            </button>
+          )}
           <button className='admin-create items-center' onClick={showCreateForm}>
             Create Student<FiPlus size={17}/>
           </button>
@@ -251,24 +249,37 @@ function TabStudents({ admin, showId, setShowId }) {
       {showForm !== 'create' &&
       <div id='admin-table-container'>
         <table id='admin-table'>
-          <thead>
+        <thead>
             <tr>
+              <th className="checkbox-column">
+                <input 
+                  type="checkbox"
+                  onChange={(e) => setSelectedItems(e.target.checked ? results.map(s => s.uid) : [])}
+                  checked={results?.length > 0 && selectedItems.length === results.length}
+                />
+              </th>
               {showId && <th>UID</th>}
               <th>Last Name</th>
               <th>First Name</th>
               <th>Email</th>
-              </tr>
+            </tr>
           </thead>
           <tbody>
             {results && results.map(res => (
               <tr 
                 key={res.uid} 
-                onClick={() => selectStudent(res)} 
                 className={`${selectedRef.current?.uid === res.uid && 'selected'}`}>
-                {showId && <td>{res.uid}</td>}
-                <td>{res.last_name}</td>
-                <td>{res.first_name}</td>
-                <td>{res.email}</td>
+                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(res.uid)}
+                    onChange={() => handleCheckboxChange(res.uid, setSelectedItems)}
+                  />
+                </td>
+                {showId && <td onClick={() => selectStudent(res)}>{res.uid}</td>}
+                <td onClick={() => selectStudent(res)}>{res.last_name}</td>
+                <td onClick={() => selectStudent(res)}>{res.first_name}</td>
+                <td onClick={() => selectStudent(res)}>{res.email}</td>
               </tr>
             ))}
           </tbody>
@@ -303,11 +314,8 @@ function TabStudents({ admin, showId, setShowId }) {
               onClick={() => navigate(`/admin/dashboard/student/${selectedRef.current.uid}/solo-rooms/q=&f=`)}>
               View Solo Rooms
             </button>
-            <button className='admin-edit' onClick={showEditForm}>
+            <button className='selected-btn' onClick={showEditForm}>
               Edit Student
-            </button>
-            <button className='admin-delete' onClick={deleteStudent}>
-              Delete Student
             </button>
           </>
         }

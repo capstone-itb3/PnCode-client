@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import resetInput from '../utils/resetInput';
 import animateDrop from '../utils/animateDrop';
 import convertToReadable from '../../components/room/utils/convertToReadable';
+import { handleCheckboxChange, handleBulkDelete } from '../utils/handleDelete';
 
 function TabCourses({ admin }) {
   const [courses, setCourses] = useState(null);
@@ -24,6 +25,7 @@ function TabCourses({ admin }) {
   const [course_code, setCourseCode] = useState('');
   const [course_title, setCourseTitle] = useState('');
 
+  const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -135,7 +137,6 @@ function TabCourses({ admin }) {
     selectedRef.current = null; 
     navigate('/admin/dashboard/courses/q=&f=');
   }
-
   
   async function submitCourse(e) {
     e.preventDefault();
@@ -165,23 +166,17 @@ function TabCourses({ admin }) {
   }
 
   async function deleteCourse() {
-    if (confirm('Are you sure you want to delete this course?')) {   
-      if (confirm('Deleting this course will result in deletion of all classes, teams, activities, rooms, and files related to this course. Do you want to continue?')) {
-        setLoading(true); 
-        const res = await admin.deleteCourse(selectedRef.current.course_code);
+    const success = await handleBulkDelete(admin.deleteCourse, selectedItems, 'courses', setLoading);
   
-        if (res) {
-          toast.success('Course deleted successfully!');
-          await reloadData();
-          navigate(-1);
-          selectedRef.current = null;
-        } else {
-          setLoading(false);
-        }
-      }
+    if (success) {
+      toast.success(`Successfully deleted ${selectedItems.length} courses.`);
+      setSelectedItems([]);
+      await reloadData();
+      navigate('/admin/dashboard/courses/q=&f=');
     }
+    setLoading(false);
   }
-
+  
   return (
     <div id='manage-content'>
       <div id='admin-loading-container'>
@@ -199,6 +194,11 @@ function TabCourses({ admin }) {
           </button>
         </div>
         <div className='flex-row items-center'>
+          {selectedItems.length > 0 && (
+            <button className='admin-delete' onClick={deleteCourse}>
+              Delete ({selectedItems.length})
+            </button>
+          )}
           <button className='admin-create items-center' onClick={showCreateForm}>
             Create Course<FiPlus size={17}/>
           </button>
@@ -232,6 +232,13 @@ function TabCourses({ admin }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              <th className="checkbox-column">
+                <input 
+                  type="checkbox"
+                  onChange={(e) => setSelectedItems(e.target.checked ? results.map(c => c.course_code) : [])}
+                  checked={results?.length > 0 && selectedItems.length === results.length}
+                />
+              </th>
               <th>Course Code</th>
               <th>Course Title</th>
             </tr>
@@ -240,10 +247,16 @@ function TabCourses({ admin }) {
             {results && results.map(res => (
               <tr 
                 key={res.course_code} 
-                onClick={() => selectCourse(res)} 
                 className={`${selectedRef.current?.course_code === res.course_code && 'selected'}`}>
-                <td>{res.course_code}</td>
-                <td>{res.course_title}</td>
+                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(res.course_code)}
+                    onChange={() => handleCheckboxChange(res.course_code, setSelectedItems)}
+                  />
+                </td>
+                <td onClick={() => selectCourse(res)}>{res.course_code}</td>
+                <td onClick={() => selectCourse(res)}>{res.course_title}</td>
               </tr>
             ))}
           </tbody>
@@ -269,11 +282,8 @@ function TabCourses({ admin }) {
             <button className='admin-view' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.course_code}&f=course_code`)}>
               View Classes Within this Course
             </button>
-            <button className='admin-edit' onClick={showEditForm}>
+            <button className='selected-btn' onClick={showEditForm}>
               Edit Course
-            </button>
-            <button className='admin-delete' onClick={deleteCourse}>
-              Delete Course
             </button>
           </>
         }

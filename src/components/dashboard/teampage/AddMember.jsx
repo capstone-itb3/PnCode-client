@@ -3,12 +3,14 @@ import SearchStudents from '../SearchStudents';
 import { BsPersonPlus } from 'react-icons/bs';
 import { showConfirmPopup, showAlertPopup } from '../../reactPopupService';
 import handleMenu from '../utils/handleMenu';
+import { keySelectors, scrollIntoView } from '../utils/searchKeyHandler';
 
 function AddMember({team, user}) {
     const [search, setSearch] = useState('');
     const [student_list, setStudentList] = useState([]);
     const [showResults, setShowResults] = useState(false);
     const addMemberRef = useRef(null);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
 
     useEffect(() => {
         async function init() {
@@ -25,24 +27,41 @@ function AddMember({team, user}) {
 
     useEffect(() => {  
         function handleClickOutside(e) {
-          handleMenu(addMemberRef.current, setShowResults, e.target);
+            handleMenu(addMemberRef.current, setShowResults, e.target);
         }
         document.addEventListener("mousedown", handleClickOutside);
-
         return () => {
-          document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [addMemberRef]);    
+
+    function handleKeyDown (e) {
+        if (!showResults || search === '') {
+            return;
+        }
+        
+        const filtered = student_list.filter((stud) => 
+            `${stud.first_name} ${stud.last_name}`.toLowerCase().includes(search.toLowerCase()) || 
+            `${stud.last_name}, ${stud.first_name}`.toLowerCase().includes(search.toLowerCase())
+        );
+
+        keySelectors(e, filtered, selectedIndex, setSelectedIndex, addStudentToTeam);
+    };
+
+    useEffect(() => {
+        if (selectedIndex >= 0) {
+            scrollIntoView('.member-search-item.selected', '#search-results-div');
+        }
+    }, [selectedIndex]);
+
 
     async function addStudentToTeam(student) {
         setSearch(`${student.first_name} ${student.last_name}`);
         setShowResults(false);
+        setSelectedIndex(-1);
 
         const isAvailable = await team.checkStudentAvailability(student.uid);
-
-        if (!isAvailable) {
-            return;
-        }
+        if (!isAvailable) return;
 
         const confirmed = await showConfirmPopup({
             title: 'Add Student To Team',
@@ -53,7 +72,6 @@ function AddMember({team, user}) {
 
         if (confirmed) {
             const invited = await team.inviteStudent(student.uid);
-            
             if (invited) {
                 await showAlertPopup({
                     title: 'Student Invited!',
@@ -78,15 +96,21 @@ function AddMember({team, user}) {
                     placeholder='Search for a student by their name'
                     onFocus={() => {setShowResults(true)}}
                     onChange={(e) => {setSearch(e.target.value)}}
+                    onKeyDown={handleKeyDown}
                 />
-                {showResults &&
+                {search !== '' && showResults &&
                     <div id='search-results-div' className='width-100'>
-                        <SearchStudents students_list={student_list} search={search} addFunction={addStudentToTeam}/>
+                        <SearchStudents 
+                            students_list={student_list} 
+                            search={search} 
+                            addFunction={addStudentToTeam}
+                            selectedIndex={selectedIndex}
+                        />
                     </div>
                 }
             </div>
         </div>
     )
-}  
+}
 
 export default AddMember
