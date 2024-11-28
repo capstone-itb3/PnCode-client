@@ -15,7 +15,7 @@ import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
 import jsLint from './utils/JSesLint'
-import { html5Snippet, linkTagSnippet, jquerySnippet } from './utils/codeSnippets'
+import { html5Snippet, jquerySnippet, bootstrapSnippet } from './utils/codeSnippets';
 import { nonEditingKey, editingKey, unknownKey } from './utils/keyHandler';
 import changeTheme from './utils/changeTheme';
 import _ from 'lodash'
@@ -153,7 +153,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
         });
       
         const type = () => {
-          if      (file.name.endsWith('.html')) return [html(), htmlLanguage.data.of({ autocomplete: [html5Snippet, linkTagSnippet, jquerySnippet] }),]; 
+          if      (file.name.endsWith('.html')) return [html(), htmlLanguage.data.of({ autocomplete: [html5Snippet, jquerySnippet, bootstrapSnippet ] }),]; 
           else if (file.name.endsWith('.css'))  return css();
           else if (file.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
         }

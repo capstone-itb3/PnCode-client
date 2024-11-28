@@ -1591,7 +1591,7 @@ header {
     border-radius: 10px;
     transition: .2s ease;    
     color: var(--gray-dark);
-    box-shadow: 0 0 4px var(--gray) inset;
+    box-shadow: 0 0 3px var(--gray) inset;
 }
 
 .assigned-item:not(.no-room), .assigned-item:not(.no-room) *, .team-member.hoverable {
@@ -1607,6 +1607,7 @@ header {
 } */
 
 .assigned-item.team-deleted {
+    box-shadow: 0 0 3px var(--error-color) inset;
     border: 3px solid rgba(255,0,0, .8);
     background-color: rgb(250, 250, 250)
 }
