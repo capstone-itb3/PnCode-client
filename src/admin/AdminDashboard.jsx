@@ -11,8 +11,9 @@ import TabCourses from './tabs/TabCourses';
 import TabClasses from './tabs/TabClasses';
 import TabTeams from './tabs/TabTeams';
 import TabActivities from './tabs/TabActivities';
-import TabSoloRooms from './tabs/TabSoloRooms';
 import TabAssignedRooms from './tabs/TabAssignedRooms';
+import TabSoloRooms from './tabs/TabSoloRooms';
+import TabSetting from './tabs/TabSetting';
 import TabAdmins from './tabs/TabAdmins';
 import NotFound from '../components/NotFound';
 
@@ -32,7 +33,7 @@ function AdminDashboard() {
     {admin &&
     <div className='admin-dashboard'>
       <Header admin={admin}/>
-        <ManageTabs collection={collection}/>
+        <ManageTabs admin={admin} collection={collection}/>
         {collection === 'students' &&
           <TabStudents admin={admin} showId={showId} setShowId={setShowId} />
         }
@@ -59,6 +60,9 @@ function AdminDashboard() {
         }
         {collection === 'admins' &&
           <TabAdmins admin={admin} showId={showId} setShowId={setShowId}/>
+        }
+        {collection === 'setting' &&
+          <TabSetting admin={admin}/>
         }
         <footer>
             <button className='items-center' onClick={() => navigate(-1)}><MdKeyboardBackspace size={20}/> BACK</button>

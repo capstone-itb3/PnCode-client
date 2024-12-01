@@ -2,11 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RiArrowLeftSLine, RiArrowRightSLine } from 'react-icons/ri';
 
-function ManageTabs({ collection }) {
+function ManageTabs({ admin, collection }) {
     const [showArrows, setShowArrows] = useState(false);
     const scrollContainerRef = useRef(null);
     const navigate = useNavigate();
-    const isDisplayed = collection === 'students' || collection === 'professors' || collection === 'courses' || collection === 'classes' || collection === 'admins';
+    const isDisplayed = collection === 'students' || collection === 'professors' || collection === 'courses' || collection === 'classes' || collection === 'admins' || collection === 'setting';
 
     useEffect(() => {
         try {
@@ -61,12 +61,16 @@ function ManageTabs({ collection }) {
                         <RiArrowLeftSLine size={20} />
                     </button>
                 }
-                <nav className='manage-scroll' ref={scrollContainerRef}>
+                <nav className='manage-scroll items-center' ref={scrollContainerRef}>
                     <button id='students' onClick={() => switchCollection('students')} className='manage-button'>Students</button>
                     <button id='professors' onClick={() => switchCollection('professors')} className='manage-button'>Professors</button>
                     <button id='courses' onClick={() => switchCollection('courses')} className='manage-button'>Courses</button>
                     <button id='classes' onClick={() => switchCollection('classes')} className='manage-button'>Classes</button>
+                    <div className='divider'></div>
                     <button id='admins' onClick={() => switchCollection('admins')} className='manage-button'>Admins</button>
+                    {admin.role === 'superadmin' &&
+                        <button id='setting' onClick={() => switchCollection('setting')} className='manage-button'>Setting</button>
+                    }
                 </nav>
                 {showArrows &&
                     <button className='scroll-arrow items-center right' onClick={() => scroll('right')}>

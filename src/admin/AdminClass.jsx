@@ -850,4 +850,18 @@ export class SuperAdmin extends Admin {
             return null;
         }
     }
+
+    async startNewSemester() {
+        try {
+            const response = await api.post('/api/admin/start-new-semester');
+            const data = response.data;
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
 }
