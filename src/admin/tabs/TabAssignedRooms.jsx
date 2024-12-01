@@ -232,7 +232,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          {selectedItems.length > 0 && (
+          {selectedItems.length > 0 && admin.role === 'superadmin' && (
             <button className='admin-delete' onClick={deleteAssignedRoom}>
               Delete ({selectedItems.length})
             </button>
@@ -273,6 +273,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              {admin.role === 'superadmin' &&
               <th className="checkbox-column">
                 <input 
                   type="checkbox"
@@ -280,6 +281,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
                   checked={results?.length > 0 && selectedItems.length === results.length}
                 />
               </th>
+              }
               {showId && <th>Room ID</th>}
               <th>Room Name</th>
               {foreign_name === 'team' && <th>Activity</th>}
@@ -291,6 +293,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
               <tr 
                 key={res.room_id} 
                 className={`${selectedRef.current?.room_id === res.room_id && 'selected'}`}>
+                {admin.role === 'superadmin' &&
                 <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
@@ -298,6 +301,7 @@ function TabAssignedRooms({ admin, showId, setShowId }) {
                     onChange={() => handleCheckboxChange(res.room_id, setSelectedItems)}
                   />
                 </td>
+                }
                 {showId && <td onClick={() => selectRoom(res)}>{res.room_id}</td>}
                 <td onClick={() => selectRoom(res)}>{res.room_name}</td>
                 {foreign_name === 'team' && <td onClick={() => selectRoom(res)}>{res.activity_name}</td>}

@@ -4,11 +4,12 @@ import Cookies from 'js-cookie';
 import { errorHandler, errorHandlerForms } from '../error';
 import { errorHandlerAdmin } from './utils/adminError';
 
-export default class Admin {
-    constructor(admin_uid, first_name, last_name) {
+export class Admin {
+    constructor(admin_uid, first_name, last_name, role) {
         this.admin_uid = admin_uid;
         this.first_name = first_name;
         this.last_name = last_name;
+        this.role = role;
     }
 
     async getAllStudents() {
@@ -624,6 +625,72 @@ export default class Admin {
         }
     }
 
+    async createAdmin(email, first_name, last_name, password, confirmPassword, role) {
+        try {
+            const response = await api.post('/api/admin/create-admin', {
+                email,
+                first_name,
+                last_name,
+                password,
+                conf_password: confirmPassword,
+                role
+            });
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return data.admin_uid;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    }
+
+    async updateAdmin(admin_uid, email, first_name, last_name, password, confirmPassword, role) {
+        try {
+            const response = await api.post('/api/admin/update-admin', {
+                admin_uid,
+                email,
+                first_name,
+                last_name,
+                password,
+                conf_password: confirmPassword,
+                role
+            });
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerForms(e);
+            return null;
+        }
+    }
+
+    async getAllAdmins() {
+        try {
+            const response = await api.post('/api/admin/admins');
+            const data = response.data;
+
+            if (data.status === 'ok') {
+                return data.admins;
+            }
+            return null;
+        } catch (e) {
+            errorHandlerAdmin(e);
+            return null;
+        }
+    }
+}
+
+export class SuperAdmin extends Admin {
+    constructor(admin_uid, first_name, last_name, role) {
+        super(admin_uid, first_name, last_name, role);
+    }
+
     async deleteStudent(uids) {
         try {
             const response = await api.post('/api/admin/delete-student', {
@@ -757,6 +824,23 @@ export default class Admin {
             });
 
             const data = response.data;
+            if (data.status === 'ok') {
+                return true;
+            }
+            return null;
+        } catch (e) {
+            errorHandler(e);
+            return null;
+        }
+    }
+
+    async deleteAdmin(admin_uids) {
+        try {
+            const response = await api.post('/api/admin/delete-admin', {
+                admin_uids
+            });
+            const data = response.data;
+
             if (data.status === 'ok') {
                 return true;
             }

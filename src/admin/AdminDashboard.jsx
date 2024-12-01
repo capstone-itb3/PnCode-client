@@ -13,6 +13,7 @@ import TabTeams from './tabs/TabTeams';
 import TabActivities from './tabs/TabActivities';
 import TabSoloRooms from './tabs/TabSoloRooms';
 import TabAssignedRooms from './tabs/TabAssignedRooms';
+import TabAdmins from './tabs/TabAdmins';
 import NotFound from '../components/NotFound';
 
 function AdminDashboard() {
@@ -55,6 +56,9 @@ function AdminDashboard() {
         }
         {collection === 'assigned-rooms' && 
           <TabAssignedRooms admin={admin} showId={showId} setShowId={setShowId}/>
+        }
+        {collection === 'admins' &&
+          <TabAdmins admin={admin} showId={showId} setShowId={setShowId}/>
         }
         <footer>
             <button className='items-center' onClick={() => navigate(-1)}><MdKeyboardBackspace size={20}/> BACK</button>

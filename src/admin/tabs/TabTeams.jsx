@@ -290,7 +290,7 @@ function TabTeams({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          {selectedItems.length > 0 && (
+          {selectedItems.length > 0 && admin.role === 'superadmin' && (
             <button className='admin-delete' onClick={deleteTeam}>
               Delete ({selectedItems.length})
             </button>
@@ -329,6 +329,7 @@ function TabTeams({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              {admin.role === 'superadmin' &&
               <th className="checkbox-column">
                 <input 
                   type="checkbox"
@@ -336,6 +337,7 @@ function TabTeams({ admin, showId, setShowId }) {
                   checked={results?.length > 0 && selectedItems.length === results.length}
                 />
               </th>
+              }
               {showId && <th>Team ID</th>}
               <th>Team Name</th>
               <th>Members</th>
@@ -346,6 +348,7 @@ function TabTeams({ admin, showId, setShowId }) {
               <tr 
                 key={res.team_id} 
                 className={`${selectedRef.current?.team_id === res.team_id && 'selected'}`}>
+                {admin.role === 'superadmin' &&
                 <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
@@ -353,6 +356,7 @@ function TabTeams({ admin, showId, setShowId }) {
                     onChange={() => handleCheckboxChange(res.team_id, setSelectedItems)}
                   />
                 </td>
+                }
                 {showId && <td onClick={() => selectTeam(res)}>{res.team_id}</td>}
                 <td onClick={() => selectTeam(res)}>{res.team_name}</td>
                 <td onClick={() => selectTeam(res)}>{res.members.length}</td>

@@ -346,7 +346,7 @@ function TabClasses({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          {selectedItems.length > 0 && (
+          {selectedItems.length > 0 && admin.role === 'superadmin' && (
             <button className='admin-delete' onClick={deleteClass}>
               Delete ({selectedItems.length})
             </button>
@@ -388,6 +388,7 @@ function TabClasses({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              {admin.role === 'superadmin' &&
               <th className="checkbox-column">
                 <input 
                   type="checkbox"
@@ -395,6 +396,7 @@ function TabClasses({ admin, showId, setShowId }) {
                   checked={results?.length > 0 && selectedItems.length === results.length}
                 />
               </th>
+              }
               {showId && <th>Class ID</th>}
               <th>Course Code</th>
               <th>Section</th>
@@ -408,6 +410,7 @@ function TabClasses({ admin, showId, setShowId }) {
               <tr 
                 key={res.class_id} 
                 className={`${selectedRef.current?.class_id === res.class_id && 'selected'}`}>
+                {admin.role === 'superadmin' &&
                 <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
@@ -415,6 +418,7 @@ function TabClasses({ admin, showId, setShowId }) {
                     onChange={() => handleCheckboxChange(res.class_id, setSelectedItems)}
                   />
                 </td>
+                }
                 {showId && <td onClick={() => selectClass(res)}>{res.class_id}</td>}
                 <td onClick={() => selectClass(res)}>{res.course_code}</td>
                 <td onClick={() => selectClass(res)}>{res.section}</td>

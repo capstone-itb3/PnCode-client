@@ -226,7 +226,7 @@ function TabActivities({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          {selectedItems.length > 0 && (
+          {selectedItems.length > 0 && admin.role === 'superadmin' && (
             <button className='admin-delete' onClick={deleteActivity}>
               Delete ({selectedItems.length})
             </button>
@@ -265,6 +265,7 @@ function TabActivities({ admin, showId, setShowId }) {
         <table id='admin-table'>
           <thead>
             <tr>
+              {admin.role === 'superadmin' &&
               <th className="checkbox-column">
                 <input 
                   type="checkbox"
@@ -272,6 +273,7 @@ function TabActivities({ admin, showId, setShowId }) {
                   checked={results?.length > 0 && selectedItems.length === results.length}
                 />
               </th>
+              }
               {showId && <th>Activity ID</th>}
               <th>Activity Name</th>
               <th>Instructions</th>
@@ -284,6 +286,7 @@ function TabActivities({ admin, showId, setShowId }) {
               <tr 
                 key={res.activity_id} 
                 className={`${selectedRef.current?.activity_id === res.activity_id && 'selected'}`}>
+                {admin.role === 'superadmin' &&
                 <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
@@ -291,6 +294,7 @@ function TabActivities({ admin, showId, setShowId }) {
                     onChange={() => handleCheckboxChange(res.activity_id, setSelectedItems)}
                   />
                 </td>
+                }
                 {showId && <td onClick={() => selectActivity(res)}>{res.activity_id}</td>}
                 <td onClick={() => selectActivity(res)}>{res.activity_name}</td>
                 <td onClick={() => selectActivity(res)}><label className='single-line'>{res.instructions}</label></td>

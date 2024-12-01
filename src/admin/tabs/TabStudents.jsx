@@ -214,7 +214,7 @@ function TabStudents({ admin, showId, setShowId }) {
           <ShowId showId={showId} setShowId={setShowId}/>
         </div>
         <div className='flex-row items-center'>
-          {selectedItems.length > 0 && (
+          {selectedItems.length > 0 && admin.role === 'superadmin' && (
             <button className='admin-delete' onClick={deleteStudent}>
               Delete ({selectedItems.length})
             </button>
@@ -254,6 +254,7 @@ function TabStudents({ admin, showId, setShowId }) {
         <table id='admin-table'>
         <thead>
             <tr>
+              {admin.role === 'superadmin' &&
               <th className="checkbox-column">
                 <input 
                   type="checkbox"
@@ -261,6 +262,7 @@ function TabStudents({ admin, showId, setShowId }) {
                   checked={results?.length > 0 && selectedItems.length === results.length}
                 />
               </th>
+              }
               {showId && <th>UID</th>}
               <th>Last Name</th>
               <th>First Name</th>
@@ -272,13 +274,15 @@ function TabStudents({ admin, showId, setShowId }) {
               <tr 
                 key={res.uid} 
                 className={`${selectedRef.current?.uid === res.uid && 'selected'}`}>
-                <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.includes(res.uid)}
-                    onChange={() => handleCheckboxChange(res.uid, setSelectedItems)}
-                  />
-                </td>
+                  {admin.role === 'superadmin' &&
+                  <td className="checkbox-column" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.includes(res.uid)}
+                      onChange={() => handleCheckboxChange(res.uid, setSelectedItems)}
+                    />
+                  </td>
+                  }
                 {showId && <td onClick={() => selectStudent(res)}>{res.uid}</td>}
                 <td onClick={() => selectStudent(res)}>{res.last_name}</td>
                 <td onClick={() => selectStudent(res)}>{res.first_name}</td>
