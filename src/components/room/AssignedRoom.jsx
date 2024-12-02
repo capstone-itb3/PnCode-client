@@ -250,7 +250,7 @@ function AssignedRoom() {
     }
     toggleActivityTimeframe();
 
-    const interval = setInterval(toggleActivityTimeframe, 60000);
+    const interval = setInterval(toggleActivityTimeframe, 10000);
 
     return () => {
       clearInterval(interval);

@@ -39,7 +39,7 @@ function CreateTeam({ user, class_info, exit }) {
                 <label><b>Section:</b> {class_info.section}</label>
             </div>
             <div className='flex-column'>
-              <h4>Team Name <InfoHover size={16} info={'The name of your team. Team name must be 5-30 characters long.'}/> </h4>
+              <h4>Team Name <InfoHover size={16} info={'The name this team will be called.'}/> </h4>
               <input 
                 className='input-data'
                 type='text'

@@ -151,7 +151,7 @@ function PageTeam() {
               </div>
             </div>
             <div id='team-members-list'>
-              <h3 className='flex-row items-center'>Members<InfoHover size={18} info={'The students who are members of this team.'}/></h3>
+              <h3 className='flex-row items-center'>Members<InfoHover size={18} info={'The students who are members of this team. A team can have maximum of 10 members.'}/></h3>
               <table id='members-table'>
                 <tbody>
                 {team && team.members.map((member, index) => {

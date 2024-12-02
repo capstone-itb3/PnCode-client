@@ -36,7 +36,7 @@ function CreateActivity({user, class_info, exit}) {
                             <label>Section: <b>{class_info.section}</b></label>
                         </div>
                         <div className='flex-column width-100'>
-                            <h4>Activity Name <InfoHover size={16} info={'The name of the activity. The activity name can be 5-100 characters long.'}/></h4>
+                            <h4>Activity Name <InfoHover size={16} info={'The name of the activity.'}/></h4>
                             <input 
                                 className='input-data'
                                 type='text'
