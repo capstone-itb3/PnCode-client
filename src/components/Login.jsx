@@ -4,6 +4,7 @@ import pnc from '../../assets/pamantasan.jpg'
 import full_logo from '../../assets/full_logo.jpg'
 import ccs_logo from '../../assets/ccs_logo.jfif'
 import api from '../api';
+import Cookie from 'js-cookie';
 
 function Login() {
     const [ email, setEmail ] = useState('');
@@ -19,8 +20,12 @@ function Login() {
         setWarning(null);
     
         try {
-            await api.post('/api/login', { email, password });            
-            navigate('/dashboard');
+            const response = await api.post('/api/login', { email, password }); 
+            const data = response.data;
+            if (data.status === 'ok') {
+                !Cookie.get('token') ? Cookie.set('token', data.token) : null;
+                navigate('/dashboard');
+            }
         } catch (e) {
             setWarning(e?.response?.data?.message || 'Something went wrong. Please try again later.');
             console.error(e.message);
