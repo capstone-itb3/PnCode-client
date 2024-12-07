@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { EditorView, basicSetup } from 'codemirror'
-import { EditorState } from '@codemirror/state'
-import { javascript } from '@codemirror/lang-javascript'
-import { html } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
+import { IoIosArrowDown } from "react-icons/io";
+import { diffLines } from 'diff';
 import convertToReadable from './utils/convertToReadable'
 
 function History({ viewCount, file, socket, rightDisplay }) {
@@ -39,7 +36,7 @@ function History({ viewCount, file, socket, rightDisplay }) {
     });
 
     if (viewCount) {
-      socket.on('add_edit_count_result', ({ file_id, user_id, first_name, last_name }) => {
+      socket.on('add_edit_count_result', ({ file_id, user_id, first_name, last_name, cons }) => {
         if (file_id === file.file_id) {
           setContributions(prev => {
             if (prev.some(contribution => contribution.uid === user_id)) {
@@ -47,7 +44,6 @@ function History({ viewCount, file, socket, rightDisplay }) {
                 ...cont, 
                 edit_count: cont.edit_count + 1 
               } : cont);
-
             } else {
               return [...prev, { 
                 uid: user_id, 
@@ -69,13 +65,8 @@ function History({ viewCount, file, socket, rightDisplay }) {
         if (history.length !== 0) {
           new_history.contributions = new_history.contributions.map(cont => {
             const last_rec = history[history.length - 1].contributions.find(c => c.uid === cont.uid);
-
-            if (!last_rec) {
-                return cont;
-            }
-    
+            if (!last_rec) return cont;
             const diff = cont.edit_count - last_rec.edit_count;
-
             return { ...cont, diff };
           });
         }    
@@ -149,11 +140,13 @@ function History({ viewCount, file, socket, rightDisplay }) {
           <div id='history-list'>
             {history && history.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                               .map((his, index) => {
+              const prevContent = index < history.length - 1 ? history[index + 1].content : '';
               return (
                 <HistoryItem
                   key={index}
                   index={index}
-                  item={his} 
+                  item={his}
+                  prevContent={prevContent}
                   contributions={viewCount}
                   file_type={file.type} 
                   options={options}/>
@@ -176,68 +169,44 @@ function History({ viewCount, file, socket, rightDisplay }) {
   )
 }
 
-export default History
-
-
-
-function HistoryItem ({ item, file_type, contributions, options, index }) {
+function HistoryItem ({ item, prevContent, contributions, options }) {
   const [createdAt, setCreatedAt] = useState(convertToReadable(new Date(item.createdAt), 'long'));
 
-  useEffect(() => {
-    const type = () => {
-      if      (file_type === 'html')  return html();
-      else if (file_type === 'css')   return css();
-      else if (file_type === 'js')    return javascript();;
-    }
-
-    const state = EditorState.create({
-      doc: item.content,
-      extensions: [
-        basicSetup,
-        type(),
-        EditorState.readOnly.of(true),
-        EditorView.lineWrapping,
-        EditorView.theme({
-          '.cm-editor': {
-            zIndex: '10 !important',
-            pointerEvents: 'none !important'
-          }
-        })
-      ]
-    });
-
-    const parent = document.querySelector(`#history-item-${index}`);
-
-    const view = new EditorView({ state: state, parent: parent });
-
-
-    return () => {
-      view.destroy();
-    }
-  }, []);
+  const renderDiff = (current, previous) => {
+    const diff = diffLines(previous || '', current);
+    let line_num = 1;
+    
+    return (
+      <pre className='history-code'>
+        {diff.map((part) => {
+          const lines = part.value.split(/\r?\n|\r|\n/g).filter(line => line !== '');
+          return lines.map((line, i) => {
+            return (
+              <div className={`history-line flex-row ${part.added && 'added'} ${part.removed && 'removed'}`} key={i}>
+                <div className='line-number items-center'>{`${!part.removed ? line_num++ : '-'}`}</div>
+                <div className='line-content'>{line}</div>
+              </div>
+              );
+          });
+        })}
+      </pre>
+    );
+  };
   
-
   return (
     <div className='history-item flex-column'>
       <h4>{createdAt}</h4>
       <div className='body'>
           <div className={`history-content ${options === 'contributions' ? 'hidden' : ''}`}>
-            <div id={`history-item-${index}`}  className='history-editor'>
-              <div className='cursor-shield'></div>
-            </div>
+            {renderDiff(item.content, prevContent)}
           </div>
           {contributions &&
             <div className={`contribution-div ${options === 'history' ? 'hidden' : ''}`}>
               <label className='edit-count-label'>Edit Count:</label>
               <div className='contribution-list'>
-                {item.contributions.length !== 0 && item.contributions.map((cont, index) => {
-                  return (
-                    <div className='contribution flex-row' key={cont?.uid}>
-                      <label className='single-line'>{cont.last_name}, {cont.first_name} </label>:
-                      <label className='count'>{cont.edit_count} <span>{cont?.diff > 0 && `(+${cont.diff})`}</span></label>
-                    </div>
-                  )
-                })}
+                {item.contributions.length !== 0 && item.contributions.map((cont, index) => 
+                  <ContributionItem key={index} item={cont}/>
+                )}
               </div>
             </div>
           }
@@ -245,3 +214,35 @@ function HistoryItem ({ item, file_type, contributions, options, index }) {
     </div>
   )
 }
+
+function ContributionItem({ item }) {
+  const [showLines, setShowLines] = useState(false);
+
+  return (
+    <>
+    <div className={`contribution flex-row ${item.lines.length <= 0 && 'margin'}`}>
+      {item.lines && item.lines.length > 0 &&
+      <button
+        className={`drop-record items-center ${showLines && 'rotated'}`} 
+        onClick={() => setShowLines(!showLines)}>
+        <IoIosArrowDown size={14}/>
+      </button>
+      }
+      <label className='single-line'>{item.last_name}, {item.first_name} </label>:
+      <label className='count'>{item.edit_count} <span>{item?.diff > 0 && `(+${item.diff})`}</span></label>
+    </div>
+    <div className={`contribution-record ${showLines && 'drop'}`}>
+      {item.lines && item.lines.map((line, index) => {
+        return (
+          <div className='history-line flex-row' key={index}>
+            <div className='line-number items-center'>{line.line}</div>
+            <div className='line-content'>{line.text}</div>
+          </div>
+        )
+      })}
+    </div>
+    </>
+  )
+}
+
+export default History

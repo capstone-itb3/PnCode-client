@@ -233,14 +233,14 @@ function AssignedRoom() {
 
     setRoomFiles(room_files.map(f => f.name === activeFile.name ? file_updated : f));
 
-    setSaved( <label id='saving'>Saving...</label>);
+    setSaved(<label id='saving'>Saving...</label>);
 
     socketRef.current.emit('update_code_solo', {
       room_id: room_id,
       file_id: activeFile.file_id,
       content: content,
     });
-  }, 300)
+  }, 500)
 
   function startRunOutput() {
     runOutput(outputRef.current, room_id, room_files, activeFile, 'solo/');

@@ -35,6 +35,7 @@ function AdminLogin() {
             console.error(e.message);
             e?.response?.status === 401 ? document.querySelectorAll('.input-data').forEach(input => input.classList.add('error-2')) : null;
         }
+        setPassword('');
         setIsSubmitting(false);
     }
 

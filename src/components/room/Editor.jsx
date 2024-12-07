@@ -16,6 +16,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
 import jsLint from './utils/JSesLint'
 import { html5Snippet, jquerySnippet, bootstrapSnippet } from './utils/codeSnippets';
+import { noText, editedLine, editedLineText } from './utils/codeChecker';
 import { nonEditingKey, editingKey, unknownKey } from './utils/keyHandler';
 import changeTheme from './utils/changeTheme';
 import _ from 'lodash'
@@ -28,6 +29,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
   const readOnlyCompartmentRef = useRef(new Compartment());
   const inSameLineRef = useRef(false);
   const storeInHistoryRef = useRef(false);
+  const previousLineRef = useRef({});
 
   const editorListener = (event) => {
     try {
@@ -36,11 +38,11 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
       //Ctrl + S to save the code
       if (event.ctrlKey && event.key === 's') {
         event.preventDefault();
-        onTime ? updateCode(editorRef.current) : null;
+        onTime ? updateCode(editorRef.current, false) : null;
         return;
       }
 
-      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event) || unknownKey(event))) {
+      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event.key) || unknownKey(event.key))) {
         updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
 
         //check the readOnly config and will be used to minimize the number of times the editor
@@ -60,7 +62,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
             });
           }
           warning !== 0 ? setWarning(0) : null;
-          debounceUserType(user.uid);
+          updateCode(editorRef.current, event.key);
 
         } else if (inSameLineRef.current || !onTime) {
           //if in same line or not on time, it then checks if the current config of readOnly is false
@@ -75,26 +77,11 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
           onTime && inSameLineRef.current && warning !== 3 ? setWarning(3) : null;
           !onTime && warning !== 2 ? setWarning(2) : null;
         }
-      } 
-      
+      }       
     } catch (e) {
       console.error(e);
     }
   }
-
-  const debounceUserType = _.debounce((editing_user_id) => {
-    if (editorRef.current) {
-      socket.emit('add_edit_count', {
-        file_id: file.file_id,
-        room_id: room_id,
-        user_id: editing_user_id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-      });
-
-      updateCode(editorRef.current);
-    }
-  }, 300);
 
   function updateAwareness(new_line) {
     if (!providerRef.current || !editorRef.current) {
@@ -213,12 +200,12 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
           editor_div.innerHTML = '';
           
           editorRef.current = new EditorView({ state, parent: (editor_div) });
-          if (user.position === 'Student') {
-            editor_div.addEventListener('keydown', editorListener);
-          }
-
           providerRef.current.awareness.on('change', () => {
             updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
+
+            if (user.position === 'Student') {
+              editor_div.addEventListener('keydown', editorListener);
+            }  
           });
 
           setSaved(<label id='saving'>Successfully connected.</label>);
@@ -302,31 +289,39 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     }
   }, [file, editorRef.current]);
 
-  const updateCode = (e) => {
-    if (!e?.state?.doc) {
-      return;
+  const updateCode = _.debounce((editor, key) => {
+    const code = editor?.state?.doc;
+
+    if (!code) return;
+    if (noText(code.toString())) return setWarning(1);
+
+    const line = editedLine(editor, key);
+    const text = editedLineText(line, code, key);
+
+    if (key !== false) {
+      if (previousLineRef.current.line === line && previousLineRef.current.text === text) {
+        return;
+      }
+      previousLineRef.current = { line, text };
     }
-    let isEmpty = e.state.doc.toString() === '' && e.state.doc === null;
-    let allSpaces = new RegExp('^\\s*$').test(e.state.doc.toString());
+    setSaved( <label id='saving'>Saving...</label>);
 
-    if (e.state.doc && !isEmpty && !allSpaces) {
-      setSaved( <label id='saving'>Saving...</label>);
-      
-      const code = e.state.doc.toString();
+    socket.emit('update_code', {
+      file_id: file.file_id,
+      code: code.toString(),
+      user_id: user.uid,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      room_id: room_id,
+      line: line,
+      text: text,
+      store_history: storeInHistoryRef.current
+    });
 
-      socket.emit('update_code', {
-        file_id: file.file_id,
-        code: code,
-        store_history: storeInHistoryRef.current,
-      });
+    storeInHistoryRef.current = false;
 
-      storeInHistoryRef.current = false;
-
-      setWarning(0);
-    } else if ( isEmpty || allSpaces) {
-      setWarning(1);
-    }
-  };
+    setWarning(0);
+  }, 300);
   
   return (
     <>

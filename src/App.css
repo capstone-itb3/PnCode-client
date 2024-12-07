@@ -2950,10 +2950,13 @@ header {
 }
 
 #history-div .contribution {
-
     color: var(--gray-dark);
     font-size: 16px;
 }
+.contribution.margin {
+    padding-left: 24px;
+}
+
 #history-div .contribution span{
     font-weight: bold;
     margin-left: 5px;
@@ -3009,21 +3012,45 @@ header {
 }
 
 .history-item .count span{
-    /* font-weight: normal !important; */
-    color: var(--gray)
+   color: var(--gray)
 }
 
 .history-item .contribution-div {
     padding: 5px;
 }
 
-
-
 .history-editor {
     position: relative;
     overflow-y: auto;
-    max-height: 500px;
+    max-height: 400px;
 }
+
+.history-code {
+    margin: 0;
+    color: #222;
+}
+
+.history-line {
+    padding: 2px 0;
+    font-family: monospace;
+}
+
+.history-line.added {
+    background-color: rgba(0, 255, 0, 0.6);
+    color: black;
+}
+
+.history-line.removed {
+    background-color: rgba(255, 0, 0, 0.6);
+    color: black;
+}
+
+
+.history-line-container {
+    display: flex;
+    align-items: flex-start;
+}
+  
 
 .cursor-shield {
     position: absolute;
@@ -3034,6 +3061,61 @@ header {
     background-color: transparent;
     z-index: 20 !important;
 }
+
+.contribution .margin {
+    margin-left: 40px;
+}
+
+
+
+.drop-record {
+    border: 0;
+    background-color: transparent;
+    padding: 0 5px;
+    transition: .5s;
+}
+
+.drop-record.rotated {
+    transform: rotate(180deg);
+    transition:.5s;
+}
+
+.contribution-record {
+    max-height: 0;
+    background-color: azure;
+    transition: .5s;
+    overflow: hidden;
+}
+
+.contribution-record.drop {
+    max-height: 200px;
+    overflow: auto;
+    transition: .5s;
+}
+
+.contribution-record .history-line {
+    border-bottom: 1px solid var(--gray-light);
+    font-size: 13px;
+}
+
+.line-number {
+    min-width: 40px;
+    width: 40px !important;
+    color: gray;
+    font-weight: bold;
+    justify-content: center;
+    border-right: 1px solid var(--gray);
+    margin-right: 2px;
+}
+
+.line-content {
+    font-family: monospace;
+    white-space: pre-wrap;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
 
 .length-0 {    
     padding: 50px 15px;

@@ -6,11 +6,11 @@ export function nonEditingKey(e) {
     return isModifierKey || isNavigationKey || isFunctionKey;
 }
 
-export function editingKey(e) {
-    return e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || e.key === 'Enter';
+export function editingKey(key) {
+    return key === 'Backspace' || key === 'Delete' || key === 'Tab' || key === 'Enter';
 }
 
-export function unknownKey(e) {
-    return String(e.key) === 'Unidentified';
+export function unknownKey(key) {
+    return String(key) === 'Unidentified';
 }
   

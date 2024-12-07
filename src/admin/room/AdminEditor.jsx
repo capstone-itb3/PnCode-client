@@ -36,7 +36,7 @@ function Editor({ cursorColor, file, socket, setSaved, editorTheme, warning, set
         return;
       }    
 
-      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event) || unknownKey(event))) {
+      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event.key) || unknownKey(event.key))) {
         updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
 
         warning !== 0 ? setWarning(0) : null;

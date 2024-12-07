@@ -6,7 +6,6 @@ import ccs_logo from '../../assets/ccs_logo.jfif'
 import api from '../api';
 import { restrictStudent } from './validator';
 
-
 function ProfLogin() {
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
@@ -28,12 +27,13 @@ function ProfLogin() {
     
         try {
             await api.post('/api/login/professor', { email, password });            
-            navigate('/dashboard');            
+            navigate('/dashboard');
         } catch (e) {
             setWarning(e?.response?.data?.message || 'Something went wrong. Please try again later.');
             console.error(e.message);
             e?.response?.status === 401 ? document.querySelectorAll('.input-data').forEach(input => input.classList.add('error-2')) : null;
         }
+        setPassword('');
         setIsSubmitting(false);
     }
 
