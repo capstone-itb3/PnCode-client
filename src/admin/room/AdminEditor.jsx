@@ -15,7 +15,7 @@ import { css } from '@codemirror/lang-css'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
 import jsLint from '../../components/room/utils/JSesLint'
-import changeTheme from '../../components/room/utils/changeTheme';
+import { changeTheme } from '../../components/room/utils/editorExtensions';
 import { nonEditingKey, editingKey, unknownKey } from '../../components/room/utils/keyHandler';
 import _ from 'lodash'
 

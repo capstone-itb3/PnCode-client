@@ -60,7 +60,21 @@ export class AssignedRoom extends Room {
         this.activity_id = activity_id;
     }
 
-    async submitFeedback(socket, feedback, uid, first_name, last_name) {
+    async quoteToFeedback(socket, contextMenu, name, action) {
+        try {
+            socket.emit('quote_code', {
+                selection: action === 'text' ? contextMenu.selection : contextMenu.fullLinesSelection,
+                file_name: name,
+                fromLine: contextMenu.fromLine,
+                toLine: contextMenu.toLine
+            });      
+        } catch (e) {
+            console.error('Unable to connect to the server.');
+            toast.error('Unable to connect to the server.');
+        }
+    }
+
+    async submitFeedback(socket, feedback, uid, first_name, last_name, quoted_code = null) {
         try {
             socket.emit('submit_feedback', {
                 room_id: this.room_id,
@@ -68,6 +82,7 @@ export class AssignedRoom extends Room {
                 first_name,
                 last_name,
                 new_feedback: feedback,
+                quoted_code
             });
         
         } catch (e) {
@@ -75,7 +90,7 @@ export class AssignedRoom extends Room {
             toast.error('Unable to connect to the server.');
         }
     }
-
+    
     async reactToFeedback(socket, feedback_id, react, action) {
         try {
             socket.emit('react_to_feedback', {

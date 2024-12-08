@@ -446,7 +446,8 @@ function AssignedRoom() {
                     socket={socketRef.current}
                     socketId={socketId}
                     rightDisplay={rightDisplay}
-                    setRightDisplay={setRightDisplay}/>
+                    setRightDisplay={setRightDisplay}
+                    editorTheme={editorTheme}/>
                 </div>
               </div>
             </div>

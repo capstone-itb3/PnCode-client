@@ -8,20 +8,17 @@ import { EditorView, basicSetup } from 'codemirror'
 import { EditorState, Compartment } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
-import { linter, lintGutter } from '@codemirror/lint' 
-import { javascript } from '@codemirror/lang-javascript'
-import { html, htmlLanguage } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
+import { lintGutter } from '@codemirror/lint' 
 import { oneDark } from '@codemirror/theme-one-dark'
 import { clouds } from 'thememirror'
-import jsLint from './utils/JSesLint'
-import { html5Snippet, jquerySnippet, bootstrapSnippet } from './utils/codeSnippets';
+import handleSelectedCode from './utils/handleSelectedCode';
+import { changeTheme, editorType, editorAccess, editorStyle } from './utils/editorExtensions';
 import { noText, editedLine, editedLineText } from './utils/codeChecker';
 import { nonEditingKey, editingKey, unknownKey } from './utils/keyHandler';
-import changeTheme from './utils/changeTheme';
 import _ from 'lodash'
+import { createPortal } from 'react-dom';
 
-function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, editorTheme, warning, setWarning}) {
+function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved, editorTheme, warning, setWarning}) {
   const { room_id } = useParams();
   const editorRef = useRef(null);
   const providerRef = useRef(null);
@@ -30,7 +27,8 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
   const inSameLineRef = useRef(false);
   const storeInHistoryRef = useRef(false);
   const previousLineRef = useRef({});
-
+  const [contextMenu, setContextMenu] = useState(null);
+    
   const editorListener = (event) => {
     try {
       const onTime = activityOpen;    
@@ -111,7 +109,23 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     } catch (e) {
       console.error(e);
     }
-  };
+  }
+
+  const handleContextMenu = useCallback((e) => {
+    e.preventDefault();    
+    handleSelectedCode(e, editorRef, setContextMenu);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (contextMenu && !e.target.closest('.editor-context-menu')) {
+        setContextMenu(null);
+      }
+    };
+  
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [contextMenu]);
 
   useEffect(() => {
     editorRef.current ? editorRef.current.destroy() : null;
@@ -139,24 +153,9 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
           position: user.position,
         });
       
-        const type = () => {
-          if      (file.name.endsWith('.html')) return [html(), htmlLanguage.data.of({ autocomplete: [html5Snippet, jquerySnippet, bootstrapSnippet ] }),]; 
-          else if (file.name.endsWith('.css'))  return css();
-          else if (file.name.endsWith('.js'))   return [javascript(), linter(jsLint)]; 
-        }
         const theme = editorTheme === 'dark' ? oneDark : clouds;
-        
-        const access = () => {
-          if (user?.position === 'Student') {
-            return EditorState.readOnly.of(!activityOpen);
-          } else if (user?.position === 'Professor') {
-            return EditorState.readOnly.of(true);
-          }          
-        }
 
-        if (activityOpen === false) {
-          setWarning(2);
-        }        
+        if (activityOpen === false) setWarning(2);
 
         providerRef.current.on('synced', () => {
           const users_length = Array.from(providerRef.current.awareness.getStates().values()).length;
@@ -174,38 +173,28 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
             doc: initialContent,
             extensions: [
               keymap.of([...yUndoManagerKeymap, indentWithTab]),
-              type(),
+              editorType(file.type),
               basicSetup,
-              readOnlyCompartmentRef.current.of([access()]),
+              readOnlyCompartmentRef.current.of([editorAccess(user.position, activityOpen)]),
               themeCompartmentRef.current.of([theme]),
               yCollab(ytext, providerRef.current.awareness),
               lintGutter(),
               EditorView.lineWrapping,
-              EditorView.theme({
-                '.cm-ySelectionInfo': {
-                  top: '-6px !important',
-                  display: 'inline-block !important',
-                  opacity: '1 !important',
-                  padding: '2px !important',
-                  transition: 'none !important'
-                },
-                '.cm-line': {
-                  position: 'relative'
-                }
-              }),
+              editorStyle
             ]
           });
           
           const editor_div = document.getElementById('editor-div');
           editor_div.innerHTML = '';
-          
+          user.position === 'Professor' ? editor_div.addEventListener('contextmenu', handleContextMenu) : null;
+
           editorRef.current = new EditorView({ state, parent: (editor_div) });
           providerRef.current.awareness.on('change', () => {
             updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
 
             if (user.position === 'Student') {
               editor_div.addEventListener('keydown', editorListener);
-            }  
+            } 
           });
 
           setSaved(<label id='saving'>Successfully connected.</label>);
@@ -239,6 +228,10 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
       if (user.position === 'Student') {
         document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
       }
+      if (user.position === 'Professor') {
+        document.getElementById('editor-div')?.removeEventListener('contextmenu', handleContextMenu);
+      }
+
       if (file) {
         socket.emit('leave_editor', { file_id: file?.file_id })
       }
@@ -251,7 +244,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
         providerRef.current = null;
       }
     }
-  }, [file, activityOpen, socket]);
+  }, [file, activityOpen, socket, handleContextMenu]);
 
   useEffect (() => {
     socket.on('update_result', ({ status }) => {
@@ -282,7 +275,7 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     
     const interval = setInterval(() => {
       storeInHistoryRef.current = true;
-    }, 300000);
+    }, 310000);
 
     return () => {
       clearInterval(interval);
@@ -323,10 +316,25 @@ function Editor({ user, cursorColor, file, socket, activityOpen, setSaved, edito
     setWarning(0);
   }, 300);
   
+  function quoteToFeedback(action) {
+    room.quoteToFeedback(socket, contextMenu, file.name, action);
+    setContextMenu(null);
+  }
+
   return (
     <>
       <div id='editor-div'>
       </div>
+      {contextMenu && createPortal(
+        <div className="editor-context-menu" style={{top: contextMenu.y, left: contextMenu.x}}>
+          <button onClick={() => quoteToFeedback('text')}>
+            Qoute Selected Text
+          </button>
+          <button onClick={() => quoteToFeedback('line')}>
+            Qoute Full Text from Selected Line(s)
+          </button>
+        </div>
+        , document.body)}
     </>
   )
 }

@@ -179,7 +179,7 @@ function HistoryItem ({ item, prevContent, contributions, options }) {
     return (
       <pre className='history-code'>
         {diff.map((part) => {
-          const lines = part.value.split(/\r?\n|\r|\n/g).filter(line => line !== '');
+          const lines = part.value.split(/\r\n|\r|\n/);
           return lines.map((line, i) => {
             return (
               <div className={`history-line flex-row ${part.added && 'added'} ${part.removed && 'removed'}`} key={i}>

@@ -1,14 +1,36 @@
-import React, { useState, useEffect }  from 'react'
+import React, { useState, useEffect, useRef }  from 'react'
 import { BsTrash } from 'react-icons/bs';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { BsX } from 'react-icons/bs'
 import converToReadable from './utils/convertToReadable';
 import updateFeedbackReacts from './utils/updateFeedbackReacts';
 import { showConfirmPopup } from '../reactPopupService';
 import _ from 'lodash';
+import { EditorView, basicSetup } from 'codemirror';
+import { editorType } from './utils/editorExtensions';
+import { lineNumbers } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
 
 function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay }) {
   const [feedback, setFeedback] = useState([]);
   const [new_feedback, setNewFeedback] = useState('');
+  const [code_quote, setCodeQuote] = useState(null);
+  const editorViewRef = useRef(null);
+
+  useEffect(() => {
+    socket.on('add_code_quote', ({ quote }) => {
+      setCodeQuote(quote);
+      setRightDisplay('feedback');
+    });
+
+    return () => {
+      socket.off('add_code_mention');
+      if (editorViewRef.current) {
+        editorViewRef.current.destroy();
+        editorViewRef.current = null;
+      }
+    }
+  }, [socket]);
 
   useEffect(() => {  
     try {
@@ -34,8 +56,7 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
             return new Date(b.createdAt) - new Date(a.createdAt);
           });
         });
-        
-        setRightDisplay('feedback');
+        setRightDisplay('feedback');        
       });
 
       socket.on('delete_feedback_result', ({ feedback_id }) => {
@@ -60,10 +81,20 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
     }
   }, [room, socketId]);
 
+  function removeSelectedQuote() {
+    setCodeQuote(null);
+    if (editorViewRef.current) {
+      editorViewRef.current.destroy();
+      editorViewRef.current = null;
+    }
+  }
+
+
   function submitFeedback(e) {
     e.preventDefault();
     if (user.position === 'Professor') {
-      room.submitFeedback(socket, new_feedback, user.uid, user.first_name, user.last_name);
+      room.submitFeedback(socket, new_feedback, user.uid, user.first_name, user.last_name, code_quote);
+      setCodeQuote(null);
     }
     setNewFeedback('');
   }
@@ -108,19 +139,35 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
       <div id='feedback-container' className='flex-column'>
         <h3>Feedback</h3>
         {user.position === 'Professor' &&
-          <form className='flex-column' id='feedback-form' onSubmit={(e) => submitFeedback(e)}>
-            <label className='name'>{user.first_name} {user.last_name}</label>
-            <div className='flex-row'>
-              <textarea
-                value={new_feedback} 
-                placeholder='Enter feedback here...' 
-                onChange={e => setNewFeedback(e.target.value)}
-                required/>
+        <form className='flex-column' id='feedback-form' onSubmit={(e) => submitFeedback(e)}>
+          <textarea
+            value={new_feedback}
+            placeholder='Enter feedback here...'
+            onChange={(e) => setNewFeedback(e.target.value)}
+            required
+          />
+            {code_quote && (
+            <div className={`code-quote-container ${!code_quote && 'none'}`}>       
+              <div className='code-quote flex-row'>
+                <label className='quote-title'>
+                  {code_quote.file_name}
+                  <span>(line: {`${code_quote.fromLine !== code_quote.toLine 
+                    ? `${code_quote.fromLine} - ${code_quote.toLine}`
+                    : `${code_quote.fromLine}` 
+                  }`})</span>
+                </label>
+                <button 
+                  type='button' 
+                  className='quote items-center'
+                  onClick={removeSelectedQuote}>
+                  <BsX size={20}/>
+                </button>
+              </div>
+              <QuotedCode quoted_code={code_quote} editorView={editorViewRef.current}/>
             </div>
-            <div>
-              <input type='submit' value='Add Feedback'/>
-            </div>
-         </form>
+            )}
+          <input type='submit' value='Add Feedback' />
+        </form>
         }
         {!feedback &&
             <div className='loading-line'>
@@ -135,7 +182,6 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
             <div className='feedback-item flex-column' key={index}>
               <label className='name'>
                 {feed.first_name} {feed.last_name}
-                {index === 0 && <span>•<span>New</span></span>}
               </label>
               <label className='date'>{date}</label>
               <label className='feedback-body'>{feed.feedback_body}</label>
@@ -143,6 +189,20 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
                 <button className='delete' onClick={() => deleteFeedback(feed.feedback_id)}>
                   <BsTrash size={20} />
                 </button>
+              }
+              {feed?.quoted_code &&
+                <div className='code-quote-container'>       
+                  <div className='code-quote flex-row'>
+                    <label className='quote-title'>
+                      {feed.quoted_code.file_name}
+                      <span>(line: {`${feed.quoted_code.fromLine !== feed.quoted_code.toLine 
+                        ? `${feed.quoted_code.fromLine} - ${feed.quoted_code.toLine}`
+                        : `${feed.quoted_code.fromLine}` 
+                      }`})</span>
+                    </label>
+                  </div>
+                  <QuotedCode key={index} id={feed.feedback_id} quoted_code={feed.quoted_code}/>
+                </div>
               }
               <div className='flex-row items-center react-div'> 
                 <div className='count'>
@@ -180,6 +240,51 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
         }
       </div>
     </div>
+  )
+}
+
+function QuotedCode({ id, quoted_code, editorView }) {
+  useEffect(() => {
+    if (editorView) editorView.destroy();
+
+    const state = EditorState.create({
+      doc: quoted_code.text,
+      extensions: [
+        basicSetup,
+        editorType(quoted_code.file_name.split('.').pop()),
+        lineNumbers({
+          formatNumber: (n) => String(n - 1 + quoted_code.fromLine)
+        }),
+        EditorView.theme({
+          "&.cm-focused .cm-line.cm-activeLine": {
+            backgroundColor: "transparent"
+          },
+          ".cm-line.cm-activeLine": {
+            backgroundColor: "transparent" 
+          },
+          ".cm-gutters": {
+            backgroundColor: "rgba(232, 232, 232, .3)",
+            border: "none",
+          },
+          ".cm-activeLineGutter": {
+            backgroundColor: "transparent"
+          }
+        }),
+        EditorState.readOnly.of(true),
+        EditorView.editable.of(false),
+        EditorView.lineWrapping,
+      ],
+    });
+
+    const parent_div = document.getElementById(`code-quote-editor${id ? `-${id}` : ''}`);
+    parent_div.innerHTML = '';
+    const view = new EditorView({ state, parent: parent_div });
+
+    if (editorView) editorView = view;
+  }, [quoted_code]);
+  
+  return (
+    <div className='quote-editor' id={`code-quote-editor${id ? `-${id}` : ''}`}/>
   )
 }
 
