@@ -1,7 +1,7 @@
 import toast from 'react-hot-toast';
 
 function findHTMLInFiles(room_id, room_files, extension) {
-    const active =  room_files.find((f) => f.type = 'html');
+    const active =  room_files.find((f) => f.type === 'html');
 
     if (active) {
         return `${import.meta.env.VITE_APP_BACKEND_URL}/view/${extension || ''}${room_id}/${active.name}`

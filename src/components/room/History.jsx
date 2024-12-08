@@ -64,7 +64,7 @@ function History({ viewCount, file, socket, rightDisplay }) {
         setHistory(null);
         if (history.length !== 0) {
           new_history.contributions = new_history.contributions.map(cont => {
-            const last_rec = history[history.length - 1].contributions.find(c => c.uid === cont.uid);
+            const last_rec = history[0].contributions.find(c => c.uid === cont.uid);
             if (!last_rec) return cont;
             const diff = cont.edit_count - last_rec.edit_count;
             return { ...cont, diff };
@@ -220,7 +220,7 @@ function ContributionItem({ item }) {
 
   return (
     <>
-    <div className={`contribution flex-row ${item.lines.length <= 0 && 'margin'}`}>
+    <div className={`contribution flex-row ${item.lines?.length <= 0 && 'margin'}`}>
       {item.lines && item.lines.length > 0 &&
       <button
         className={`drop-record items-center ${showLines && 'rotated'}`} 
