@@ -316,30 +316,29 @@ function ActivityBoard({activities, openActivityPopup}) {
         navigate(`/activity/${activity_id}`);
     }
 
-    if (activities.length === 0) {
-        return ( <div className='no-results'>
-                    You have no activity for the students to do yet.
-                </div> 
-        );
-    } else {
-        return (<div id='activity-selection' className='flex-column'>
-                    <button className='create-activity' onClick={openActivityPopup}>
-                        <div className='dashboard-add blue items-center'>
-                            <FaPlus size={18}/>
-                            Create Activity
-                        </div>
-                    </button>
+    return (
+    <div id='activity-selection' className='flex-column'>
+        <button className='create-activity' onClick={openActivityPopup}>
+            <div className='dashboard-add blue items-center'>
+                <FaPlus size={18}/>
+                Create Activity
+            </div>
+        </button>
 
-                    {activities.map((activity, index) => (
-                        <SelectActivity 
-                            key={activity.activity_id}  
-                            onClick={() => goToActivity(activity.activity_id)} 
-                            activity={activity} 
-                            index={index} />
-                    ))}
-                </div>
-        )
-    }
+        {activities.length === 0 &&
+            <div className='no-results'>
+                You have no activity for the students to do yet.
+            </div> 
+        }
+        {activities.map((activity, index) => (
+            <SelectActivity 
+                key={activity.activity_id}  
+                onClick={() => goToActivity(activity.activity_id)} 
+                activity={activity} 
+                index={index} />
+        ))}
+    </div>
+    )
 }
 
 function SoloRoomBoard({rooms, displayInfo}) {
