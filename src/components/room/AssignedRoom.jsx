@@ -352,7 +352,7 @@ function AssignedRoom() {
                 </button>
                 <button className={`side-tab-button ${leftDisplay === 'notepad' && 'active'}`} 
                         onClick={() => setLeftDisplay('notepad')}>
-                        Notepad
+                        Notes
                 </button>
               </div>
               {leftDisplay === 'files' &&

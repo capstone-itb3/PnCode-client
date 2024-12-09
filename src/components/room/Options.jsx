@@ -172,7 +172,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
                 </button>
                 {type === 'assigned' &&
                     <button className='item items-center' onClick={() => viewSection('notepad')}>
-                        <label>Show Notepad</label><span>Alt + N</span>
+                        <label>Show Notes</label><span>Alt + N</span>
                     </button>
                 }
                 <button className='item items-center' onClick={() => viewSection('output')}>
