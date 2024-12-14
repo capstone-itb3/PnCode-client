@@ -234,7 +234,7 @@ function ContributionItem({ item }) {
       </button>
       }
       <label className='single-line'>{item.last_name}, {item.first_name} </label>:
-      <label className='count'>{item?.diff} <span>{`Total: ${item.edit_count})`}</span></label>
+      <label className='count'>{item?.diff} <span>{`(Total: ${item.edit_count})`}</span></label>
     </div>
     <div className={`contribution-record ${showLines && 'drop'}`}>
       {item.lines && item.lines.map((line, index) => {
