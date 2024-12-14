@@ -118,7 +118,7 @@ function History({ viewCount, file, socket, rightDisplay }) {
             }
             {contributions && options !== 'history' &&
               <div className='contribution-div'>
-                <label className='edit-count-label'>Current Edit Count:</label>
+                <label className='edit-count-label'>Current Total Edit Count:</label>
                 <div className='contribution-list'>
                   {contributions.length !== 0 && contributions.map((cont, index) => {
                     return (
@@ -202,11 +202,16 @@ function HistoryItem ({ item, prevContent, contributions, options }) {
           </div>
           {contributions &&
             <div className={`contribution-div ${options === 'history' ? 'hidden' : ''}`}>
-              <label className='edit-count-label'>Edit Count:</label>
+              <label className='edit-count-label'>Contributed Edits:</label>
               <div className='contribution-list'>
-                {item.contributions.length !== 0 && item.contributions.map((cont, index) => 
-                  <ContributionItem key={index} item={cont}/>
-                )}
+                {item.contributions.length !== 0 && 
+                  item.contributions.map((cont, index) => {
+                  return (
+                    <>
+                      {cont?.diff > 0 && <ContributionItem key={index} item={cont}/>}
+                    </>
+                  )})
+                }
               </div>
             </div>
           }
@@ -229,7 +234,7 @@ function ContributionItem({ item }) {
       </button>
       }
       <label className='single-line'>{item.last_name}, {item.first_name} </label>:
-      <label className='count'>{item.edit_count} <span>{item?.diff > 0 && `(+${item.diff})`}</span></label>
+      <label className='count'>{item?.diff} <span>{`Total: ${item.edit_count})`}</span></label>
     </div>
     <div className={`contribution-record ${showLines && 'drop'}`}>
       {item.lines && item.lines.map((line, index) => {
