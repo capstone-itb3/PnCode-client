@@ -19,8 +19,10 @@ function History({ viewCount, file, socket, rightDisplay }) {
   }
 
   useEffect(() => {
-    setRetrieved(true);
-    getHistory();
+    if (file) {
+      setRetrieved(true);
+      getHistory();
+    }
   }, [file])
   
   useEffect(() => {
@@ -138,8 +140,7 @@ function History({ viewCount, file, socket, rightDisplay }) {
             }
           </div>
           <div id='history-list'>
-            {history && history.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                              .map((his, index) => {
+            {history && history.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((his, index) => {
               const prevContent = index < history.length - 1 ? history[index + 1].content : '';
               return (
                 <HistoryItem
@@ -175,11 +176,14 @@ function HistoryItem ({ item, prevContent, contributions, options }) {
   const renderDiff = (current, previous) => {
     const diff = diffLines(previous || '', current);
     let line_num = 1;
+
     
     return (
       <pre className='history-code'>
-        {diff.map((part) => {
+        {diff.map((part, index) => {
+          if (index !== diff.length - 1) part.value = part.value.slice(0, -1);
           const lines = part.value.split(/\r\n|\r|\n/);
+
           return lines.map((line, i) => {
             return (
               <div className={`history-line flex-row ${part.added && 'added'} ${part.removed && 'removed'}`} key={i}>
@@ -207,9 +211,7 @@ function HistoryItem ({ item, prevContent, contributions, options }) {
                 {item.contributions.length !== 0 && 
                   item.contributions.map((cont, index) => {
                   return (
-                    <>
-                      {cont?.diff > 0 && <ContributionItem key={index} item={cont}/>}
-                    </>
+                      <ContributionItem key={index} item={cont}/>
                   )})
                 }
               </div>
@@ -222,30 +224,41 @@ function HistoryItem ({ item, prevContent, contributions, options }) {
 
 function ContributionItem({ item }) {
   const [showLines, setShowLines] = useState(false);
+  const count = () => {
+    if (item?.diff === undefined) {
+      return item.edit_count;
+    } else {
+      return <>{item.diff} <span>(Total: {item.edit_count})</span></>
+    }
+  }
 
   return (
     <>
-    <div className={`contribution flex-row ${item.lines?.length <= 0 && 'margin'}`}>
-      {item.lines && item.lines.length > 0 &&
-      <button
-        className={`drop-record items-center ${showLines && 'rotated'}`} 
-        onClick={() => setShowLines(!showLines)}>
-        <IoIosArrowDown size={14}/>
-      </button>
-      }
-      <label className='single-line'>{item.last_name}, {item.first_name} </label>:
-      <label className='count'>{item?.diff} <span>{`(Total: ${item.edit_count})`}</span></label>
-    </div>
-    <div className={`contribution-record ${showLines && 'drop'}`}>
-      {item.lines && item.lines.map((line, index) => {
-        return (
-          <div className='history-line flex-row' key={index}>
-            <div className='line-number items-center'>{line.line}</div>
-            <div className='line-content'>{line.text}</div>
-          </div>
-        )
-      })}
-    </div>
+    {item.diff !== 0 &&
+      <>
+      <div className={`contribution flex-row ${item.lines?.length <= 0 && 'margin'}`}>
+        {item.lines && item.lines.length > 0 &&
+        <button
+          className={`drop-record items-center ${showLines && 'rotated'}`} 
+          onClick={() => setShowLines(!showLines)}>
+          <IoIosArrowDown size={14}/>
+        </button>
+        }
+        <label className='single-line'>{item.last_name}, {item.first_name} </label>:
+        <label className='count'>{count()}</label>
+      </div>
+      <div className={`contribution-record ${showLines && 'drop'}`}>
+        {item.lines && item.lines.map((line, index) => {
+          return (
+            <div className='history-line flex-row' key={index}>
+              <div className='line-number items-center'>{line.line}</div>
+              <div className='line-content'>{line.text}</div>
+            </div>
+          )
+        })}
+      </div>
+      </>
+    }
     </>
   )
 }

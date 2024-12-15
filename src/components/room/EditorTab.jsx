@@ -73,7 +73,7 @@ function EditorTab({room, user, cursorColor, socket, activityOpen, activeFile, e
                 </>
                 }
             </div>
-            {activeFile &&
+            {activeFile && typeof activeFile !== 'string' &&
             <Editor 
                 room={room}  
                 user={user} 

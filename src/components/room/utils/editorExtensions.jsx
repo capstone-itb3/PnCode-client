@@ -19,8 +19,6 @@ export function changeTheme (editorRef, editorTheme, themeCompartmentRef) {
 }
 
 export function editorType(type) {
-    console.log(type);
-
     if (type === 'html') {
         return [html(), htmlLanguage.data.of({ autocomplete: [html5Snippet, jquerySnippet, bootstrapSnippet ] }),];
     } else if (type === 'css') {

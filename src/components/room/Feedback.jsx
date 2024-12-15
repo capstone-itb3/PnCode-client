@@ -140,6 +140,7 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
         <h3>Feedback</h3>
         {user.position === 'Professor' &&
         <form className='flex-column' id='feedback-form' onSubmit={(e) => submitFeedback(e)}>
+          <label className='name'>{user.first_name} {user.last_name}</label>
           <textarea
             value={new_feedback}
             placeholder='Enter feedback here...'

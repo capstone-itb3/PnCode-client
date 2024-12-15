@@ -201,6 +201,10 @@ function AssignedRoom() {
         socketRef.current.off('room_users_updated');
         socketRef.current.off('dates_updated');
         socketRef.current.off('editor_users_updated');
+
+        if (activeFile) {
+          socketRef.current.emit('leave_editor', { file_id: activeFile?.file_id })
+        }
       }
     }
   }, [socketRef.current, activeFile]);
@@ -258,10 +262,8 @@ function AssignedRoom() {
   }, [timeframes, activity]);
 
   function displayFile(file) {
-    if (file === null || activeFile?.file_id === file?.file_id) {
-      !file ? setActiveFile(null) : null;
-      return;
-    }
+    if (activeFile?.file_id === file?.file_id) return;
+    setActiveFile(null);
 
     socketRef.current.emit('find_file', {
       room_id,

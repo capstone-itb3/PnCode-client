@@ -29,57 +29,57 @@ function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved,
   const previousLineRef = useRef({});
   const [contextMenu, setContextMenu] = useState(null);
     
-  const editorListener = (event) => {
+  const editorListener = useCallback((event) => {
     try {
-      const onTime = activityOpen;    
+        const onTime = activityOpen;    
 
-      //Ctrl + S to save the code
-      if (event.ctrlKey && event.key === 's') {
-        event.preventDefault();
-        onTime ? updateCode(editorRef.current, false) : null;
-        return;
-      }
-
-      if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event.key) || unknownKey(event.key))) {
-        updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
-
-        //check the readOnly config and will be used to minimize the number of times the editor
-        //...is updated so it can only be updated when readOnly must be in opposite state
-        const currentConfig = readOnlyCompartmentRef.current.get(editorRef.current.state)[0].value;
-
-        //first checks if the cursor is not the same line as other user's cursor and
-        //...the current time is within the open and close time
-        if (!inSameLineRef.current && onTime) {
-          //if yes, it then checks if the current config of readOnly is true 
-          if (currentConfig === true) {
-            //if currently true, it then modifies the readOnly state of the editor to false
-            editorRef.current?.dispatch({
-              effects: readOnlyCompartmentRef.current.reconfigure([
-                EditorState.readOnly.of(false)
-              ])
-            });
-          }
-          warning !== 0 ? setWarning(0) : null;
-          updateCode(editorRef.current, event.key);
-
-        } else if (inSameLineRef.current || !onTime) {
-          //if in same line or not on time, it then checks if the current config of readOnly is false
-          if (currentConfig === false) {
-            //if currently false, it then modifies the readOnly state of the editor to true
-            editorRef.current?.dispatch({
-              effects: readOnlyCompartmentRef.current.reconfigure([
-                EditorState.readOnly.of(true)
-              ])
-            });
-          }
-          onTime && inSameLineRef.current && warning !== 3 ? setWarning(3) : null;
-          !onTime && warning !== 2 ? setWarning(2) : null;
+        //Ctrl + S to save the code
+        if (event.ctrlKey && event.key === 's') {
+            event.preventDefault();
+            onTime ? updateCode(editorRef.current, false) : null;
+            return;
         }
-      }       
+
+        if (!nonEditingKey(event) && (event.key.length === 1 || editingKey(event.key) || unknownKey(event.key))) {
+            updateAwareness(editorRef.current?.state?.doc?.lineAt(editorRef.current?.state?.selection?.main?.head)?.number || 1);
+
+            //check the readOnly config and will be used to minimize the number of times the editor
+            //...is updated so it can only be updated when readOnly must be in opposite state
+            const currentConfig = readOnlyCompartmentRef.current.get(editorRef.current.state)[0].value;
+
+            //first checks if the cursor is not the same line as other user's cursor and
+            //...the current time is within the open and close time
+            if (!inSameLineRef.current && onTime) {
+                //if yes, it then checks if the current config of readOnly is true 
+                if (currentConfig === true) {
+                    //if currently true, it then modifies the readOnly state of the editor to false
+                    editorRef.current?.dispatch({
+                        effects: readOnlyCompartmentRef.current.reconfigure([
+                            EditorState.readOnly.of(false)
+                        ])
+                    });
+                }
+                warning !== 0 ? setWarning(0) : null;
+                updateCode(editorRef.current, event.key);
+
+            } else if (inSameLineRef.current || !onTime) {
+                //if in same line or not on time, it then checks if the current config of readOnly is false
+                if (currentConfig === false) {
+                    //if currently false, it then modifies the readOnly state of the editor to true
+                    editorRef.current?.dispatch({
+                        effects: readOnlyCompartmentRef.current.reconfigure([
+                            EditorState.readOnly.of(true)
+                        ])
+                    });
+                }
+                onTime && inSameLineRef.current && warning !== 3 ? setWarning(3) : null;
+                !onTime && warning !== 2 ? setWarning(2) : null;
+            }
+        }       
     } catch (e) {
-      console.error(e);
+        console.error(e);
     }
-  }
+  }, [activityOpen, file, warning]);
 
   function updateAwareness(new_line) {
     if (!providerRef.current || !editorRef.current) {
@@ -114,7 +114,7 @@ function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved,
   const handleContextMenu = useCallback((e) => {
     e.preventDefault();    
     handleSelectedCode(e, editorRef, setContextMenu);
-  }, []);
+  }, [file]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -128,9 +128,10 @@ function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved,
   }, [contextMenu]);
 
   useEffect(() => {
-    editorRef.current ? editorRef.current.destroy() : null;
-    providerRef.current ? providerRef.current.destroy() : null;
-    
+    if (user.position === 'Student') {
+      document.getElementById('editor-div')?.removeEventListener('keydown', editorListener);
+    }
+
     if (file === null) {
       return;
     }
@@ -232,6 +233,8 @@ function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved,
         document.getElementById('editor-div')?.removeEventListener('contextmenu', handleContextMenu);
       }
 
+      updateCode.cancel();
+
       if (file) {
         socket.emit('leave_editor', { file_id: file?.file_id })
       }
@@ -240,6 +243,7 @@ function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved,
         editorRef.current = null;
       }
       if (providerRef.current) {
+        providerRef.current.disconnect();
         providerRef.current.destroy();
         providerRef.current = null;
       }
@@ -282,7 +286,7 @@ function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved,
     }
   }, [file, editorRef.current]);
 
-  const updateCode = _.debounce((editor, key) => {
+  const handleCodeUpdate = (editor, key) => {
     const code = editor?.state?.doc;
 
     if (!code) return;
@@ -292,29 +296,32 @@ function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved,
     const text = editedLineText(line, code, key);
 
     if (key !== false) {
-      if (previousLineRef.current.line === line && previousLineRef.current.text === text) {
-        return;
-      }
-      previousLineRef.current = { line, text };
+        if (previousLineRef.current.line === line && previousLineRef.current.text === text) {
+            return;
+        }
+        previousLineRef.current = { line, text };
     }
-    setSaved( <label id='saving'>Saving...</label>);
+    setSaved(<label id='saving'>Saving...</label>);
 
     socket.emit('update_code', {
-      file_id: file.file_id,
-      code: code.toString(),
-      user_id: user.uid,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      room_id: room_id,
-      line: line,
-      text: text,
-      store_history: storeInHistoryRef.current
+        file_id: file.file_id,
+        code: code.toString(),
+        user_id: user.uid,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        room_id: room_id,
+        line: line,
+        text: text,
+        store_history: storeInHistoryRef.current
     });
 
     storeInHistoryRef.current = false;
-
     setWarning(0);
-  }, 300);
+};
+
+const updateCode = _.debounce((editor, key) => {
+    handleCodeUpdate(editor, key);
+}, 300);
   
   function quoteToFeedback(action) {
     room.quoteToFeedback(socket, contextMenu, file.name, action);
@@ -339,4 +346,4 @@ function Editor({ room, user, cursorColor, file, socket, activityOpen, setSaved,
   )
 }
 
-export default React.memo(Editor);
+export default Editor;
