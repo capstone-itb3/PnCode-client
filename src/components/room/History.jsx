@@ -3,12 +3,15 @@ import { IoIosArrowDown } from "react-icons/io";
 import { diffLines } from 'diff';
 import convertToReadable from './utils/convertToReadable'
 
+// Component that tracks and displays file changes and user contributions
 function History({ viewCount, file, socket, rightDisplay }) {
+  // State management for history tracking
   const [history, setHistory] = useState(null);
   const [contributions, setContributions] = useState(null);
   const [retrieved, setRetrieved] = useState(true);
   const [options, setOptions] = useState('all');
   
+  // Function to fetch file history from server
   function getHistory() {
     setHistory(null);
     setContributions(null);
@@ -18,6 +21,7 @@ function History({ viewCount, file, socket, rightDisplay }) {
     });
   }
 
+  // Trigger history fetch when file changes
   useEffect(() => {
     if (file) {
       setRetrieved(true);
@@ -25,10 +29,13 @@ function History({ viewCount, file, socket, rightDisplay }) {
     }
   }, [file])
   
+  // Socket listeners for history updates
   useEffect(() => {
+    // Fetch history on initial load
     socket.on('get_history_result', ({ status, history, contributions }) => {
       if (status === 'ok') {
         setHistory(history);
+        // Show contributions if user is a professor that can view contributions
         if (viewCount) {
           setContributions(contributions);
         }
@@ -37,9 +44,11 @@ function History({ viewCount, file, socket, rightDisplay }) {
       }
     });
 
+    // Track real-time edit contributions if the user is has access
     if (viewCount) {
       socket.on('add_edit_count_result', ({ file_id, user_id, first_name, last_name, cons }) => {
         if (file_id === file.file_id) {
+          // Update existing contributor or add new one
           setContributions(prev => {
             if (prev.some(contribution => contribution.uid === user_id)) {
               return prev.map(cont => cont.uid === user_id ? { 
@@ -59,21 +68,26 @@ function History({ viewCount, file, socket, rightDisplay }) {
       });
     }
     
+    // Handle history updates in real-time
     socket.on('reupdate_history', ({ status, file_id, new_history }) => {
-      if (status === 'ok' && file.file_id === file_id) { 
+      if (status === 'ok' && file.file_id === file_id) {
+        // stores previous history
         const prev_history = history ? history : [];
         
         setHistory(null);
+
         if (history.length !== 0) {
+          // Calculate edit count differences between previous and new history's contributions
           new_history.contributions = new_history.contributions.map(cont => {
             const last_rec = history[0].contributions.find(c => c.uid === cont.uid);
             if (!last_rec) return cont;
-            const diff = cont.edit_count - last_rec.edit_count;
-            return { ...cont, diff };
+            return { ...cont, diff: cont.edit_count - last_rec.edit_count };
           });
         }    
+        // Sort contributions by edit count
         new_history.contributions.sort((a, b) => b.edit_count - a.edit_count);
 
+        // Add new history to the top of the list
         setTimeout(() => {
           setHistory([new_history, ...prev_history]);
         }, 500);

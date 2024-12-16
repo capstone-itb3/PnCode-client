@@ -2,13 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { MdFullscreen } from "react-icons/md";
 import { VscRunAll } from 'react-icons/vsc';
-import { BsMenuButtonWide } from 'react-icons/bs';
 
 function TabOutput({ outputRef, rightDisplay, startRunOutput, startRunOutputFullView, consoleOpen }) {
   const { room_id } = useParams();
   const navigate = useNavigate();
+  // State management for iframe title
   const [iframeTitle, setIframeTitle] = useState('Output');
 
+  // Update title based on iframe content status
   const updateTitle = (current) => {
     current?.src ? setIframeTitle(`Viewing output...`): setIframeTitle('Output');
   };

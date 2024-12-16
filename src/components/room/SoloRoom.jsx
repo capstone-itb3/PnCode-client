@@ -26,7 +26,7 @@ import { clouds } from 'thememirror'
 import jsLint from './utils/JSesLint'
 import _ from 'lodash'
 
-function AssignedRoom() {  
+function SoloRoom() {  
   const { room_id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -381,4 +381,4 @@ function AssignedRoom() {
   )
 }
 
-export default AssignedRoom
+export default SoloRoom

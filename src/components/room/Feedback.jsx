@@ -12,19 +12,22 @@ import { lineNumbers } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 
 function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay }) {
+
+  // State management for feedback
   const [feedback, setFeedback] = useState([]);
   const [new_feedback, setNewFeedback] = useState('');
   const [code_quote, setCodeQuote] = useState(null);
   const editorViewRef = useRef(null);
 
   useEffect(() => {
+    //receives selected code from the editor to display in the feedback form
     socket.on('add_code_quote', ({ quote }) => {
       setCodeQuote(quote);
       setRightDisplay('feedback');
     });
 
     return () => {
-      socket.off('add_code_mention');
+      socket.off('add_code_quote');
       if (editorViewRef.current) {
         editorViewRef.current.destroy();
         editorViewRef.current = null;
@@ -32,8 +35,10 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
     }
   }, [socket]);
 
+  // Main socket listeners for feedback operations
   useEffect(() => {  
     try {
+      // Initial feedback loading function
       function getFeedback() {
         socket.emit('load_feedback', {
             room_id: room.room_id,
@@ -41,6 +46,7 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
       }
       getFeedback();
 
+      // Displays loaded feedback from the server
       socket.on('feedback_loaded', ({ feedback }) => {
         setFeedback(feedback);
 
@@ -49,7 +55,9 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
         }
       });
 
+      // Handles feedback submission results
       socket.on('submit_feedback_result', ({ new_feedback }) => {
+        // Update feedback list with the newly submitted feedback
         setFeedback((prev) => {
           const new_feedback_list = [...prev, new_feedback];
           return new_feedback_list.sort((a, b) => {
@@ -59,11 +67,14 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
         setRightDisplay('feedback');        
       });
 
+      // Handles feedback deletion results
       socket.on('delete_feedback_result', ({ feedback_id }) => {
         setFeedback(prev => prev.filter(item => item.feedback_id !== feedback_id));
       });
 
+      // Handles feedback reactions
       socket.on('new_feedback_react', ({ feedback_id, react, socket_id, action }) => {
+        // Update feedback list with new reactions if the reaction is not from the current user
         if (socket_id !== socketId) {
           updateFeedbackReacts(setFeedback, feedback_id, react, action);
         }
@@ -81,6 +92,7 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
     }
   }, [room, socketId]);
 
+  //removes code quote from feedback form
   function removeSelectedQuote() {
     setCodeQuote(null);
     if (editorViewRef.current) {
@@ -90,6 +102,7 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
   }
 
 
+   // Handle feedback submission
   function submitFeedback(e) {
     e.preventDefault();
     if (user.position === 'Professor') {
@@ -99,6 +112,7 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
     setNewFeedback('');
   }
 
+   // Handle student reactions to feedback
   function reactToFeedback(feed) {
     if (user.position === 'Student') {
       const react = {
@@ -112,15 +126,20 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
         action = 'heart';
       }
       
+      //Quickly update the feedback list with the new reaction for the current user
       updateFeedbackReacts(setFeedback, feed.feedback_id, react, action);
+
+      // Send the new reaction for the other users in their feedback list
       reactRoom(feed.feedback_id, react, action);
     }
   }
 
+  // Debounced function to prevent rapid socket emissions for reactions
   const reactRoom = _.debounce((feedback_id, react, action) => {
     room.reactToFeedback(socket, feedback_id, react, action)
   }, 1000);
   
+  // Handle feedback deletion
   async function deleteFeedback(feedback_id) {
     const result = await showConfirmPopup({
       title: 'Delete Feedback',
@@ -129,6 +148,7 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
       cancel_text: 'Cancel',
     });
 
+    // If the user confirms the deletion, delete the feedback
     if (result) {
       room.deleteFeedback(socket, feedback_id);
     }
@@ -244,10 +264,12 @@ function Feedback({ room, user, socket, socketId, rightDisplay, setRightDisplay 
   )
 }
 
+// Component for displaying quoted code in feedback
 function QuotedCode({ id, quoted_code, editorView }) {
   useEffect(() => {
     if (editorView) editorView.destroy();
 
+    // Setup CodeMirror editor instance for code display
     const state = EditorState.create({
       doc: quoted_code.text,
       extensions: [
@@ -277,6 +299,7 @@ function QuotedCode({ id, quoted_code, editorView }) {
       ],
     });
 
+    // Create and mount editor view
     const parent_div = document.getElementById(`code-quote-editor${id ? `-${id}` : ''}`);
     parent_div.innerHTML = '';
     const view = new EditorView({ state, parent: parent_div });

@@ -2,18 +2,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import { RxSewingPinFilled } from 'react-icons/rx';
 
 function Members({ members, roomUsers, inSolo }) {
+  // State management for member display and online count
   const [displayMembers, setDisplayMembers] = useState(null);
   const onlineCountRef = useRef(0);
   
+  // Update member display and track online status
   useEffect(() => {
     if (roomUsers && members) {
       onlineCountRef.current = 0;
 
       setDisplayMembers(() => {
         return members.map((member, index) => {
+          // Check if a team member is currently online in the room
           const online = roomUsers.find(user => user.user_id === member.uid);
           online ? onlineCountRef.current++ : null;
 
+          // Return member display section with online status indicator
           return (
             <section className='items-center user-section' key={member.uid}>
               <div className='user-pin'>

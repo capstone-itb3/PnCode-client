@@ -25,6 +25,7 @@ import Feedback from './Feedback';
 import Switch from './Switch';
 import checkTimeframe from './utils/checkTimeframe';
 
+// Helper function to handle socket connection errors and provide reload/redirect options
 async function socketConnectError(error_type) {
   const reload = await showConfirmPopup({
     title: `Connection ${error_type}`,
@@ -43,39 +44,45 @@ async function socketConnectError(error_type) {
 function AssignedRoom() {  
   const { room_id } = useParams();
   const navigate = useNavigate();
+
+  // State management for room data and user information
   const [user, setUser] = useState(null);
   const [room, setRoom] = useState(null);
   const [room_files,  setRoomFiles] = useState([]);
   const [members, setMembers] = useState ([]);
   
+  // Socket connection management
   const [socketId, setSocketId] = useState(null);
   const socketRef = useRef(null);
 
+  // Activity and instruction states
   const [activity, setActivity] = useState(null);
   const [instructions, setInstructions] = useState(null);
   const [timeframes, setTimeframes] = useState([]);
+  const [activityOpen, setActivityOpen] = useState(null);
   
+  // Editor and file management states
   const [activeFile, setActiveFile] = useState(null);
   const [cursorColor, setCursorColor] = useState(null);
-  
   const [roomUsers, setRoomUsers] = useState([]);
   const [editorUsers, setEditorUsers]  = useState([]);
   const outputRef = useRef(null);
   
+  // UI display states
   const [leftDisplay, setLeftDisplay] = useState('files');
   const [rightDisplay, setRightDisplay] = useState('output');
   const [addNewFile, setAddNewFile] = useState(false);
   const [deleteFile, setDeleteFile] = useState(false);
-  const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');
-  
-  const [activityOpen, setActivityOpen] = useState(null);
+  const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');  
   const [consoleOpen, setConsoleOpen] = useState(true);
 
+  // Main initialization and room setup
   useEffect(() => {
+    //verify user token and get user data
     if (!user) {
       const init = async () => await getToken();
       init().then(token => token ? setUser(getClass(token, token.position)) : navigate('/error/404'));
-    } else {
+    } else {  
       startRoom();
     }
 
@@ -91,6 +98,7 @@ function AssignedRoom() {
         return;
       }
       
+      // Set up room data
       setRoom(info.room);
       setRoomFiles(info.files);
       setMembers(info.members);
@@ -100,6 +108,7 @@ function AssignedRoom() {
       document.title = info.activity.activity_name;
 
       if (info.access) {
+        //sets up socket connection
         socketRef.current = await initSocket();
 
         socketRef.current.on('connect_timeout', () => {
@@ -121,13 +130,14 @@ function AssignedRoom() {
       }
     }
     
+    // Cleanup function
     return () => {
       if (socketRef.current) {
         socketRef.current.off('connect_timeout');
         socketRef.current.off('error');
         socketRef.current.disconnect();
       }
-
+      // Reset all states
       setRoom(null);
       setRoomFiles([]);
       setMembers([]);
@@ -143,12 +153,14 @@ function AssignedRoom() {
     }
   }, [user, room_id]);
 
+  // Socket event handlers
   useEffect(() => {
     if (!user || !socketRef.current) {
       return;
     }
 
     socketRef.current.on('connect', () => {
+       // Join room and editor events
       socketRef.current.emit('join_room', { 
         room_id, 
         user_id: user.uid,
@@ -167,10 +179,12 @@ function AssignedRoom() {
       }
     });
     
+    //Gets user socket id
     socketRef.current.on('get_socket_id', ({ socket_id }) => {
       setSocketId(socket_id);
     });
     
+    //updates room users
     socketRef.current.on('room_users_updated', ({ users, message }) => {
       setRoomUsers(users);
       setCursorColor(users.find((u) => u.user_id === user.uid)?.cursor);
@@ -180,20 +194,24 @@ function AssignedRoom() {
       }
     });  
 
+    //updates selected active file's contents
     socketRef.current.on('found_file', ({ file }) => {
       setActiveFile(file);
     });
 
+    //updates editor users
     socketRef.current.on('editor_users_updated', ({ editors }) => {
       setEditorUsers(editors);
     });
 
+    //update timeframes
     socketRef.current.on('dates_updated', ({ new_open_time, new_close_time }) => {
       setTimeframes([new_open_time, new_close_time]);
       toast.success(`Activity dates updated to ${convertTime(new_open_time)} - ${convertTime(new_close_time)}`);
     });
 
     return () => {
+       // Cleanup socket listeners
       if (socketRef.current) {
         socketRef.current.off('connect');
         socketRef.current.off('get_socket_id');
@@ -210,12 +228,12 @@ function AssignedRoom() {
   }, [socketRef.current, activeFile]);
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-
+    if (!user) return;
+    
+    // Keyboard shortcuts handler
     const handleKeyDown = (event) => {
       if (user?.position === 'Student' && activityOpen) {
+        //add file shortcut
         if (event.altKey && event.key === 'a') {
           event.preventDefault();
           setDeleteFile(false);
@@ -223,6 +241,7 @@ function AssignedRoom() {
           setLeftDisplay('files');
           return;
         }
+        //delete file shortcut
         if (event.altKey && event.key === 'x') {
           event.preventDefault();
           setAddNewFile(false);
@@ -232,6 +251,7 @@ function AssignedRoom() {
         }
       }
 
+      //further shortcuts
       handleKeyDownAssigned(event, setLeftDisplay, setRightDisplay, room_files, displayFile, startRunOutput, startRunOutputFullView);
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -244,10 +264,10 @@ function AssignedRoom() {
   }, [user, room_files, activeFile]);
 
   useEffect(() => {
-    if (!activity || timeframes.length === 0) {
-      return;
-    }
+    if (!activity || timeframes.length === 0) return;
   
+    // Activity timeframe checker
+    // Checks if the current time is within the activity timeframe
     async function toggleActivityTimeframe() {
       const open = await checkTimeframe(timeframes[0], timeframes[1]);
       setActivityOpen(open);
@@ -261,6 +281,7 @@ function AssignedRoom() {
     };
   }, [timeframes, activity]);
 
+  // Changes active file and finds file contents using socket
   function displayFile(file) {
     if (activeFile?.file_id === file?.file_id) return;
     setActiveFile(null);
@@ -272,22 +293,28 @@ function AssignedRoom() {
   }
 
   function startRunOutput() {
+    // Executes code in normal output view
     runOutput(outputRef.current, room_id, room_files, activeFile);
   }
 
   function startRunOutputFullView() {
+    // Executes code in full screen view
     runOutputFullView(room_id, room_files, activeFile);
   }
   
+  // Handles room exit
   function leaveRoom () {
     if (socketRef.current) {
+      //disconnects from socket 
       socketRef.current.disconnect();
     }
 
     if (user?.position === 'Student') {
+      //if student, navigate to dashboard page
       navigate (`/dashboard/${activity.class_id}/all`);
 
     } else if (user?.position === 'Professor'){
+      //if professor, navigate to activity page
       navigate (`/activity/${activity.activity_id}`);
     }
 

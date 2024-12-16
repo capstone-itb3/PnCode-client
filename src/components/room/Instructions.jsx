@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 
 function Instructions({instructions, setInstructions, socket}) {
     useEffect(() => {
+        // Socket listener for real-time instruction updates
         socket.on('instructions_updated', ({ new_instructions }) => {
             setInstructions(new_instructions);
             toast.success('Instructions has been updated.');
@@ -15,18 +16,17 @@ function Instructions({instructions, setInstructions, socket}) {
     }, [socket]);
 
 
-
+    // Toggle instructions panel visibility with animation
     function toggleInstructions() {
         const instruc = document.getElementById('instructions-container');
         instruc.classList.toggle('opened');
     
+        // Apply toggle classes to multiple elements
         const toOpen = [document.querySelector('#instructions-container'), 
                         document.querySelector('#instructions-container #p'),
                         document.querySelector('#editor-header #btn')];
 
-        toOpen.forEach(item => {
-            item.classList.toggle('closed');
-        });
+        toOpen.forEach(item => item.classList.toggle('closed'));
     }
     
 

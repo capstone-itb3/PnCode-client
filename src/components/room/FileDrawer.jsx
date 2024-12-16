@@ -3,34 +3,42 @@ import { FaHtml5, FaCss3, FaJs } from 'react-icons/fa';
 import { BsTrash } from 'react-icons/bs';
 import { FiPlus } from 'react-icons/fi';
 
+// Component that manages file listing, creation and deletion in the room
 function FileDrawer({room, socket, room_files, activityOpen, setRoomFiles, activeFile, displayFile, addNewFile, setAddNewFile, deleteFile, setDeleteFile, editorUsers, roomUsers}) {
+    // State management for file operations
     const [new_file_name, setNewFileName] = useState('');
     const [new_file_type, setNewFileType] = useState('html');
     const [warning, setWarning] = useState(null);
     const addFileRef = useRef(null);
     const deleteFileRef = useRef(null);
 
+    // Socket listeners for file operations
     useEffect(() => {
+      // Handle new file creation response
       socket.on('file_added', ({ status, file, message }) => {
         if (status === 'ok') {
             setWarning(null);
             setAddNewFile(false);
             setNewFileName('');
 
+            // add new file to the list of files
             setRoomFiles(prevFiles => [...prevFiles, file]);
         } else {
             setWarning(message);
         }
       });
 
+      // Handle file deletion response
       socket.on('file_deleted', ({ status, file_id, message }) => {
         if (status === 'ok') {
             setWarning(null);
             setDeleteFile(false);
 
+            // Update file list after deletion
             let files = room_files.filter(file => file.file_id !== file_id);
             setRoomFiles(prevFiles => prevFiles.filter(file => file.file_id !== file_id));
 
+            // Handle active file changes after deletion
             if (files.length !== 0 && activeFile && activeFile.file_id === file_id) {
                 displayFile(files[0]);
             } else if (files.length === 0) {
@@ -47,20 +55,18 @@ function FileDrawer({room, socket, room_files, activityOpen, setRoomFiles, activ
       }
     }, [room_files, activeFile]);
     
+    // Focus management for file operations
     useEffect(() => {
-        if (addNewFile && addFileRef.current) {
-          addFileRef.current.focus();
-        }
-
-        if (deleteFile && deleteFileRef.current) {
-          deleteFileRef.current.focus();
-        }
+        if (addNewFile && addFileRef.current) addFileRef.current.focus();
+        if (deleteFile && deleteFileRef.current) deleteFileRef.current.focus();
     }, [addNewFile, deleteFile]);
       
+     // Handle file selection and deletion
     function useFile(file) {
         if (!deleteFile) {
             displayFile(file);
         } else {
+          // Double confirmation for file deletion
             const result1 = confirm(`Do you want to delete ${file.name}?`);
 
             if (result1) {
@@ -77,10 +83,11 @@ function FileDrawer({room, socket, room_files, activityOpen, setRoomFiles, activ
         }
     }
 
-
+    // Handle new file creation
     function addFile(e) {
         e.preventDefault();
 
+        //Send new file details to server
         socket.emit('add_file', {
             room_id: room.room_id,
             file_name: new_file_name,

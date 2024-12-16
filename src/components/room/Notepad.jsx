@@ -9,13 +9,17 @@ import _ from 'lodash'
 import notepadListener from './utils/notepadListener'
 
 function Notepad({room, user, socket, cursorColor, activityOpen}) {
+    // Refs management for notepad and websocket provider
     const notepadRef = useRef(null);
     const providerRef = useRef(null);
   
+    // Main setup effect for collaborative notes
     useEffect(() => {
+        // Cleanup previous instances
         notepadRef.current ? notepadRef.current?.destroy() : null;
         providerRef.current ? providerRef.current?.destroy() : null;
     
+        // Initialize notepad with existing content
         async function init() {
             return new Promise((resolve) => {
                 socket.emit('load_notepad', {
@@ -28,19 +32,23 @@ function Notepad({room, user, socket, cursorColor, activityOpen}) {
             });
         }
         init().then((notes) => {
+            // Setup YJS document for collaboration
             const ydoc = new Y.Doc();
       
+            // Initialize WebSocket provider for real-time collaboration
             providerRef.current = new WebsocketProvider(import.meta.env.VITE_APP_WEBSOCKET, 
                 `${room.room_id}-notepad`, 
                 ydoc
             );
             
+            // Set user awareness state for collaborative cursors
             providerRef.current.awareness.setLocalStateField('user', {
                 userId: user.uid,
                 name: user.last_name + ', ' + user.first_name,
                 color: cursorColor.color,
             });
       
+            // Configure editor permissions based on user position
             const setup = () => {
                 if (user?.position === 'Student') {
                     return EditorState.readOnly.of(!activityOpen);
@@ -49,9 +57,11 @@ function Notepad({room, user, socket, cursorColor, activityOpen}) {
                 }
             }
 
+             // Handle initial content synchronization
             providerRef.current.on('synced', () => {
                 const ytext = ydoc.getText('codemirror');
                 let initialContent = ytext.toString();
+                // Set initial content if empty and first user
                 if (((initialContent === '' || initialContent === null) && providerRef.current.awareness.getStates()?.size === 1)) {
                     ydoc.transact(() => {
                         ytext.insert(0, notes);
@@ -59,6 +69,7 @@ function Notepad({room, user, socket, cursorColor, activityOpen}) {
                     initialContent = notes;
                 }
 
+                // Create and configure CodeMirror editor instance
                 const state = EditorState.create({
                     doc: initialContent,
                     extensions: [
@@ -75,6 +86,7 @@ function Notepad({room, user, socket, cursorColor, activityOpen}) {
                     ]
                 });
 
+                // Mount editor and setup event listeners
                 const notepad = document.getElementById('notepad');
                 notepad.innerHTML = '';
                 notepadRef.current = new EditorView({ state, parent: (notepad) });
@@ -87,6 +99,7 @@ function Notepad({room, user, socket, cursorColor, activityOpen}) {
             });
         })
 
+        // Cleanup on component unmount
         return () => {
             if (user?.position === 'Student') {
                 document.getElementById('notepad')?.removeEventListener('keydown', notepadListener);
@@ -97,6 +110,7 @@ function Notepad({room, user, socket, cursorColor, activityOpen}) {
         };
     }, [room, user, socket, cursorColor, activityOpen]);
 
+     // Debounced function to save notepad content
     const updateNotes = _.debounce(() => {
         if (notepadRef.current) {
             socket.emit('save_notepad', {

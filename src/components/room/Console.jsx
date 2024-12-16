@@ -5,16 +5,19 @@ import { RiArrowDropDownLine } from 'react-icons/ri';
 import { useParams } from 'react-router-dom';
 
 function Console({rightDisplay, name, socket, socketId, sharedEnabled, consoleOpen, setConsoleOpen}) {
+  // States for managing console logs and display settings
   const [logs, setLogs] = useState([]);
   const [showShared, setShowShared] = useState(sharedEnabled ? true : false );
   const logsRef = useRef(null);
   const { room_id } = useParams();
   const [filteredLogs, setFilteredLogs] = useState(logs);
 
-
+  // Handle incoming console messages and logging
   useEffect(() => {
     function handleMessage(event) {
+      // Check if the received message is a console message
       if (event.data && event.data.type === 'console') {
+        // Extract relevant information from the message
         const timestamp = new Date().toLocaleTimeString();
         const log = {
             time: timestamp,
@@ -26,6 +29,7 @@ function Console({rightDisplay, name, socket, socketId, sharedEnabled, consoleOp
         setLogs(prev => [...prev, log]);
 
         if (name && socket) {
+            //share the log to other users in the room
             socket.emit('share_log', {
                 room_id,
                 log,
@@ -35,6 +39,7 @@ function Console({rightDisplay, name, socket, socketId, sharedEnabled, consoleOp
       }
     }
 
+    // Attach event listener for console messages from output
     window.addEventListener('message', handleMessage);
     return () => {
         window.removeEventListener('message', handleMessage);
@@ -42,14 +47,15 @@ function Console({rightDisplay, name, socket, socketId, sharedEnabled, consoleOp
   }, [socket]);
 
   useEffect(() => {
-    if (!socket) {
-      return;
-    }
+    if (!socket) return;
+
+    // Listen for shared logs from other users in the room
     socket.on('add_shared_log', ({ new_log, socket_id }) => {
         if (new_log.logger === name && socket_id === socketId ) {
             return;
         }
 
+        // Add the shared log to the logs state
         setLogs(prev => [...prev, new_log]);
     })
 
@@ -59,11 +65,13 @@ function Console({rightDisplay, name, socket, socketId, sharedEnabled, consoleOp
   }, [socketId, room_id])
 
   useEffect(() => {
+    // Filter logs based on shared visibility setting
     setFilteredLogs(!showShared ? logs.filter(log => log.logger === 1) : logs)
   }, [logs, showShared]);
 
   useEffect(() => {
     if (logsRef.current) {
+        // Scroll to the latest logs
         logsRef.current.scrollTop = logsRef.current.scrollHeight;
     }  
   }, [filteredLogs])

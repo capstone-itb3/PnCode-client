@@ -33,7 +33,7 @@
     "react-router-dom": "^6.22.3",
     "socket.io-client": "^4.7.5",
     "thememirror": "^2.0.1",
-    "vite": "^5.4.10",
+    "vite": "^6.0.3",
     "web-vitals": "^2.1.4",
     "y-codemirror.next": "^0.3.3",
     "y-websocket": "^2.0.2",

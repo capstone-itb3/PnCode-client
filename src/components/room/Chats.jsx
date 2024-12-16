@@ -5,40 +5,48 @@ import { FiMinusCircle } from 'react-icons/fi';
 import { positionChat, minimizeChat } from './utils/toggleChat';
 import { showConfirmPopup } from '../reactPopupService';
 
-
+// Main chat component handling real-time messaging between team members
 function Chats({room, socket, user}) {
+    // State for storing chat messages and current message input
     const [chats, setChats] = useState(null);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
         try {
+            // Request existing messages when component mounts
             socket.emit('load_messages', {
                 room_id: room.room_id,
             });
     
+            // Handle initial messages load
             socket.on('messages_loaded', ({chat_data}) => {
                 setChats(chat_data);
     
+                // Auto-scroll to latest message
                 setTimeout(() => {
                     const scroll = document.getElementById('chat-box-scroll');
                     scroll.scrollTop = scroll.scrollHeight;
                 },100);
             })
-    
+
+            // Handle new incoming messages
             socket.on('update_messages', ({new_message}) => {
                 setChats(prev => [...prev, new_message]);
     
+                // Auto-scroll and show chat if minimized for new messages
                 setTimeout(() => {
                     const scroll = document.getElementById('chat-box-scroll');
                     scroll.scrollTop = scroll.scrollHeight;
 
                     const chat_box = document.getElementById('chat-box-container');
+                    // Show chat box if message is from another user and chat is hidden
                     if (new_message.sender_uid !== user.uid && chat_box.classList.contains('hidden')) {
                         minimizeChat();
                     }
                 },100);
             });
-    
+
+             // Handle message deletion
             socket.on('message_deleted', ({ createdAt }) => {
                 setChats(prev => prev.filter(item => item.createdAt !== createdAt));
             });
@@ -54,6 +62,7 @@ function Chats({room, socket, user}) {
         }
     }, [room]);
 
+    // Handle sending new messages
     function sendMessage(e) {
         e.preventDefault();
         
@@ -65,9 +74,12 @@ function Chats({room, socket, user}) {
             message: message,
         });
         
+        // Clear input after sending
         setMessage('');
     }
 
+
+    // Handle message deletion with confirmation
     async function deleteMessage(createdAt) {
         const res = await showConfirmPopup({
             title: 'Delete Message',

@@ -4,14 +4,17 @@ import Editor from './Editor'
 import { showConfirmPopup } from '../reactPopupService';
 
 function EditorTab({room, user, cursorColor, socket, activityOpen, activeFile, editorTheme, rightDisplay}) {
+    // States for managing editor and file states
     const [warning, setWarning] = useState(0);
     const [saved, setSaved] = useState(null);
     const [alertUp, setAlertUp] = useState(false);
 
     useEffect(() => {
+        //check for websocket errors
         async function alertWarning() {    
             if (warning === 5 && alertUp === false) {
                 setAlertUp(true);
+                //error warning popup when unable to connect to websocket
                 const reload = await showConfirmPopup({
                     title: 'Websocket Error',
                     message: 'Unable to connect to websocket. Do you want to reload the page?',
@@ -19,9 +22,8 @@ function EditorTab({room, user, cursorColor, socket, activityOpen, activeFile, e
                     cancel_text: 'Wait to reconnect',
                 });
 
-                if (reload) {
-                    window.location.reload();
-                }
+                if (reload) window.location.reload();
+                
                 setAlertUp(false);
             }
         }

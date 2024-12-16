@@ -1,6 +1,5 @@
 
 import { snippetCompletion } from '@codemirror/autocomplete'
-// import { html5Snippet, jquerySnippet, bootstrapSnippet } from './utils/codeSnippets';
 
 const html = `<!DOCTYPE html>`
            + `\n<html lang="en">`
@@ -19,8 +18,6 @@ const bootstrap = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boo
                 + `\n<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>`
                 + `\n<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>`
 
-// const fontawesome = `<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>`
-
 const html5Snippet = snippetCompletion(html, {
     label: 'html:5',
     detail: 'HTML5 boilerplate'
@@ -36,14 +33,8 @@ const bootstrapSnippet = snippetCompletion(bootstrap, {
     detail: 'Link & Script tags for Bootstrap'
 });
 
-// const fontawesomeSnippet = snippetCompletion(fontawesome, {
-//     label: 'Font Awesome',
-//     detail: 'Script tag for Font Awesome'
-// })
-
 export {    
             html5Snippet,
             jquerySnippet, 
             bootstrapSnippet,
-            // fontawesomeSnippet
         };

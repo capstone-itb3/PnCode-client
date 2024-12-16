@@ -5,8 +5,8 @@ export default async function checkTimeframe(open_time, close_time) {
     date_now = await fetch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/server-date`, { method: 'GET' });
     date_now = new Date(await date_now.json().then(data => data.date));
   } catch (error) {
-    date_now = new Date();
     console.error('Failed to fetch server time:', error);
+    return false;
   }
 
   const date_utc = date_now.getTime() + (date_now.getTimezoneOffset() * 60000);

@@ -5,6 +5,7 @@ import handleMenu from '../dashboard/utils/handleMenu';
 
 
 function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, setEditorTheme, setAddNewFile, setDeleteFile, startRunOutput, startRunOutputFullView}) {
+    // Theme state management with cookie persistence
     const [isChecked, setIsChecked] = useState(() => {
         if (Cookies.get('theme') === 'dark' || !Cookies.get('theme')) {
             return true;
@@ -13,11 +14,13 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         }
     });
 
+    // Refs for menu dropdowns
     const fileRef = useRef(null);
     const viewRef = useRef(null);
     const preferenceRef = useRef(null);
     const runRef = useRef(null);
 
+    // Handle clicking outside menus to close them
     useEffect(() => {
         function handleClickOutside(e) {
             handleMenu(fileRef.current, openMenu, e.target);
@@ -32,6 +35,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         };
     }, [])
 
+    // Menu toggle handler
     function openMenu(clicked) {
         if (clicked !== false) {
             if (clicked === 'files' && type === 'assigned') {
@@ -42,6 +46,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
                 option?.classList?.toggle('hidden');
             }
     
+            // Close all other menus
             document.querySelectorAll('.options-menu').forEach((menu) => {
                 if (menu.id !== option?.id && !menu.classList.contains('hidden')) {
                     menu.classList.add('hidden');
@@ -57,6 +62,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         }
     }
 
+    // Handle add file option
     function addFile() {
         setDeleteFile(false);
         setAddNewFile(true);
@@ -66,6 +72,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         option.classList.toggle('hidden');
     }
 
+    // Handle open file option
     function openFile() {
         setLeftDisplay('files');
 
@@ -83,6 +90,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         }
     }
     
+    // Handle delete file option
     function deleteFile() {
         setAddNewFile(false);
         setDeleteFile(true);
@@ -92,6 +100,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         option.classList.toggle('hidden');
     }
 
+    // Handle view section option
     function viewSection (view) {
         if (view === 'files' || view === 'notepad') {
             setLeftDisplay(view);
@@ -102,6 +111,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         option.classList.toggle('hidden');
     }
 
+    // Handle close tab option
     function closeSection(direction) {
         if (direction === 'left') {
             setLeftDisplay('');
@@ -113,6 +123,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         option.classList.toggle('hidden');
     }
 
+    // Handle change theme option
     function changeTheme(checked, from) {
         const theme = checked ? 'dark' : 'light';
         user.changeTheme(theme);
@@ -125,6 +136,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         }
     }
 
+    // Handle run code option
     function runCode() {
         setRightDisplay('output');
         startRunOutput();
@@ -132,6 +144,7 @@ function Options({type, user, activityOpen, setLeftDisplay, setRightDisplay, set
         option.classList.toggle('hidden');
     }
 
+    // Handle run code full view option
     function runCodeFull() {
         startRunOutputFullView()
         const option = document.getElementById(`run-menu`);
