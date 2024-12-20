@@ -134,7 +134,7 @@ function History({ viewCount, file, socket, rightDisplay }) {
             }
             {contributions && options !== 'history' &&
               <div className='contribution-div'>
-                <label className='edit-count-label'>Current Total Edit Count:</label>
+                <label className='edit-count-label'>Live Total Edit Count:</label>
                 <div className='contribution-list'>
                   {contributions.length !== 0 && contributions.map((cont, index) => {
                     return (

@@ -65,9 +65,6 @@ function Notifications({ user, notifications, setNotifications }) {
         if (room_id) {
           toast.success('Redirecting you to your team\'s assigned room...');
           navigate(`/room/${room_id}`);
-
-        } else {
-          return;
         }
       }
     } catch (e) {

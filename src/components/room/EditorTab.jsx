@@ -3,7 +3,7 @@ import { BsExclamationTriangleFill } from 'react-icons/bs'
 import Editor from './Editor'
 import { showConfirmPopup } from '../reactPopupService';
 
-function EditorTab({room, user, cursorColor, socket, activityOpen, activeFile, editorTheme, rightDisplay}) {
+function EditorTab({room, user, cursorColor, socket, activityOpen, activeFile, editorTheme, rightDisplay, fileLoading}) {
     // States for managing editor and file states
     const [warning, setWarning] = useState(0);
     const [saved, setSaved] = useState(null);
@@ -39,7 +39,10 @@ function EditorTab({room, user, cursorColor, socket, activityOpen, activeFile, e
                     {activeFile &&
                         <label>{activeFile.name}</label>
                     } 
-                    {!activeFile &&
+                    {fileLoading && !activeFile &&
+                        <label>Loading...</label>
+                    }
+                    {!activeFile && !fileLoading &&
                         <label>No file selected.</label>
                     }
                 </div>

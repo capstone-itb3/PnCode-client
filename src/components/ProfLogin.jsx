@@ -10,14 +10,14 @@ function ProfLogin() {
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
     const [ warning, setWarning ] = useState(null);
-    const [ hasAccess, setHasAccess ] = useState(false);
+    const [ hasAccess, setHasAccess ] = useState(true);
     const [ isSubmitting, setIsSubmitting ] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const init = async () => await restrictStudent() ? setHasAccess(true) : navigate('/error/404/');
-        init();
-    }, []);
+    // useEffect(() => {
+    //     const init = async () => await restrictStudent() ? setHasAccess(true) : navigate('/error/404/');
+    //     init();
+    // }, []);
 
     async function loginAccount(event) {
         event.preventDefault();

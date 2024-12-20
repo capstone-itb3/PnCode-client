@@ -75,6 +75,7 @@ function AssignedRoom() {
   const [deleteFile, setDeleteFile] = useState(false);
   const [editorTheme, setEditorTheme] = useState(Cookies.get('theme') || 'dark');  
   const [consoleOpen, setConsoleOpen] = useState(true);
+  const [fileLoading, setFileLoading] = useState(false);
 
   // Main initialization and room setup
   useEffect(() => {
@@ -197,6 +198,7 @@ function AssignedRoom() {
     //updates selected active file's contents
     socketRef.current.on('found_file', ({ file }) => {
       setActiveFile(file);
+      setFileLoading(false);
     });
 
     //updates editor users
@@ -284,6 +286,7 @@ function AssignedRoom() {
   // Changes active file and finds file contents using socket
   function displayFile(file) {
     if (activeFile?.file_id === file?.file_id) return;
+    setFileLoading(true);
     setActiveFile(null);
 
     socketRef.current.emit('find_file', {
@@ -428,7 +431,8 @@ function AssignedRoom() {
                 activityOpen={activityOpen}
                 activeFile={activeFile}
                 editorTheme={editorTheme}
-                rightDisplay={rightDisplay}/>
+                rightDisplay={rightDisplay}
+                fileLoading={fileLoading}/>
               <div className={`flex-column ${rightDisplay === '' && 'none'}`} id='right-body'>
                 <div className='side-tab-buttons flex-row'>
                   <button className='remove-side-tab items-center' onClick={() => setRightDisplay('')}>

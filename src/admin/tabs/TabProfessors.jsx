@@ -314,11 +314,11 @@ function TabProfessors({ admin, showId, setShowId }) {
           <button className='selected-btn' onClick={() => navigate(`/admin/dashboard/classes/q=${selectedRef.current.uid} ${selectedRef.current.first_name} ${selectedRef.current.last_name}&f=professor`)}>
             View Professor's Classes
           </button>
-          <button
+          {/* <button
             className='selected-btn'
             onClick={() => navigate(`/admin/dashboard/professor/${selectedRef.current.uid}/solo-rooms/q=&f=`)}>
             View Solo Rooms
-          </button>
+          </button> */}
           <button className='selected-btn select-edit' onClick={showEditForm}>
             Edit Professor
           </button>
